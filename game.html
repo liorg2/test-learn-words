@@ -259,6 +259,43 @@
         #increaseFont {
             margin-right: 10px;
         }
+
+        /* Add this to your CSS file */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        #wordContainer, #translationContainer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 10px;
+        }
+
+        .word, .translation {
+            margin: 5px;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        @media (max-width: 600px) {
+            .word, .translation {
+                font-size: 14px;
+                padding: 8px;
+            }
+        }
     </style>
 </head>
 
@@ -484,6 +521,12 @@
             // Existing event listener for drag start
             wordDiv.addEventListener('dragstart', dragStart);
 
+            wordDiv.addEventListener('touchstart', touchStart);
+            wordDiv.addEventListener('touchmove', touchMove);
+            wordDiv.addEventListener('touchend', touchEnd);
+            
+            
+
             // Modified event listener for mouse enter
             wordDiv.addEventListener('mouseenter', function () {
                 if (!hasEnabledVoice) {
@@ -528,6 +571,30 @@
         loadFontSize();
     }
 
+    function touchStart(event) {
+        event.preventDefault();
+        const touch = event.touches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        dragStart({ dataTransfer: new DataTransfer(), target });
+    }
+
+    function touchMove(event) {
+        event.preventDefault();
+        const touch = event.touches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (target && target.classList.contains('translation')) {
+            dragOver({ preventDefault: () => {} });
+        }
+    }
+
+    function touchEnd(event) {
+        event.preventDefault();
+        const touch = event.changedTouches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (target && target.classList.contains('translation')) {
+            drop({ preventDefault: () => {}, target });
+        }
+    }
     function dragStart(event) {
         event.dataTransfer.setData("text", event.target.textContent);
     }
