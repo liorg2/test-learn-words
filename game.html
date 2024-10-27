@@ -4,40 +4,601 @@
 <head>
     <meta charset="UTF-8">
     <title> התאמת מילים</title>
-    <link rel="stylesheet" href="style.css">
+<!--    <link rel="stylesheet" href="style.css">-->
+
+    <style>
+
+        @keyframes fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            100% {
+                transform: translateY(500px) rotate(360deg);
+            }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #ffcc00;
+            animation: fall 1s linear infinite;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-image: url("./back.jpg");
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+        }
+
+        .game-area {
+            width: 90%;
+            max-width: 1900px;
+        }
+
+        .word-container,
+        .translation-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .word,
+        .translation {
+            border: 2px solid #007BFF;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #E1ECF4;
+            cursor: pointer;
+            user-select: none;
+            font-size: 25px;
+            margin: 5px 10px;
+        }
+
+        .translation {
+            direction: rtl;
+        }
+
+        .separator {
+            width: 100%;
+            border-bottom: 2px dashed #007BFF;
+            margin: 20px 0;
+        }
+
+        .instructions {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0056b3;
+            margin: 20px;
+            text-align: center;
+        }
+
+
+        .score-display {
+            font-weight: bold;
+            margin: 20px;
+            text-align: center;
+            font-size: 20px;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+
+        }
+
+        .status-message {
+            font-weight: bold;
+            position: fixed;
+            /* או absolute, תלוי במבנה הדף */
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            background-color: #76B947;
+            /* צבע רקע - ניתן לשנות לפי העדפה */
+            color: white;
+            /* צבע טקסט */
+            padding: 10px 20px;
+            border-radius: 0 0 10px 10px;
+            /* קורנרים מעוגלים בחלק התחתון */
+        }
+
+        #nameInput {
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #007BFF;
+            border-radius: 5px;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto;
+            width: 200px;
+            text-align: center;
+            /* Text aligned to the center */
+        }
+
+        #reset {
+            color: green;
+            font-weight: bold;
+
+        }
+
+        #testSelect {
+            padding: 5px 10px;
+            /* Increase padding to make it larger */
+            font-size: 16px;
+            /* Larger font size for better readability */
+
+            display: block;
+            /* Make it a block element to take width settings properly */
+            cursor: pointer;
+            /* Shows a pointer cursor on hover */
+            background-color: #ffffff;
+            /* Background color */
+            color: #000000;
+            /* Text color */
+            border: 2px solid #007BFF;
+            /* Border properties */
+            border-radius: 5px;
+            /* Rounded corners */
+        }
+
+        #testSelect:hover {
+            background-color: #f8f8f8;
+            /* Slightly change background on hover for visual feedback */
+        }
+
+
+        .control-panel {
+            display: flex;
+            /* Aligns children inline */
+            justify-content: space-between;
+            /* Distributes space between and around content items */
+            align-items: center;
+            /* Aligns items vertically in the center */
+
+            padding: 10px;
+            /* Padding around the container */
+        }
+
+        #testSelect {
+            flex-grow: 1;
+            /* Allows the select element to grow and fill the space */
+            margin-right: 10px;
+            /* Adds some space between the select and the button */
+        }
+
+        #resetGameButton {
+            padding: 5px 10px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #resetGameButton:hover {
+            background-color: #0056b3;
+        }
+
+
+        #decreaseFont,
+        #increaseFont {
+            padding: 5px 10px;
+            /* Standard padding to ensure buttons are the same size */
+            cursor: pointer;
+            border: 1px solid #007BFF;
+            border-radius: 5px;
+            background-color: #E1ECF4;
+            width: 50px;
+            /* Fixed width to ensure buttons are the same size */
+            display: inline-block;
+            /* Ensure the button does not stretch to fit its container */
+            text-align: center;
+            /* Centers the text within the button */
+            line-height: 20px;
+            /* Adjust line height to vertically center the text */
+            font-weight: bold;
+        }
+
+        #decreaseFont {
+            font-size: 12px;
+            /* Smaller font size for "A-" */
+        }
+
+        #increaseFont {
+            font-size: 18px;
+            /* Larger font size for "A+" */
+
+        }
+
+
+        #voiceSelect,
+        button {
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 16px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #007BFF;
+        }
+
+
+        .control-panel {
+            display: flex;
+            align-items: flex-end;
+            padding: 10px;
+            margin-top: 50px;
+        }
+
+        .dropdown-group {
+            display: flex;
+            flex-direction: column;
+            margin-left: 20px;
+        }
+
+        .dropdown-group label {
+            direction: rtl;
+            padding-right: 15px;;
+        }
+
+        #resetGameButton,
+        #decreaseFont,
+        #increaseFont {
+            margin-right: 10px;
+        }
+    </style>
 </head>
 
 <body>
 
-    <div class="score-display" id="scoreDisplay">נקודות: 0</div>
-    <div class="control-panel">
-        <button href="javascript:void(0);" id="resetGameButton" onclick="loadSelectedTest()">חדש</button>
-        <button id="decreaseFont" onclick="changeFontSize(-1)">A-</button>
-        <button id="increaseFont" onclick="changeFontSize(1)">A+</button>
-    
-        <div class="dropdown-group">
-            <label for="voiceSelect">קולות מותקנים במכשיר:</label>
-            <select id="voiceSelect"></select>
-        </div>
-    
-        <div class="dropdown-group">
-            <label for="testSelect">בחר הכתבה:</label>
-            <select id="testSelect"></select>
-        </div>
+<div class="score-display" id="scoreDisplay">נקודות: 0</div>
+<div class="control-panel">
+    <button id="resetGameButton" onclick="loadSelectedTest()">חדש</button>
+    <button id="decreaseFont" onclick="changeFontSize(-1)">A-</button>
+    <button id="increaseFont" onclick="changeFontSize(1)">A+</button>
+
+    <div class="dropdown-group">
+        <label for="voiceSelect">קולות מותקנים במכשיר:</label>
+        <select id="voiceSelect"></select>
     </div>
-    
-    
+
+    <div class="dropdown-group">
+        <label for="testSelect">בחר הכתבה:</label>
+        <select id="testSelect"></select>
+    </div>
+</div>
 
 
-    <div class="status-message" id="statusMessage"></div>
-    <div class="instructions">.יש לגרור כל מילה אל התרגום שלה</div>
-    <div class="game-area">
-        <div class="word-container" id="wordContainer"></div>
-        <div class="separator"></div>
-        <div class="translation-container" id="translationContainer"></div>
-    </div>
-    <script src="list.js"></script>
-    <script src="game.js"></script>
+<div class="status-message" id="statusMessage"></div>
+<div class="instructions">.יש לגרור כל מילה אל התרגום שלה</div>
+<div class="game-area">
+    <div class="word-container" id="wordContainer"></div>
+    <div class="separator"></div>
+    <div class="translation-container" id="translationContainer"></div>
+</div>
+<!--    <script src="list.js"></script>-->
+<script>
+    const list = [
+
+        {
+            scriptUrl: "./maya/english/10-2024/words2.js",
+            name: "אנגלית אוקטובר 2024 חלק 2",
+            lang: 'en-US',
+        },
+        {
+            scriptUrl: "./maya/english/10-2024/words.js",
+            name: "אנגלית אוקטובר 2024 חלק 1",
+            lang: 'en-US',
+        },
+        {
+            scriptUrl: "./maya/french/10-2024/words.js",
+            name: "צרפתית אוקטובר 2024",
+            lang: 'fr-FR',
+        }
+    ];
+
+
+    let playerName = "שחקן"; // Default player name
+    let score = 0;
+
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    let hasEnabledVoice = false;
+    document.addEventListener('DOMContentLoaded', function () {
+        const select = document.getElementById('testSelect');
+
+
+        // Append options from the list to the select element
+        list.forEach(item => {
+            let option = document.createElement('option');
+            option.value = item.scriptUrl; // Store URL in value for loading script
+            option.textContent = item.name;
+            option.dataset.lang = item.lang; // Store language in data attribute
+            select.appendChild(option);
+        });
+
+
+        select.addEventListener('change', function () {
+
+            loadSelectedTest();
+        });
+
+
+        loadSelectedTest();
+    });
+
+    function loadVoiceSettings() {
+        const savedVoiceName = localStorage.getItem('selectedVoice');
+        if (savedVoiceName) {
+            const voiceSelect = document.getElementById('voiceSelect');
+            const options = voiceSelect.options;
+            for (let i = 0; i < options.length; i++) {
+                if (options[i].value === savedVoiceName) {
+                    voiceSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+    }
+
+    function saveVoiceSettings(voiceName) {
+        localStorage.setItem('selectedVoice', voiceName);
+    }
+
+    function loadVoices(language) {
+        const voiceSelect = document.getElementById('voiceSelect');
+        voiceSelect.innerHTML = '';  // Clear previous options
+
+        let attempts = 0;
+        const maxAttempts = 50;  // Limit the number of retries
+
+        const checkVoices = () => {
+            const synth = window.speechSynthesis;
+            const voices = synth.getVoices().filter(voice => voice.lang.startsWith(language));
+
+            if (voices.length > 0 || attempts >= maxAttempts) {
+                voices.forEach(voice => {
+                    const option = document.createElement('option');
+                    option.textContent = voice.name + ' (' + voice.lang + ')';
+                    option.value = voice.name;
+                    voiceSelect.appendChild(option);
+                });
+                loadVoiceSettings();  // Load the saved voice settings after the options are added
+            } else {
+                attempts++;
+                setTimeout(checkVoices, 50);  // Retry after 50 ms
+            }
+        };
+
+        checkVoices();  // Start checking for voices
+    }
+
+    function changeFontSize(change) {
+        const words = document.querySelectorAll('.word, .translation');
+        words.forEach(word => {
+            const currentSize = parseInt(window.getComputedStyle(word, null).getPropertyValue('font-size'), 10);
+            const newSize = currentSize + change;
+            word.style.fontSize = `${newSize}px`;
+        });
+        // Save the new font size to local storage
+        saveFontSizeToLocal(words[0].style.fontSize);
+    }
+
+    function saveFontSizeToLocal(fontSize) {
+        localStorage.setItem('fontSize', fontSize);
+    }
+
+    function loadFontSize() {
+        const savedFontSize = localStorage.getItem('fontSize');
+        if (savedFontSize) {
+            const words = document.querySelectorAll('.word, .translation');
+            words.forEach(word => {
+                word.style.fontSize = savedFontSize;
+            });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadFontSize);
+    document.getElementById('voiceSelect').addEventListener('change', function () {
+        const selectedVoice = this.value;
+        saveVoiceSettings(selectedVoice);
+    });
+
+    function loadSelectedTest() {
+        const select = document.getElementById('testSelect');
+
+        setTimeout(() => {
+            loadVoices(select.options[select.selectedIndex].dataset.lang);
+        }, 100);
+
+        loadWords(select.options[select.selectedIndex].dataset.lang);
+    }
+
+    function loadWords(language) {
+        const select = document.getElementById('testSelect');
+        const scriptUrl = select.value;
+        if (scriptUrl) {
+            // Remove any previously loaded script to prevent duplicates or conflicts
+            const existingScript = document.querySelector('script[data-source="dynamic-words"]');
+            if (existingScript) {
+                document.body.removeChild(existingScript);
+            }
+
+            // Load the new script
+            const script = document.createElement('script');
+            script.src = scriptUrl;
+            script.setAttribute('data-source', 'dynamic-words'); // Mark the script to identify it later
+            document.body.appendChild(script);
+            loadFontSize();
+            script.onload = () => {
+
+                initializeGame(language); // Initialize the game once the words are loaded, passing the language
+            };
+        }
+    }
+
+
+    function initializeGame(language = 'en-US') {
+
+        if (!words || !Array.isArray(words)) return;
+
+        const wordContainer = document.getElementById('wordContainer');
+        const translationContainer = document.getElementById('translationContainer');
+        wordContainer.innerHTML = '';
+        translationContainer.innerHTML = '';
+        updateScore(0); // Reset score at game start
+
+        const shuffledWords = shuffleArray([...words]);
+        const shuffledTranslations = shuffleArray([...words]);
+
+
+        let speakTimeout; // Declare a variable to hold the timeout
+
+        shuffledWords.forEach(word => {
+            const wordDiv = document.createElement('div');
+            wordDiv.className = 'word';
+            wordDiv.textContent = word.text;
+            wordDiv.draggable = true;
+
+
+            // Existing event listener for drag start
+            wordDiv.addEventListener('dragstart', dragStart);
+
+            // Modified event listener for mouse enter
+            wordDiv.addEventListener('mouseenter', function () {
+                if (!hasEnabledVoice) {
+                    const lecture = new SpeechSynthesisUtterance('hello');
+                    lecture.volume = 0;
+                    speechSynthesis.speak(lecture);
+                    hasEnabledVoice = true;
+                }
+
+
+                // Set a timeout to speak the word after 1 second
+                speakTimeout = setTimeout(function () {
+                    const voiceSelect = document.getElementById('voiceSelect');
+                    const selectedVoice = voiceSelect.value;
+                    const utterance = new SpeechSynthesisUtterance(wordDiv.textContent);
+                    utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === selectedVoice);
+                    utterance.lang = language;
+                    speechSynthesis.speak(utterance);
+                }, 1000); // 1000 milliseconds delay
+            });
+
+            // Add event listener for mouse leave
+            wordDiv.addEventListener('mouseleave', function () {
+                // Clear the timeout if the user leaves the word before 1 second
+                clearTimeout(speakTimeout);
+            });
+
+            wordContainer.appendChild(wordDiv);
+
+        });
+
+
+        shuffledTranslations.forEach(word => {
+            const translationDiv = document.createElement('div');
+            translationDiv.className = 'translation';
+            translationDiv.textContent = word.translation;
+            translationDiv.addEventListener('dragover', dragOver);
+            translationDiv.addEventListener('drop', drop);
+            translationContainer.appendChild(translationDiv);
+
+        });
+        loadFontSize();
+    }
+
+    function dragStart(event) {
+        event.dataTransfer.setData("text", event.target.textContent);
+    }
+
+    function dragOver(event) {
+        event.preventDefault();
+    }
+
+    function drop(event) {
+        event.preventDefault();
+        const draggedText = event.dataTransfer.getData("text");
+        const targetElement = event.target;
+        if (words.some(word => word.text === draggedText && word.translation === event.target.textContent)) {
+            event.target.classList.add("correct");
+            targetElement.style.fontWeight = 'normal'
+            targetElement.style.visibility = "hidden";
+            // event.target.style.backgroundColor = 'lightgreen';
+            document.querySelectorAll('.word').forEach(wordDiv => {
+                if (wordDiv.textContent === draggedText) {
+                    wordDiv.style.visibility = "hidden";
+                    wordDiv.style.fontWeight = 'normal'
+                }
+            });
+
+            updateScore(score + 1);
+            showMessage(true);
+            if (score === words.length) {
+                document.getElementById('statusMessage').textContent = "המשחק הסתיים בהצלחה!";
+                showConfetti();
+            }
+        } else {
+            showMessage(false);
+        }
+    }
+
+    function showMessage(isCorrect) {
+        const messageDiv = document.getElementById('statusMessage');
+        messageDiv.textContent = isCorrect ? `  כל הכבוד!` : `  זה היה קרוב!`;
+        setTimeout(() => messageDiv.textContent = '', 3000);
+    }
+
+    function updateName() {
+        playerName = document.getElementById('nameInput').value.trim() || "שחקן";
+    }
+
+    function updateScore(newScore) {
+        score = newScore;
+        document.getElementById('scoreDisplay').textContent = `נקודות: ${score}`;
+    }
+
+    function showConfetti() {
+        const confettiCount = 100;
+        const confettiElement = document.createElement('div');
+        document.body.appendChild(confettiElement);
+
+        for (let i = 0; i < confettiCount; i++) {
+            const confetti = document.createElement('div');
+            confetti.classList.add('confetti');
+            confetti.style.left = `${Math.random() * 100}%`;
+            confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            confetti.style.animationDuration = `${Math.random() * 2 + 1}s`; // Random animation duration between 1s to 3s
+            confetti.style.opacity = Math.random(); // Random opacity for each confetti
+            confetti.style.top = `${-Math.random() * 20}px`; // Start from above the screen
+            confettiElement.appendChild(confetti);
+        }
+
+        setTimeout(() => confettiElement.remove(), 3000); // Remove confetti after 3 seconds
+    }
+
+
+</script>
 </body>
 
 </html>
