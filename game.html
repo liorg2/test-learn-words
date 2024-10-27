@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="he">
+
+<head>
+    <meta charset="UTF-8">
+    <title> התאמת מילים</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="score-display" id="scoreDisplay">נקודות: 0</div>
+    <div class="control-panel">
+        <button href="javascript:void(0);" id="resetGameButton" onclick="loadSelectedTest()">חדש</button>
+        <button id="decreaseFont" onclick="changeFontSize(-1)">A-</button>
+        <button id="increaseFont" onclick="changeFontSize(1)">A+</button>
+    
+        <div class="dropdown-group">
+            <label for="voiceSelect">קולות מותקנים במכשיר:</label>
+            <select id="voiceSelect"></select>
+        </div>
+    
+        <div class="dropdown-group">
+            <label for="testSelect">בחר הכתבה:</label>
+            <select id="testSelect"></select>
+        </div>
+    </div>
+    
+    
+
+
+    <div class="status-message" id="statusMessage"></div>
+    <div class="instructions">.יש לגרור כל מילה אל התרגום שלה</div>
+    <div class="game-area">
+        <div class="word-container" id="wordContainer"></div>
+        <div class="separator"></div>
+        <div class="translation-container" id="translationContainer"></div>
+    </div>
+    <script src="list.js"></script>
+    <script src="game.js"></script>
+</body>
+
+</html>

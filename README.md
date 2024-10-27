@@ -1,2 +1,1 @@
-# test-learn-words
-test-learn-words
+# learn-words

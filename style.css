@@ -1,0 +1,253 @@
+@keyframes fall {
+    0% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    100% {
+        transform: translateY(500px) rotate(360deg);
+    }
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #ffcc00;
+    animation: fall 1s linear infinite;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-image: url("./back.jpg");
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    height: 100vh;
+}
+
+.game-area {
+    width: 90%;
+    max-width: 1900px;
+}
+
+.word-container,
+.translation-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+.word,
+.translation {
+    border: 2px solid #007BFF;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: #E1ECF4;
+    cursor: pointer;
+    user-select: none;
+    font-size: 25px;
+    margin: 5px 10px;
+}
+
+.translation {
+    direction: rtl;
+}
+
+.separator {
+    width: 100%;
+    border-bottom: 2px dashed #007BFF;
+    margin: 20px 0;
+}
+
+.instructions {
+    font-size: 24px;
+    font-weight: bold;
+    color: #0056b3;
+    margin: 20px;
+    text-align: center;
+}
+
+
+.score-display {
+    font-weight: bold;
+    margin: 20px;
+    text-align: center;
+    font-size: 20px;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+
+}
+
+.status-message {
+    font-weight: bold;
+    position: fixed;
+    /* או absolute, תלוי במבנה הדף */
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 20px;
+    background-color: #76B947;
+    /* צבע רקע - ניתן לשנות לפי העדפה */
+    color: white;
+    /* צבע טקסט */
+    padding: 10px 20px;
+    border-radius: 0 0 10px 10px;
+    /* קורנרים מעוגלים בחלק התחתון */
+}
+
+#nameInput {
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 2px solid #007BFF;
+    border-radius: 5px;
+    font-size: 16px;
+    display: block;
+    margin: 20px auto;
+    width: 200px;
+    text-align: center;
+    /* Text aligned to the center */
+}
+
+#reset {
+    color: green;
+    font-weight: bold;
+
+}
+
+#testSelect {
+    padding: 5px 10px;
+    /* Increase padding to make it larger */
+    font-size: 16px;
+    /* Larger font size for better readability */
+
+    display: block;
+    /* Make it a block element to take width settings properly */
+    cursor: pointer;
+    /* Shows a pointer cursor on hover */
+    background-color: #ffffff;
+    /* Background color */
+    color: #000000;
+    /* Text color */
+    border: 2px solid #007BFF;
+    /* Border properties */
+    border-radius: 5px;
+    /* Rounded corners */
+}
+
+#testSelect:hover {
+    background-color: #f8f8f8;
+    /* Slightly change background on hover for visual feedback */
+}
+
+
+
+.control-panel {
+    display: flex;
+    /* Aligns children inline */
+    justify-content: space-between;
+    /* Distributes space between and around content items */
+    align-items: center;
+    /* Aligns items vertically in the center */
+
+    padding: 10px;
+    /* Padding around the container */
+}
+
+#testSelect {
+    flex-grow: 1;
+    /* Allows the select element to grow and fill the space */
+    margin-right: 10px;
+    /* Adds some space between the select and the button */
+}
+
+#resetGameButton {
+    padding: 5px 10px;
+    font-size: 16px;
+    background-color: #007BFF;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#resetGameButton:hover {
+    background-color: #0056b3;
+}
+
+
+#decreaseFont,
+#increaseFont {
+    padding: 5px 10px;
+    /* Standard padding to ensure buttons are the same size */
+    cursor: pointer;
+    border: 1px solid #007BFF;
+    border-radius: 5px;
+    background-color: #E1ECF4;
+    width: 50px;
+    /* Fixed width to ensure buttons are the same size */
+    display: inline-block;
+    /* Ensure the button does not stretch to fit its container */
+    text-align: center;
+    /* Centers the text within the button */
+    line-height: 20px;
+    /* Adjust line height to vertically center the text */
+    font-weight: bold;
+}
+
+#decreaseFont {
+    font-size: 12px;
+    /* Smaller font size for "A-" */
+}
+
+#increaseFont {
+    font-size: 18px;
+    /* Larger font size for "A+" */
+
+}
+
+
+#voiceSelect,
+button {
+    cursor: pointer;
+    margin-right: 10px;
+    font-size: 16px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px solid #007BFF;
+}
+
+
+.control-panel {
+    display: flex;
+    align-items: flex-end;
+    padding: 10px;
+    margin-top: 50px;
+}
+
+.dropdown-group {
+    display: flex;
+    flex-direction: column;
+    margin-left: 20px;
+}
+
+.dropdown-group label {
+    direction: rtl;
+    padding-right: 15px;
+    ;
+}
+
+#resetGameButton,
+#decreaseFont,
+#increaseFont {
+    margin-right: 10px;
+}
