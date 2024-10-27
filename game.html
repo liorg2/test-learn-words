@@ -495,8 +495,34 @@
     }
 
 
-    function initializeGame(language = 'en-US') {
+    function touchStart(event) {
+        event.preventDefault();
+        const touch = event.touches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (target && target.classList.contains('word')) {
+            dragStart({ dataTransfer: new DataTransfer(), target });
+        }
+    }
 
+    function touchMove(event) {
+        event.preventDefault();
+        const touch = event.touches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (target && target.classList.contains('translation')) {
+            dragOver({ preventDefault: () => {} });
+        }
+    }
+
+    function touchEnd(event) {
+        event.preventDefault();
+        const touch = event.changedTouches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (target && target.classList.contains('translation')) {
+            drop({ preventDefault: () => {}, target });
+        }
+    }
+
+    function initializeGame(language = 'en-US') {
         if (!words || !Array.isArray(words)) return;
 
         const wordContainer = document.getElementById('wordContainer');
@@ -508,7 +534,6 @@
         const shuffledWords = shuffleArray([...words]);
         const shuffledTranslations = shuffleArray([...words]);
 
-
         let speakTimeout; // Declare a variable to hold the timeout
 
         shuffledWords.forEach(word => {
@@ -517,15 +542,13 @@
             wordDiv.textContent = word.text;
             wordDiv.draggable = true;
 
-
             // Existing event listener for drag start
             wordDiv.addEventListener('dragstart', dragStart);
 
+            // Add touch event listeners for mobile support
             wordDiv.addEventListener('touchstart', touchStart);
             wordDiv.addEventListener('touchmove', touchMove);
             wordDiv.addEventListener('touchend', touchEnd);
-            
-            
 
             // Modified event listener for mouse enter
             wordDiv.addEventListener('mouseenter', function () {
@@ -535,7 +558,6 @@
                     speechSynthesis.speak(lecture);
                     hasEnabledVoice = true;
                 }
-
 
                 // Set a timeout to speak the word after 1 second
                 speakTimeout = setTimeout(function () {
@@ -555,9 +577,7 @@
             });
 
             wordContainer.appendChild(wordDiv);
-
         });
-
 
         shuffledTranslations.forEach(word => {
             const translationDiv = document.createElement('div');
@@ -566,34 +586,8 @@
             translationDiv.addEventListener('dragover', dragOver);
             translationDiv.addEventListener('drop', drop);
             translationContainer.appendChild(translationDiv);
-
         });
         loadFontSize();
-    }
-
-    function touchStart(event) {
-        event.preventDefault();
-        const touch = event.touches[0];
-        const target = document.elementFromPoint(touch.clientX, touch.clientY);
-        dragStart({ dataTransfer: new DataTransfer(), target });
-    }
-
-    function touchMove(event) {
-        event.preventDefault();
-        const touch = event.touches[0];
-        const target = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (target && target.classList.contains('translation')) {
-            dragOver({ preventDefault: () => {} });
-        }
-    }
-
-    function touchEnd(event) {
-        event.preventDefault();
-        const touch = event.changedTouches[0];
-        const target = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (target && target.classList.contains('translation')) {
-            drop({ preventDefault: () => {}, target });
-        }
     }
     function dragStart(event) {
         event.dataTransfer.setData("text", event.target.textContent);
