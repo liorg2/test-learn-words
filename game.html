@@ -4,222 +4,222 @@
 <head>
     <meta charset="UTF-8">
     <title> התאמת מילים</title>
-<!--    <link rel="stylesheet" href="style.css">-->
+    <!--    <link rel="stylesheet" href="style.css">-->
 
     <style>
 
         @keyframes fall {
             0% {
-                transform: translateY(0) rotate(0deg);
+                transform : translateY(0) rotate(0deg);
             }
 
             100% {
-                transform: translateY(500px) rotate(360deg);
+                transform : translateY(500px) rotate(360deg);
             }
         }
 
         .confetti {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: #ffcc00;
-            animation: fall 1s linear infinite;
+            position         : absolute;
+            width            : 10px;
+            height           : 10px;
+            background-color : #ffcc00;
+            animation        : fall 1s linear infinite;
         }
 
         body {
-            font-family: 'Arial', sans-serif;
-            background-image: url("./back.jpg");
-            background-repeat: no-repeat;
-            background-position: center center;
-            background-size: cover;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            height: 100vh;
+            font-family         : 'Arial', sans-serif;
+            background-image    : url("./back.jpg");
+            background-repeat   : no-repeat;
+            background-position : center center;
+            background-size     : cover;
+            margin              : 0;
+            display             : flex;
+            flex-direction      : column;
+            align-items         : center;
+            justify-content     : flex-start;
+            height              : 100vh;
         }
 
         .game-area {
-            width: 90%;
-            max-width: 1900px;
+            width     : 90%;
+            max-width : 1900px;
         }
 
         .word-container,
         .translation-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            margin: 10px 0;
-            font-weight: bold;
+            display         : flex;
+            flex-wrap       : wrap;
+            justify-content : center;
+            gap             : 10px;
+            margin          : 10px 0;
+            font-weight     : bold;
         }
 
         .word,
         .translation {
-            border: 2px solid #007BFF;
-            border-radius: 5px;
-            padding: 10px;
-            background-color: #E1ECF4;
-            cursor: pointer;
-            user-select: none;
-            font-size: 25px;
-            margin: 5px 10px;
+            border           : 2px solid #007BFF;
+            border-radius    : 5px;
+            padding          : 10px;
+            background-color : #E1ECF4;
+            cursor           : pointer;
+            user-select      : none;
+            font-size        : 25px;
+            margin           : 5px 10px;
         }
 
         .translation {
-            direction: rtl;
+            direction : rtl;
         }
 
         .separator {
-            width: 100%;
-            border-bottom: 2px dashed #007BFF;
-            margin: 20px 0;
+            width         : 100%;
+            border-bottom : 2px dashed #007BFF;
+            margin        : 20px 0;
         }
 
         .instructions {
-            font-size: 24px;
-            font-weight: bold;
-            color: #0056b3;
-            margin: 20px;
-            text-align: center;
+            font-size   : 24px;
+            font-weight : bold;
+            color       : #0056b3;
+            margin      : 20px;
+            text-align  : center;
         }
 
 
         .score-display {
-            font-weight: bold;
-            margin: 20px;
-            text-align: center;
-            font-size: 20px;
-            position: absolute;
-            top: 10px;
-            left: 10px;
+            font-weight : bold;
+            margin      : 20px;
+            text-align  : center;
+            font-size   : 20px;
+            position    : absolute;
+            top         : 10px;
+            left        : 10px;
 
         }
 
         .status-message {
-            font-weight: bold;
-            position: fixed;
+            font-weight      : bold;
+            position         : fixed;
             /* או absolute, תלוי במבנה הדף */
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 20px;
-            background-color: #76B947;
+            top              : 0;
+            left             : 50%;
+            transform        : translateX(-50%);
+            font-size        : 20px;
+            background-color : #76B947;
             /* צבע רקע - ניתן לשנות לפי העדפה */
-            color: white;
+            color            : white;
             /* צבע טקסט */
-            padding: 10px 20px;
-            border-radius: 0 0 10px 10px;
+            padding          : 10px 20px;
+            border-radius    : 0 0 10px 10px;
             /* קורנרים מעוגלים בחלק התחתון */
         }
 
         #nameInput {
-            padding: 10px;
-            margin-bottom: 20px;
-            border: 2px solid #007BFF;
-            border-radius: 5px;
-            font-size: 16px;
-            display: block;
-            margin: 20px auto;
-            width: 200px;
-            text-align: center;
+            padding       : 10px;
+            margin-bottom : 20px;
+            border        : 2px solid #007BFF;
+            border-radius : 5px;
+            font-size     : 16px;
+            display       : block;
+            margin        : 20px auto;
+            width         : 200px;
+            text-align    : center;
             /* Text aligned to the center */
         }
 
         #reset {
-            color: green;
-            font-weight: bold;
+            color       : green;
+            font-weight : bold;
 
         }
 
         #testSelect {
-            padding: 5px 10px;
+            padding          : 5px 10px;
             /* Increase padding to make it larger */
-            font-size: 16px;
+            font-size        : 16px;
             /* Larger font size for better readability */
 
-            display: block;
+            display          : block;
             /* Make it a block element to take width settings properly */
-            cursor: pointer;
+            cursor           : pointer;
             /* Shows a pointer cursor on hover */
-            background-color: #ffffff;
+            background-color : #ffffff;
             /* Background color */
-            color: #000000;
+            color            : #000000;
             /* Text color */
-            border: 2px solid #007BFF;
+            border           : 2px solid #007BFF;
             /* Border properties */
-            border-radius: 5px;
+            border-radius    : 5px;
             /* Rounded corners */
         }
 
         #testSelect:hover {
-            background-color: #f8f8f8;
+            background-color : #f8f8f8;
             /* Slightly change background on hover for visual feedback */
         }
 
 
         .control-panel {
-            display: flex;
+            display         : flex;
             /* Aligns children inline */
-            justify-content: space-between;
+            justify-content : space-between;
             /* Distributes space between and around content items */
-            align-items: center;
+            align-items     : center;
             /* Aligns items vertically in the center */
 
-            padding: 10px;
+            padding         : 10px;
             /* Padding around the container */
         }
 
         #testSelect {
-            flex-grow: 1;
+            flex-grow    : 1;
             /* Allows the select element to grow and fill the space */
-            margin-right: 10px;
+            margin-right : 10px;
             /* Adds some space between the select and the button */
         }
 
         #resetGameButton {
-            padding: 5px 10px;
-            font-size: 16px;
-            background-color: #007BFF;
-            color: white;
-            border-radius: 5px;
-            text-decoration: none;
-            cursor: pointer;
-            transition: background-color 0.3s;
+            padding          : 5px 10px;
+            font-size        : 16px;
+            background-color : #007BFF;
+            color            : white;
+            border-radius    : 5px;
+            text-decoration  : none;
+            cursor           : pointer;
+            transition       : background-color 0.3s;
         }
 
         #resetGameButton:hover {
-            background-color: #0056b3;
+            background-color : #0056b3;
         }
 
 
         #decreaseFont,
         #increaseFont {
-            padding: 5px 10px;
+            padding          : 5px 10px;
             /* Standard padding to ensure buttons are the same size */
-            cursor: pointer;
-            border: 1px solid #007BFF;
-            border-radius: 5px;
-            background-color: #E1ECF4;
-            width: 50px;
+            cursor           : pointer;
+            border           : 1px solid #007BFF;
+            border-radius    : 5px;
+            background-color : #E1ECF4;
+            width            : 50px;
             /* Fixed width to ensure buttons are the same size */
-            display: inline-block;
+            display          : inline-block;
             /* Ensure the button does not stretch to fit its container */
-            text-align: center;
+            text-align       : center;
             /* Centers the text within the button */
-            line-height: 20px;
+            line-height      : 20px;
             /* Adjust line height to vertically center the text */
-            font-weight: bold;
+            font-weight      : bold;
         }
 
         #decreaseFont {
-            font-size: 12px;
+            font-size : 12px;
             /* Smaller font size for "A-" */
         }
 
         #increaseFont {
-            font-size: 18px;
+            font-size : 18px;
             /* Larger font size for "A+" */
 
         }
@@ -227,73 +227,73 @@
 
         #voiceSelect,
         button {
-            cursor: pointer;
-            margin-right: 10px;
-            font-size: 16px;
-            padding: 5px 10px;
-            border-radius: 5px;
-            border: 1px solid #007BFF;
+            cursor        : pointer;
+            margin-right  : 10px;
+            font-size     : 16px;
+            padding       : 5px 10px;
+            border-radius : 5px;
+            border        : 1px solid #007BFF;
         }
 
 
         .control-panel {
-            display: flex;
-            align-items: flex-end;
-            padding: 10px;
-            margin-top: 50px;
+            display     : flex;
+            align-items : flex-end;
+            padding     : 10px;
+            margin-top  : 50px;
         }
 
         .dropdown-group {
-            display: flex;
-            flex-direction: column;
-            margin-left: 20px;
+            display        : flex;
+            flex-direction : column;
+            margin-left    : 20px;
         }
 
         .dropdown-group label {
-            direction: rtl;
-            padding-right: 15px;;
+            direction     : rtl;
+            padding-right : 15px;;
         }
 
         #resetGameButton,
         #decreaseFont,
         #increaseFont {
-            margin-right: 10px;
+            margin-right : 10px;
         }
 
         /* Add this to your CSS file */
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: #f0f0f0;
+            font-family      : Arial, sans-serif;
+            margin           : 0;
+            padding          : 0;
+            display          : flex;
+            flex-direction   : column;
+            align-items      : center;
+            justify-content  : center;
+            height           : 100vh;
+            background-color : #f0f0f0;
         }
 
         #wordContainer, #translationContainer {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin: 10px;
+            display         : flex;
+            flex-wrap       : wrap;
+            justify-content : center;
+            margin          : 10px;
         }
 
         .word, .translation {
-            margin: 5px;
-            padding: 10px;
-            background-color: #fff;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            cursor: pointer;
-            user-select: none;
+            margin           : 5px;
+            padding          : 10px;
+            background-color : #fff;
+            border           : 1px solid #ccc;
+            border-radius    : 5px;
+            cursor           : pointer;
+            user-select      : none;
         }
 
-        @media (max-width: 600px) {
+        @media (max-width : 600px) {
             .word, .translation {
-                font-size: 14px;
-                padding: 8px;
+                font-size : 14px;
+                padding   : 8px;
             }
         }
     </style>
@@ -495,32 +495,11 @@
     }
 
 
-    function touchStart(event) {
-        event.preventDefault();
-        const touch = event.touches[0];
-        const target = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (target && target.classList.contains('word')) {
-            dragStart({ dataTransfer: new DataTransfer(), target });
-        }
-    }
+  
+ 
 
-    function touchMove(event) {
-        event.preventDefault();
-        const touch = event.touches[0];
-        const target = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (target && target.classList.contains('translation')) {
-            dragOver({ preventDefault: () => {} });
-        }
-    }
-
-    function touchEnd(event) {
-        event.preventDefault();
-        const touch = event.changedTouches[0];
-        const target = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (target && target.classList.contains('translation')) {
-            drop({ preventDefault: () => {}, target });
-        }
-    }
+    let draggedElement = null;
+    let draggedWord = null;
 
     function initializeGame(language = 'en-US') {
         if (!words || !Array.isArray(words)) return;
@@ -529,12 +508,12 @@
         const translationContainer = document.getElementById('translationContainer');
         wordContainer.innerHTML = '';
         translationContainer.innerHTML = '';
-        updateScore(0); // Reset score at game start
+        updateScore(0);
 
         const shuffledWords = shuffleArray([...words]);
         const shuffledTranslations = shuffleArray([...words]);
 
-        let speakTimeout; // Declare a variable to hold the timeout
+        let speakTimeout;
 
         shuffledWords.forEach(word => {
             const wordDiv = document.createElement('div');
@@ -542,16 +521,16 @@
             wordDiv.textContent = word.text;
             wordDiv.draggable = true;
 
-            // Existing event listener for drag start
+            // Desktop events
             wordDiv.addEventListener('dragstart', dragStart);
 
-            // Add touch event listeners for mobile support
-            wordDiv.addEventListener('touchstart', touchStart);
-            wordDiv.addEventListener('touchmove', touchMove);
-            wordDiv.addEventListener('touchend', touchEnd);
+            // Mobile touch events
+            wordDiv.addEventListener('touchstart', handleTouchStart, { passive: false });
+            wordDiv.addEventListener('touchmove', handleTouchMove, { passive: false });
+            wordDiv.addEventListener('touchend', handleTouchEnd, { passive: false });
 
-            // Modified event listener for mouse enter
-            wordDiv.addEventListener('mouseenter', function () {
+            // Hover speech
+            wordDiv.addEventListener('mouseenter', function() {
                 if (!hasEnabledVoice) {
                     const lecture = new SpeechSynthesisUtterance('hello');
                     lecture.volume = 0;
@@ -559,20 +538,17 @@
                     hasEnabledVoice = true;
                 }
 
-                // Set a timeout to speak the word after 1 second
-                speakTimeout = setTimeout(function () {
+                speakTimeout = setTimeout(function() {
                     const voiceSelect = document.getElementById('voiceSelect');
                     const selectedVoice = voiceSelect.value;
                     const utterance = new SpeechSynthesisUtterance(wordDiv.textContent);
                     utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === selectedVoice);
                     utterance.lang = language;
                     speechSynthesis.speak(utterance);
-                }, 1000); // 1000 milliseconds delay
+                }, 1000);
             });
 
-            // Add event listener for mouse leave
-            wordDiv.addEventListener('mouseleave', function () {
-                // Clear the timeout if the user leaves the word before 1 second
+            wordDiv.addEventListener('mouseleave', function() {
                 clearTimeout(speakTimeout);
             });
 
@@ -584,11 +560,75 @@
             translationDiv.className = 'translation';
             translationDiv.textContent = word.translation;
             translationDiv.addEventListener('dragover', dragOver);
-            translationDiv.addEventListener('drop', drop);
+            translationDiv.addEventListener('drop', handleDrop);
             translationContainer.appendChild(translationDiv);
         });
+
         loadFontSize();
     }
+
+    function handleTouchStart(event) {
+        event.preventDefault();
+        draggedElement = event.target;
+        draggedWord = event.target.textContent;
+
+        // Add visual feedback
+        event.target.style.opacity = '0.7';
+        event.target.style.transform = 'scale(1.1)';
+    }
+
+    function handleTouchMove(event) {
+        event.preventDefault();
+        if (!draggedElement) return;
+
+        const touch = event.touches[0];
+        const translateX = touch.clientX - (draggedElement.offsetWidth / 2);
+        const translateY = touch.clientY - (draggedElement.offsetHeight / 2);
+
+        draggedElement.style.position = 'fixed';
+        draggedElement.style.left = translateX + 'px';
+        draggedElement.style.top = translateY + 'px';
+        draggedElement.style.zIndex = '1000';
+    }
+
+    function handleTouchEnd(event) {
+        event.preventDefault();
+        if (!draggedElement) return;
+
+        // Reset visual feedback
+        draggedElement.style.opacity = '1';
+        draggedElement.style.transform = 'none';
+        draggedElement.style.position = 'static';
+        draggedElement.style.zIndex = 'auto';
+
+        const touch = event.changedTouches[0];
+        const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+
+        if (dropTarget && dropTarget.classList.contains('translation')) {
+            const isCorrect = words.some(word =>
+                word.text === draggedWord &&
+                word.translation === dropTarget.textContent
+            );
+
+            if (isCorrect) {
+                dropTarget.style.visibility = "hidden";
+                draggedElement.style.visibility = "hidden";
+                updateScore(score + 1);
+                showMessage(true);
+
+                if (score === words.length) {
+                    document.getElementById('statusMessage').textContent = "המשחק הסתיים בהצלחה!";
+                    showConfetti();
+                }
+            } else {
+                showMessage(false);
+            }
+        }
+
+        draggedElement = null;
+        draggedWord = null;
+    }
+
     function dragStart(event) {
         event.dataTransfer.setData("text", event.target.textContent);
     }
@@ -596,6 +636,33 @@
     function dragOver(event) {
         event.preventDefault();
     }
+
+    function handleDrop(event) {
+        event.preventDefault();
+        const draggedText = event.dataTransfer.getData("text");
+
+        if (words.some(word => word.text === draggedText && word.translation === event.target.textContent)) {
+            event.target.style.visibility = "hidden";
+            document.querySelectorAll('.word').forEach(wordDiv => {
+                if (wordDiv.textContent === draggedText) {
+                    wordDiv.style.visibility = "hidden";
+                }
+            });
+
+            updateScore(score + 1);
+            showMessage(true);
+
+            if (score === words.length) {
+                document.getElementById('statusMessage').textContent = "המשחק הסתיים בהצלחה!";
+                showConfetti();
+            }
+        } else {
+            showMessage(false);
+        }
+    }
+    
+
+   
 
     function drop(event) {
         event.preventDefault();
@@ -630,9 +697,7 @@
         setTimeout(() => messageDiv.textContent = '', 3000);
     }
 
-    function updateName() {
-        playerName = document.getElementById('nameInput').value.trim() || "שחקן";
-    }
+    
 
     function updateScore(newScore) {
         score = newScore;
