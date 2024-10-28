@@ -7,6 +7,16 @@
     <!--    <link rel="stylesheet" href="style.css">-->
 
     <style>
+        .highlight {
+
+            background-color : lavender !important;
+        }
+
+        .dragging {
+            box-shadow : 0px 0px 10px 5px rgba(0, 123, 255, 0.5); /* Example of a soft blue shadow */
+            border     : 2px dashed #007bff; /* Dashed border style */
+        }
+
         @keyframes blink-correct {
             0%, 100% { background-color : green; opacity : 1; }
             50% { background-color : green; opacity : 0.5; }
@@ -22,7 +32,7 @@
         }
 
         .blink-incorrect {
-            animation : blink-incorrect 0.5s step-end 2; /* Total of 1 second */
+            animation : blink-incorrect 0.2s step-end 2; /* Total of 1 second */
         }
 
         @keyframes fall {
@@ -74,7 +84,7 @@
 
         .word,
         .translation {
-            border           : 2px solid #007BFF;
+            border           : 3px solid #007BFF;
             border-radius    : 5px;
             padding          : 10px;
             background-color : #E1ECF4;
@@ -89,10 +99,18 @@
         }
 
         .separator {
-            width         : 100%;
-            border-bottom : 2px dashed #007BFF;
-            margin        : 20px 0;
+            border     : none;
+            height     : 2px;
+            background : linear-gradient(to right, #fff, mediumpurple, #fff);
+            margin     : 20px 0;
         }
+
+        @keyframes slide {
+            to {
+                left : 100%;
+            }
+        }
+
 
         .instructions {
             font-size   : 24px;
@@ -102,17 +120,6 @@
             text-align  : center;
         }
 
-
-        .score-display {
-            font-weight : bold;
-            margin      : 20px;
-            text-align  : center;
-            font-size   : 20px;
-            position    : absolute;
-            top         : 10px;
-            left        : 10px;
-
-        }
 
         .status-message {
             font-weight      : bold;
@@ -133,7 +140,7 @@
 
         #nameInput {
             padding       : 10px;
-            margin-bottom : 20px;
+         
             border        : 2px solid #007BFF;
             border-radius : 5px;
             font-size     : 16px;
@@ -177,14 +184,17 @@
 
 
         .control-panel {
+            margin-bottom: 10px;
             display         : flex;
             /* Aligns children inline */
             justify-content : space-between;
             /* Distributes space between and around content items */
-            align-items     : center;
-            /* Aligns items vertically in the center */
 
+
+            align-items     : flex-end;
             padding         : 10px;
+            background-color : #f0f0f0; /* Optional: background color for visibility */
+            border           : 1px solid #ccc; /* Optional: border for better visibility */
             /* Padding around the container */
         }
 
@@ -253,13 +263,6 @@
         }
 
 
-        .control-panel {
-            display     : flex;
-            align-items : flex-end;
-            padding     : 10px;
-            margin-top  : 50px;
-        }
-
         .dropdown-group {
             display        : flex;
             flex-direction : column;
@@ -285,7 +288,7 @@
             display          : flex;
             flex-direction   : column;
             align-items      : center;
-            justify-content  : center;
+            justify-content  : flex-start;
             height           : 100vh;
             background-color : #f0f0f0;
         }
@@ -314,12 +317,26 @@
                 padding   : 8px;
             }
         }
+
+        .statistics {
+            display          : flex; /* Use flexbox to align children in a row */
+            justify-content  : space-around; /* Distribute space evenly around items */
+            align-items      : center; /* Align items vertically in the center */
+            padding          : 10px; /* Add padding for better spacing */
+            background-color : #f0f0f0; /* Optional: background color for visibility */
+            border           : 1px solid #ccc; /* Optional: border for better visibility */
+        }
+
+        .statistics p {
+            margin : 0 10px; /* Add horizontal spacing between items */
+        }
     </style>
 </head>
 
 <body>
 
-<div class="score-display" id="scoreDisplay">נקודות: 0</div>
+
+
 <div class="control-panel">
     <button id="resetGameButton" onclick="loadSelectedTest()">חדש</button>
     <button id="decreaseFont" onclick="changeFontSize(-1)">A-</button>
@@ -335,7 +352,11 @@
         <select id="testSelect"></select>
     </div>
 </div>
-
+<div class="statistics">
+    <p><span id="scoreDisplay">נקודות: 0</span></p>
+    <!--    <p>Number of Attempts: <span id="numAttempts">0</span></p>-->
+    <p>שגיאות: <span id="numFailures">0</span></p>
+</div>
 
 <div class="status-message" style="display: none" id="statusMessage"></div>
 <div class="instructions">.יש לגרור כל מילה אל התרגום שלה</div>
@@ -367,6 +388,7 @@
 
 
     let score = 0;
+    let failures = 0;
 
 
     function shuffleArray(array) {
@@ -400,6 +422,21 @@
 
         loadSelectedTest();
     });
+
+
+    function incrementTestAttempts() {
+        let attempts = parseInt(localStorage.getItem('attempts'), 10) || 0;
+        attempts++;
+        localStorage.setItem('attempts', attempts);
+        document.getElementById('numAttempts').textContent = attempts;
+    }
+
+    function updateFailures(newVal) {
+
+        failures = newVal;
+
+        document.getElementById('numFailures').textContent = newVal;
+    }
 
     function loadVoiceSettings() {
         const savedVoiceName = localStorage.getItem('selectedVoice');
@@ -523,6 +560,7 @@
         wordContainer.innerHTML = '';
         translationContainer.innerHTML = '';
         updateScore(0);
+        updateFailures(0);
 
         const shuffledWords = shuffleArray([...words]);
         const shuffledTranslations = shuffleArray([...words]);
@@ -574,6 +612,7 @@
             translationDiv.className = 'translation';
             translationDiv.textContent = word.translation;
             translationDiv.addEventListener('dragover', dragOver);
+            translationDiv.addEventListener('dragleave', dragLeave);
             translationDiv.addEventListener('drop', handleDrop);
             translationContainer.appendChild(translationDiv);
         });
@@ -615,7 +654,7 @@
         });
     }
 
- 
+
     function handleAnswer(element, isCorrect) {
         const blinkClass = isCorrect ? 'blink-correct' : 'blink-incorrect';
         element.classList.add(blinkClass);
@@ -637,14 +676,6 @@
 
     function handleTouchEnd(event) {
         event.preventDefault();
-        if (!draggedElement) return;
-
-        // Reset visual feedback
-        draggedElement.style.opacity = '1';
-        draggedElement.style.transform = 'none';
-        draggedElement.style.position = 'static';
-        draggedElement.style.zIndex = 'auto';
-
         const touch = event.changedTouches[0];
         const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
 
@@ -654,70 +685,88 @@
                 word.translation === dropTarget.textContent
             );
 
-            if (isCorrect) {
+            handleAnswer(dropTarget, isCorrect);
+            handleAnswer(draggedElement, isCorrect);
+            updateScore(isCorrect ? score + 1 : score);
+            showMessage(isCorrect);
 
-                handleAnswer(dropTarget, isCorrect);
-                handleAnswer(draggedElement, isCorrect);
-                updateScore(score + 1);
-                showMessage(true);
 
-                if (score === words.length) {
-                    document.getElementById('statusMessage').textContent = "המשחק הסתיים בהצלחה!";
-                    showConfetti();
-                }
-            } else {
-                handleAnswer(dropTarget, isCorrect);
-                handleAnswer(draggedElement, isCorrect);
-                showMessage(false);
+            if (isCorrect && score === words.length) {
+                document.getElementById('statusMessage').textContent = "המשחק הסתיים בהצלחה!";
+                showConfetti();
             }
+        } else {
+            updateFailures(failures + 1);
+            showMessage(false);
         }
 
+        // Reset the element state
+        if (draggedElement) {
+            draggedElement.style.opacity = '1';
+            draggedElement.style.transform = 'none';
+            draggedElement.style.position = 'static';
+            draggedElement.classList.remove('dragging');
+        }
         draggedElement = null;
         draggedWord = null;
     }
 
+
     function dragStart(event) {
         event.dataTransfer.setData("text", event.target.textContent);
+        event.target.classList.add('dragging');
     }
 
+
     function dragOver(event) {
-        event.preventDefault();
+        event.preventDefault(); // Necessary to allow a drop
+        if (event.target.classList.contains('translation')) {
+            event.target.classList.add('highlight'); // Add class to show dashed border
+        }
+    }
+
+    function dragLeave(event) {
+        if (event.target.classList.contains('highlight')) {
+            event.target.classList.remove('highlight'); // Remove class to hide dashed border
+        }
     }
 
     function handleDrop(event) {
         event.preventDefault();
+        if (event.target.classList.contains('translation')) {
+            event.target.classList.remove('highlight'); // Ensure the highlight is removed on drop
+        }
         const draggedText = event.dataTransfer.getData("text");
+        const dropTarget = event.target;
 
-        if (words.some(word => word.text === draggedText && word.translation === event.target.textContent)) {
-
-            handleAnswer(event.target, true);
-
+        if (dropTarget.classList.contains('translation') && words.some(word => word.text === draggedText && word.translation === dropTarget.textContent)) {
+            handleAnswer(dropTarget, true);
             document.querySelectorAll('.word').forEach(wordDiv => {
                 if (wordDiv.textContent === draggedText) {
-                    // wordDiv.style.visibility = "hidden";
                     handleAnswer(wordDiv, true);
                 }
-
             });
-
             updateScore(score + 1);
             showMessage(true);
-
             if (score === words.length) {
                 document.getElementById('statusMessage').textContent = "המשחק הסתיים בהצלחה!";
                 showConfetti();
             }
         } else {
+            handleAnswer(dropTarget, false);
             document.querySelectorAll('.word').forEach(wordDiv => {
                 if (wordDiv.textContent === draggedText) {
-                    // wordDiv.style.visibility = "hidden";
                     handleAnswer(wordDiv, false);
                 }
-
             });
-            handleAnswer(event.target, false);
+            updateFailures(failures + 1);
             showMessage(false);
         }
+
+        // Remove highlight from all translation divs
+        document.querySelectorAll('.translation').forEach(el => el.classList.remove('highlight'));
+
+        document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
     }
 
 
@@ -748,15 +797,16 @@
             }
         } else {
             handleAnswer(targetElement, false);
+            updateFailures(failures + 1);
             showMessage(false);
         }
     }
 
     function showMessage(isCorrect) {
-        return;
-        const messageDiv = document.getElementById('statusMessage');
-        messageDiv.textContent = isCorrect ? `  כל הכבוד!` : `  זה היה קרוב!`;
-        setTimeout(() => messageDiv.textContent = '', 3000);
+
+        // const messageDiv = document.getElementById('statusMessage');
+        // messageDiv.textContent = isCorrect ? `  כל הכבוד!` : `  זה היה קרוב!`;
+        // setTimeout(() => messageDiv.textContent = '', 3000);
     }
 
 
