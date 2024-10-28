@@ -583,24 +583,63 @@
     }
 
     function handleTouchEnd(event) {
+
         event.preventDefault();
+        if (!draggedElement) return;
+
+        // Reset visual feedback
+        draggedElement.style.opacity = '1';
+        draggedElement.style.transform = 'none';
+        draggedElement.style.position = 'static';
+        draggedElement.style.zIndex = 'auto';
+
         const touch = event.changedTouches[0];
         const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+
         if (dropTarget && dropTarget.classList.contains('translation')) {
-            const isCorrect = words.some(word => word.text === draggedWord && word.translation === dropTarget.textContent);
-            handleAnswer(dropTarget, isCorrect);
-            handleAnswer(draggedElement, isCorrect);
-            updateScore(isCorrect ? score + 1 : score);
-            showMessage(isCorrect);
-            if (isCorrect && score === words.length) {
-                document.getElementById('statusMessage').textContent = "המשחק הסתיים בהצלחה!";
-                showConfetti();
+            
+            const isCorrect = words.some(word =>
+                word.text === draggedWord &&
+                word.translation === dropTarget.textContent
+            );
+
+            if (isCorrect) {
+                dropTarget.classList.add('fade-out');
+                draggedElement.classList.add('fade-out');
+                setTimeout(() => {
+                    dropTarget.style.display = 'none';
+                    draggedElement.style.display = 'none';
+                }, 1000); // Match the duration of the fade-out animation
+                handleAnswer(dropTarget, true);
+                document.querySelectorAll('.word').forEach(wordDiv => {
+                    if (wordDiv.textContent === draggedWord) {
+                        handleAnswer(wordDiv, true);
+                    }
+                });
+                updateScore(score + 1);
+                showMessage(true);
+
+                if (score === words.length) {
+                    document.getElementById('statusMessage').textContent = "המשחק הסתיים בהצלחה!";
+                    showConfetti();
+                }
+            } else {
+                handleAnswer(dropTarget, false);
+                document.querySelectorAll('.word').forEach(wordDiv => {
+                    if (wordDiv.textContent === draggedWord) {
+                        handleAnswer(wordDiv, false);
+                    }
+                });
+                updateFailures(failures + 1);
+                showMessage(false);
             }
         } else {
-            updateFailures(failures + 1);
-            showMessage(false);
+          
+            console.log('touch end event null');
         }
-        resetDraggedElement();
+
+        draggedElement = null;
+        draggedWord = null;
     }
 
     function resetDraggedElement() {
