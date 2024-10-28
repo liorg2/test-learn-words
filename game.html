@@ -140,7 +140,7 @@
 
         #nameInput {
             padding       : 10px;
-         
+
             border        : 2px solid #007BFF;
             border-radius : 5px;
             font-size     : 16px;
@@ -184,18 +184,14 @@
 
 
         .control-panel {
-            margin-bottom: 10px;
-            display         : flex;
-            /* Aligns children inline */
-            justify-content : space-between;
-            /* Distributes space between and around content items */
-
-
-            align-items     : flex-end;
-            padding         : 10px;
-            background-color : #f0f0f0; /* Optional: background color for visibility */
-            border           : 1px solid #ccc; /* Optional: border for better visibility */
-            /* Padding around the container */
+            margin-bottom    : 10px;
+            display          : flex;
+            justify-content  : center;
+            align-items      : flex-end;
+            padding          : 10px;
+            background-color : #f0f0f0;
+            border           : 1px solid #ccc;
+            width            : 100%;
         }
 
         #testSelect {
@@ -336,7 +332,6 @@
 <body>
 
 
-
 <div class="control-panel">
     <button id="resetGameButton" onclick="loadSelectedTest()">חדש</button>
     <button id="decreaseFont" onclick="changeFontSize(-1)">A-</button>
@@ -368,28 +363,28 @@
 <!--    <script src="list.js"></script>-->
 <script>
     const list = [
-
-        {
-            scriptUrl: "./maya/english/10-2024/words2.js",
-            name: "אנגלית אוקטובר 2024 חלק 2",
-            lang: 'en-US',
-        },
-        {
-            scriptUrl: "./maya/english/10-2024/words.js",
-            name: "אנגלית אוקטובר 2024 חלק 1",
-            lang: 'en-US',
-        },
-        {
-            scriptUrl: "./maya/french/10-2024/words.js",
-            name: "צרפתית אוקטובר 2024",
-            lang: 'fr-FR',
-        }
+        {scriptUrl: "./maya/english/10-2024/words2.js", name: "אנגלית אוקטובר 2024 חלק 2", lang: 'en-US'},
+        {scriptUrl: "./maya/english/10-2024/words.js", name: "אנגלית אוקטובר 2024 חלק 1", lang: 'en-US'},
+        {scriptUrl: "./maya/french/10-2024/words.js", name: "צרפתית אוקטובר 2024", lang: 'fr-FR'}
     ];
-
 
     let score = 0;
     let failures = 0;
+    let hasEnabledVoice = false;
+    let speakTimeout;
 
+    document.addEventListener('DOMContentLoaded', function () {
+        const select = document.getElementById('testSelect');
+        list.forEach(item => {
+            let option = document.createElement('option');
+            option.value = item.scriptUrl;
+            option.textContent = item.name;
+            option.dataset.lang = item.lang;
+            select.appendChild(option);
+        });
+        select.addEventListener('change', loadSelectedTest);
+        loadSelectedTest();
+    });
 
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
@@ -399,261 +394,82 @@
         return array;
     }
 
-    let hasEnabledVoice = false;
-    document.addEventListener('DOMContentLoaded', function () {
+    function loadSelectedTest() {
         const select = document.getElementById('testSelect');
-
-
-        // Append options from the list to the select element
-        list.forEach(item => {
-            let option = document.createElement('option');
-            option.value = item.scriptUrl; // Store URL in value for loading script
-            option.textContent = item.name;
-            option.dataset.lang = item.lang; // Store language in data attribute
-            select.appendChild(option);
-        });
-
-
-        select.addEventListener('change', function () {
-
-            loadSelectedTest();
-        });
-
-
-        loadSelectedTest();
-    });
-
-
-    function incrementTestAttempts() {
-        let attempts = parseInt(localStorage.getItem('attempts'), 10) || 0;
-        attempts++;
-        localStorage.setItem('attempts', attempts);
-        document.getElementById('numAttempts').textContent = attempts;
+        setTimeout(() => {
+            loadVoices(select.options[select.selectedIndex].dataset.lang);
+        }, 100);
+        loadWords(select.options[select.selectedIndex].dataset.lang);
     }
 
-    function updateFailures(newVal) {
-
-        failures = newVal;
-
-        document.getElementById('numFailures').textContent = newVal;
+    function loadVoices(language) {
+        const voiceSelect = document.getElementById('voiceSelect');
+        voiceSelect.innerHTML = '';
+        let attempts = 0, maxAttempts = 50;
+        const checkVoices = () => {
+            const voices = speechSynthesis.getVoices().filter(voice => voice.lang.startsWith(language));
+            if (voices.length > 0 || attempts >= maxAttempts) {
+                voices.forEach(voice => {
+                    let option = document.createElement('option');
+                    option.textContent = `${voice.name} (${voice.lang})`;
+                    option.value = voice.name;
+                    voiceSelect.appendChild(option);
+                });
+                loadVoiceSettings();
+            } else {
+                attempts++;
+                setTimeout(checkVoices, 50);
+            }
+        };
+        checkVoices();
     }
 
     function loadVoiceSettings() {
         const savedVoiceName = localStorage.getItem('selectedVoice');
+        const voiceSelect = document.getElementById('voiceSelect');
         if (savedVoiceName) {
-            const voiceSelect = document.getElementById('voiceSelect');
-            const options = voiceSelect.options;
-            for (let i = 0; i < options.length; i++) {
-                if (options[i].value === savedVoiceName) {
-                    voiceSelect.selectedIndex = i;
+            for (let option of voiceSelect.options) {
+                if (option.value === savedVoiceName) {
+                    voiceSelect.selectedIndex = option.index;
                     break;
                 }
             }
         }
     }
 
-    function saveVoiceSettings(voiceName) {
-        localStorage.setItem('selectedVoice', voiceName);
-    }
-
-    function loadVoices(language) {
-        const voiceSelect = document.getElementById('voiceSelect');
-        voiceSelect.innerHTML = '';  // Clear previous options
-
-        let attempts = 0;
-        const maxAttempts = 50;  // Limit the number of retries
-
-        const checkVoices = () => {
-            const synth = window.speechSynthesis;
-            const voices = synth.getVoices().filter(voice => voice.lang.startsWith(language));
-
-            if (voices.length > 0 || attempts >= maxAttempts) {
-                voices.forEach(voice => {
-                    const option = document.createElement('option');
-                    option.textContent = voice.name + ' (' + voice.lang + ')';
-                    option.value = voice.name;
-                    voiceSelect.appendChild(option);
-                });
-                loadVoiceSettings();  // Load the saved voice settings after the options are added
-            } else {
-                attempts++;
-                setTimeout(checkVoices, 50);  // Retry after 50 ms
-            }
-        };
-
-        checkVoices();  // Start checking for voices
-    }
-
-    function changeFontSize(change) {
-        const words = document.querySelectorAll('.word, .translation');
-        words.forEach(word => {
-            const currentSize = parseInt(window.getComputedStyle(word, null).getPropertyValue('font-size'), 10);
-            const newSize = currentSize + change;
-            word.style.fontSize = `${newSize}px`;
-        });
-        // Save the new font size to local storage
-        saveFontSizeToLocal(words[0].style.fontSize);
-    }
-
-    function saveFontSizeToLocal(fontSize) {
-        localStorage.setItem('fontSize', fontSize);
-    }
-
-    function loadFontSize() {
-        const savedFontSize = localStorage.getItem('fontSize');
-        if (savedFontSize) {
-            const words = document.querySelectorAll('.word, .translation');
-            words.forEach(word => {
-                word.style.fontSize = savedFontSize;
-            });
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', loadFontSize);
-    document.getElementById('voiceSelect').addEventListener('change', function () {
-        const selectedVoice = this.value;
-        saveVoiceSettings(selectedVoice);
-    });
-
-    function loadSelectedTest() {
-        const select = document.getElementById('testSelect');
-
-        setTimeout(() => {
-            loadVoices(select.options[select.selectedIndex].dataset.lang);
-        }, 100);
-
-        loadWords(select.options[select.selectedIndex].dataset.lang);
-    }
-
     function loadWords(language) {
         const select = document.getElementById('testSelect');
         const scriptUrl = select.value;
-        if (scriptUrl) {
-            // Remove any previously loaded script to prevent duplicates or conflicts
-            const existingScript = document.querySelector('script[data-source="dynamic-words"]');
-            if (existingScript) {
-                document.body.removeChild(existingScript);
-            }
-
-            // Load the new script
-            const script = document.createElement('script');
-            script.src = scriptUrl;
-            script.setAttribute('data-source', 'dynamic-words'); // Mark the script to identify it later
-            document.body.appendChild(script);
-            loadFontSize();
-            script.onload = () => {
-
-                initializeGame(language); // Initialize the game once the words are loaded, passing the language
-            };
-        }
+        const existingScript = document.querySelector('script[data-source="dynamic-words"]');
+        if (existingScript) document.body.removeChild(existingScript);
+        const script = document.createElement('script');
+        script.src = scriptUrl;
+        script.setAttribute('data-source', 'dynamic-words');
+        document.body.appendChild(script);
+        script.onload = () => initializeGame(language);
     }
 
-
-    let draggedElement = null;
-    let draggedWord = null;
-
-    function initializeGame(language = 'en-US') {
+    function initializeGame(language) {
         if (!words || !Array.isArray(words)) return;
-
         const wordContainer = document.getElementById('wordContainer');
         const translationContainer = document.getElementById('translationContainer');
         wordContainer.innerHTML = '';
         translationContainer.innerHTML = '';
         updateScore(0);
-        updateFailures(0);
+        updateFailures(0);  // Ensure this is defined and used correctly as per below
 
         const shuffledWords = shuffleArray([...words]);
-        const shuffledTranslations = shuffleArray([...words]);
-
-        let speakTimeout;
-
         shuffledWords.forEach(word => {
-            const wordDiv = document.createElement('div');
-            wordDiv.className = 'word';
-            wordDiv.textContent = word.text;
-            wordDiv.draggable = true;
-
-            // Desktop events
-            wordDiv.addEventListener('dragstart', dragStart);
-
-            // Mobile touch events
-            wordDiv.addEventListener('touchstart', handleTouchStart, {passive: false});
-            wordDiv.addEventListener('touchmove', handleTouchMove, {passive: false});
-            wordDiv.addEventListener('touchend', handleTouchEnd, {passive: false});
-
-            // Hover speech
-            wordDiv.addEventListener('mouseenter', function () {
-                if (!hasEnabledVoice) {
-                    const lecture = new SpeechSynthesisUtterance('hello');
-                    lecture.volume = 0;
-                    speechSynthesis.speak(lecture);
-                    hasEnabledVoice = true;
-                }
-
-                speakTimeout = setTimeout(function () {
-                    const voiceSelect = document.getElementById('voiceSelect');
-                    const selectedVoice = voiceSelect.value;
-                    const utterance = new SpeechSynthesisUtterance(wordDiv.textContent);
-                    utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === selectedVoice);
-                    utterance.lang = language;
-                    speechSynthesis.speak(utterance);
-                }, 1000);
-            });
-
-            wordDiv.addEventListener('mouseleave', function () {
-                clearTimeout(speakTimeout);
-            });
-
+            const wordDiv = createWordDiv(word, language);
             wordContainer.appendChild(wordDiv);
         });
 
+        const shuffledTranslations = shuffleArray([...words]);
         shuffledTranslations.forEach(word => {
-            const translationDiv = document.createElement('div');
-            translationDiv.className = 'translation';
-            translationDiv.textContent = word.translation;
-            translationDiv.addEventListener('dragover', dragOver);
-            translationDiv.addEventListener('dragleave', dragLeave);
-            translationDiv.addEventListener('drop', handleDrop);
+            const translationDiv = createTranslationDiv(word);
             translationContainer.appendChild(translationDiv);
         });
-
-        loadFontSize();
     }
-
-    function handleTouchStart(event) {
-        event.preventDefault();
-        draggedElement = event.target;
-        draggedWord = event.target.textContent;
-
-        // Add visual feedback
-        event.target.style.opacity = '0.7';
-        event.target.style.transform = 'scale(1.1)';
-    }
-
-    function handleTouchMove(event) {
-        event.preventDefault();
-        if (!draggedElement) return;
-
-        const touch = event.touches[0];
-        const translateX = touch.clientX - (draggedElement.offsetWidth / 2);
-        const translateY = touch.clientY - (draggedElement.offsetHeight / 2);
-
-        draggedElement.style.position = 'fixed';
-        draggedElement.style.left = translateX + 'px';
-        draggedElement.style.top = translateY + 'px';
-        draggedElement.style.zIndex = '1000';
-    }
-
-    function blinkElement(element, isCorrect, callback) {
-        const blinkClass = isCorrect ? 'blink-correct' : 'blink-incorrect';
-        element.classList.add(blinkClass);
-        element.addEventListener('animationend', function onAnimationEnd() {
-            element.classList.remove(blinkClass);
-            element.removeEventListener('animationend', onAnimationEnd);
-            if (callback) callback();
-        });
-    }
-
 
     function handleAnswer(element, isCorrect) {
         const blinkClass = isCorrect ? 'blink-correct' : 'blink-incorrect';
@@ -671,26 +487,111 @@
                 });
             }
         });
+
+        // Update the game score and failure count
+        if (isCorrect) {
+            updateScore(score + 1);
+        } else {
+            updateFailures(failures + 1);
+        }
     }
 
+    function updateFailures(newVal) {
+        failures = newVal;
+        document.getElementById('numFailures').textContent = newVal;
+    }
+
+    function createWordDiv(word, language) {
+        const wordDiv = document.createElement('div');
+        wordDiv.className = 'word';
+        wordDiv.textContent = word.text;
+        wordDiv.draggable = true;
+        addEventListenersToWordDiv(wordDiv, language);
+        return wordDiv;
+    }
+
+    function createTranslationDiv(word) {
+        const translationDiv = document.createElement('div');
+        translationDiv.className = 'translation';
+        translationDiv.textContent = word.translation;
+        translationDiv.addEventListener('dragover', dragOver);
+        translationDiv.addEventListener('dragleave', dragLeave);
+        translationDiv.addEventListener('drop', handleDrop);
+        return translationDiv;
+    }
+
+    function addEventListenersToWordDiv(wordDiv, language) {
+        wordDiv.addEventListener('dragstart', dragStart);
+        wordDiv.addEventListener('touchstart', handleTouchStart, {passive: false});
+        wordDiv.addEventListener('touchmove', handleTouchMove, {passive: false});
+        wordDiv.addEventListener('touchend', handleTouchEnd, {passive: false});
+        wordDiv.addEventListener('mouseenter', () => handleMouseEnter(wordDiv, language));
+        wordDiv.addEventListener('mouseleave', () => clearTimeout(speakTimeout));
+    }
+
+    function handleMouseEnter(wordDiv, language) {
+        if (!hasEnabledVoice) {
+            const lecture = new SpeechSynthesisUtterance('hello');
+            lecture.volume = 0;
+            speechSynthesis.speak(lecture);
+            hasEnabledVoice = true;
+        }
+        speakTimeout = setTimeout(() => {
+            const voiceSelect = document.getElementById('voiceSelect');
+            const selectedVoice = voiceSelect.value;
+            const utterance = new SpeechSynthesisUtterance(wordDiv.textContent);
+            utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === selectedVoice);
+            utterance.lang = language;
+            speechSynthesis.speak(utterance);
+        }, 1000);
+    }
+
+    let draggedElement = null;
+    let draggedWord = null;
+
+    function handleTouchStart(event) {
+        console.log('touch start event');
+        event.preventDefault();
+        draggedElement = event.target;
+        draggedWord = event.target.textContent;
+        event.target.style.opacity = '0.7';
+        event.target.style.transform = 'scale(1.1)';
+        if (!hasEnabledVoice) {
+            const lecture = new SpeechSynthesisUtterance('hello');
+            lecture.volume = 0;
+            speechSynthesis.speak(lecture);
+            hasEnabledVoice = true;
+        }
+        speakTimeout = setTimeout(() => {
+            const voiceSelect = document.getElementById('voiceSelect');
+            const selectedVoice = voiceSelect.value;
+            const utterance = new SpeechSynthesisUtterance(draggedWord);
+            utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === selectedVoice);
+            utterance.lang = voiceSelect.options[voiceSelect.selectedIndex].dataset.lang;
+            speechSynthesis.speak(utterance);
+        }, 1000);
+    }
+
+    function handleTouchMove(event) {
+        event.preventDefault();
+        if (!draggedElement) return;
+        const touch = event.touches[0];
+        draggedElement.style.position = 'fixed';
+        draggedElement.style.left = `${touch.clientX - (draggedElement.offsetWidth / 2)}px`;
+        draggedElement.style.top = `${touch.clientY - (draggedElement.offsetHeight / 2)}px`;
+        draggedElement.style.zIndex = '1000';
+    }
 
     function handleTouchEnd(event) {
         event.preventDefault();
         const touch = event.changedTouches[0];
         const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
-
         if (dropTarget && dropTarget.classList.contains('translation')) {
-            const isCorrect = words.some(word =>
-                word.text === draggedWord &&
-                word.translation === dropTarget.textContent
-            );
-
+            const isCorrect = words.some(word => word.text === draggedWord && word.translation === dropTarget.textContent);
             handleAnswer(dropTarget, isCorrect);
             handleAnswer(draggedElement, isCorrect);
             updateScore(isCorrect ? score + 1 : score);
             showMessage(isCorrect);
-
-
             if (isCorrect && score === words.length) {
                 document.getElementById('statusMessage').textContent = "המשחק הסתיים בהצלחה!";
                 showConfetti();
@@ -699,46 +600,47 @@
             updateFailures(failures + 1);
             showMessage(false);
         }
+        resetDraggedElement();
+    }
 
-        // Reset the element state
-        if (draggedElement) {
-            draggedElement.style.opacity = '1';
-            draggedElement.style.transform = 'none';
-            draggedElement.style.position = 'static';
-            draggedElement.classList.remove('dragging');
-        }
+    function resetDraggedElement() {
+        document.querySelectorAll('.word').forEach(wordDiv => {
+            wordDiv.classList.remove('dragging');
+        });
+
+
         draggedElement = null;
         draggedWord = null;
     }
 
-
     function dragStart(event) {
         event.dataTransfer.setData("text", event.target.textContent);
+        document.querySelectorAll('.word').forEach(wordDiv => {
+            wordDiv.classList.remove('dragging');
+        });
         event.target.classList.add('dragging');
     }
 
-
     function dragOver(event) {
-        event.preventDefault(); // Necessary to allow a drop
+        event.preventDefault();
         if (event.target.classList.contains('translation')) {
-            event.target.classList.add('highlight'); // Add class to show dashed border
+            event.target.classList.add('highlight');
         }
     }
 
     function dragLeave(event) {
         if (event.target.classList.contains('highlight')) {
-            event.target.classList.remove('highlight'); // Remove class to hide dashed border
+            event.target.classList.remove('highlight');
         }
     }
 
     function handleDrop(event) {
         event.preventDefault();
         if (event.target.classList.contains('translation')) {
-            event.target.classList.remove('highlight'); // Ensure the highlight is removed on drop
+            event.target.classList.remove('highlight');
         }
         const draggedText = event.dataTransfer.getData("text");
         const dropTarget = event.target;
-
         if (dropTarget.classList.contains('translation') && words.some(word => word.text === draggedText && word.translation === dropTarget.textContent)) {
             handleAnswer(dropTarget, true);
             document.querySelectorAll('.word').forEach(wordDiv => {
@@ -762,53 +664,16 @@
             updateFailures(failures + 1);
             showMessage(false);
         }
-
-        // Remove highlight from all translation divs
-        document.querySelectorAll('.translation').forEach(el => el.classList.remove('highlight'));
-
-        document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
-    }
-
-
-    function drop(event) {
-        event.preventDefault();
-        const draggedText = event.dataTransfer.getData("text");
-        const targetElement = event.target;
-        if (words.some(word => word.text === draggedText && word.translation === event.target.textContent)) {
-            event.target.classList.add("correct");
-            // targetElement.style.fontWeight = 'normal'
-            // targetElement.style.visibility = "hidden";
-            handleAnswer(targetElement, true);
-
-            // event.target.style.backgroundColor = 'lightgreen';
-            document.querySelectorAll('.word').forEach(wordDiv => {
-                if (wordDiv.textContent === draggedText) {
-                    // wordDiv.style.visibility = "hidden";
-                    // wordDiv.style.fontWeight = 'normal'
-                    handleAnswer(targetElement, true);
-                }
-            });
-
-            updateScore(score + 1);
-            showMessage(true);
-            if (score === words.length) {
-                document.getElementById('statusMessage').textContent = "המשחק הסתיים בהצלחה!";
-                showConfetti();
-            }
-        } else {
-            handleAnswer(targetElement, false);
-            updateFailures(failures + 1);
-            showMessage(false);
-        }
+        resetDraggedElement();
     }
 
     function showMessage(isCorrect) {
 
         // const messageDiv = document.getElementById('statusMessage');
-        // messageDiv.textContent = isCorrect ? `  כל הכבוד!` : `  זה היה קרוב!`;
-        // setTimeout(() => messageDiv.textContent = '', 3000);
+        // messageDiv.style.display = 'block';
+        // messageDiv.textContent = isCorrect ? "כל הכבוד!" : "נסה שוב!";
+        // setTimeout(() => { messageDiv.style.display = 'none'; }, 3000);
     }
-
 
     function updateScore(newScore) {
         score = newScore;
@@ -819,23 +684,22 @@
         const confettiCount = 100;
         const confettiElement = document.createElement('div');
         document.body.appendChild(confettiElement);
-
         for (let i = 0; i < confettiCount; i++) {
             const confetti = document.createElement('div');
             confetti.classList.add('confetti');
             confetti.style.left = `${Math.random() * 100}%`;
             confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
-            confetti.style.animationDuration = `${Math.random() * 2 + 1}s`; // Random animation duration between 1s to 3s
-            confetti.style.opacity = Math.random(); // Random opacity for each confetti
-            confetti.style.top = `${-Math.random() * 20}px`; // Start from above the screen
+            confetti.style.animationDuration = `${Math.random() * 2 + 1}s`;
+            confetti.style.opacity = Math.random();
+            confetti.style.top = `${-Math.random() * 20}px`;
             confettiElement.appendChild(confetti);
         }
-
-        setTimeout(() => confettiElement.remove(), 3000); // Remove confetti after 3 seconds
+        setTimeout(() => {
+            confettiElement.remove();
+        }, 3000);
     }
-
-
 </script>
+
 </body>
 
 </html>
