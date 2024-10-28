@@ -7,6 +7,23 @@
     <!--    <link rel="stylesheet" href="style.css">-->
 
     <style>
+        @keyframes blink-correct {
+            0%, 100% { background-color : green; opacity : 1; }
+            50% { background-color : green; opacity : 0.5; }
+        }
+
+        @keyframes blink-incorrect {
+            0%, 100% { background-color : red; opacity : 1; }
+            50% { background-color : red; opacity : 0.5; }
+        }
+
+        .blink-correct {
+            animation : blink-correct 0.2s step-end 5; /* Total of 1 second */
+        }
+
+        .blink-incorrect {
+            animation : blink-incorrect 0.5s step-end 2; /* Total of 1 second */
+        }
 
         @keyframes fall {
             0% {
@@ -288,6 +305,7 @@
             border-radius    : 5px;
             cursor           : pointer;
             user-select      : none;
+
         }
 
         @media (max-width : 600px) {
@@ -319,7 +337,7 @@
 </div>
 
 
-<div class="status-message" id="statusMessage"></div>
+<div class="status-message" style="display: none" id="statusMessage"></div>
 <div class="instructions">.יש לגרור כל מילה אל התרגום שלה</div>
 <div class="game-area">
     <div class="word-container" id="wordContainer"></div>
@@ -348,7 +366,6 @@
     ];
 
 
-    let playerName = "שחקן"; // Default player name
     let score = 0;
 
 
@@ -495,9 +512,6 @@
     }
 
 
-  
- 
-
     let draggedElement = null;
     let draggedWord = null;
 
@@ -525,12 +539,12 @@
             wordDiv.addEventListener('dragstart', dragStart);
 
             // Mobile touch events
-            wordDiv.addEventListener('touchstart', handleTouchStart, { passive: false });
-            wordDiv.addEventListener('touchmove', handleTouchMove, { passive: false });
-            wordDiv.addEventListener('touchend', handleTouchEnd, { passive: false });
+            wordDiv.addEventListener('touchstart', handleTouchStart, {passive: false});
+            wordDiv.addEventListener('touchmove', handleTouchMove, {passive: false});
+            wordDiv.addEventListener('touchend', handleTouchEnd, {passive: false});
 
             // Hover speech
-            wordDiv.addEventListener('mouseenter', function() {
+            wordDiv.addEventListener('mouseenter', function () {
                 if (!hasEnabledVoice) {
                     const lecture = new SpeechSynthesisUtterance('hello');
                     lecture.volume = 0;
@@ -538,7 +552,7 @@
                     hasEnabledVoice = true;
                 }
 
-                speakTimeout = setTimeout(function() {
+                speakTimeout = setTimeout(function () {
                     const voiceSelect = document.getElementById('voiceSelect');
                     const selectedVoice = voiceSelect.value;
                     const utterance = new SpeechSynthesisUtterance(wordDiv.textContent);
@@ -548,7 +562,7 @@
                 }, 1000);
             });
 
-            wordDiv.addEventListener('mouseleave', function() {
+            wordDiv.addEventListener('mouseleave', function () {
                 clearTimeout(speakTimeout);
             });
 
@@ -591,6 +605,36 @@
         draggedElement.style.zIndex = '1000';
     }
 
+    function blinkElement(element, isCorrect, callback) {
+        const blinkClass = isCorrect ? 'blink-correct' : 'blink-incorrect';
+        element.classList.add(blinkClass);
+        element.addEventListener('animationend', function onAnimationEnd() {
+            element.classList.remove(blinkClass);
+            element.removeEventListener('animationend', onAnimationEnd);
+            if (callback) callback();
+        });
+    }
+
+ 
+    function handleAnswer(element, isCorrect) {
+        const blinkClass = isCorrect ? 'blink-correct' : 'blink-incorrect';
+        element.classList.add(blinkClass);
+        element.addEventListener('animationend', function onAnimationEnd() {
+            element.classList.remove(blinkClass);
+            element.removeEventListener('animationend', onAnimationEnd);
+            if (isCorrect) {
+                element.style.transition = 'opacity 0.5s, transform 0.5s';
+                element.style.opacity = '0';
+                element.style.transform = 'scale(0)';
+                element.addEventListener('transitionend', function onTransitionEnd() {
+                    element.style.display = 'none';
+                    element.removeEventListener('transitionend', onTransitionEnd);
+                });
+            }
+        });
+    }
+
+
     function handleTouchEnd(event) {
         event.preventDefault();
         if (!draggedElement) return;
@@ -611,8 +655,9 @@
             );
 
             if (isCorrect) {
-                dropTarget.style.visibility = "hidden";
-                draggedElement.style.visibility = "hidden";
+
+                handleAnswer(dropTarget, isCorrect);
+                handleAnswer(draggedElement, isCorrect);
                 updateScore(score + 1);
                 showMessage(true);
 
@@ -621,6 +666,8 @@
                     showConfetti();
                 }
             } else {
+                handleAnswer(dropTarget, isCorrect);
+                handleAnswer(draggedElement, isCorrect);
                 showMessage(false);
             }
         }
@@ -642,11 +689,15 @@
         const draggedText = event.dataTransfer.getData("text");
 
         if (words.some(word => word.text === draggedText && word.translation === event.target.textContent)) {
-            event.target.style.visibility = "hidden";
+
+            handleAnswer(event.target, true);
+
             document.querySelectorAll('.word').forEach(wordDiv => {
                 if (wordDiv.textContent === draggedText) {
-                    wordDiv.style.visibility = "hidden";
+                    // wordDiv.style.visibility = "hidden";
+                    handleAnswer(wordDiv, true);
                 }
+
             });
 
             updateScore(score + 1);
@@ -657,12 +708,18 @@
                 showConfetti();
             }
         } else {
+            document.querySelectorAll('.word').forEach(wordDiv => {
+                if (wordDiv.textContent === draggedText) {
+                    // wordDiv.style.visibility = "hidden";
+                    handleAnswer(wordDiv, false);
+                }
+
+            });
+            handleAnswer(event.target, false);
             showMessage(false);
         }
     }
-    
 
-   
 
     function drop(event) {
         event.preventDefault();
@@ -670,13 +727,16 @@
         const targetElement = event.target;
         if (words.some(word => word.text === draggedText && word.translation === event.target.textContent)) {
             event.target.classList.add("correct");
-            targetElement.style.fontWeight = 'normal'
-            targetElement.style.visibility = "hidden";
+            // targetElement.style.fontWeight = 'normal'
+            // targetElement.style.visibility = "hidden";
+            handleAnswer(targetElement, true);
+
             // event.target.style.backgroundColor = 'lightgreen';
             document.querySelectorAll('.word').forEach(wordDiv => {
                 if (wordDiv.textContent === draggedText) {
-                    wordDiv.style.visibility = "hidden";
-                    wordDiv.style.fontWeight = 'normal'
+                    // wordDiv.style.visibility = "hidden";
+                    // wordDiv.style.fontWeight = 'normal'
+                    handleAnswer(targetElement, true);
                 }
             });
 
@@ -687,17 +747,18 @@
                 showConfetti();
             }
         } else {
+            handleAnswer(targetElement, false);
             showMessage(false);
         }
     }
 
     function showMessage(isCorrect) {
+        return;
         const messageDiv = document.getElementById('statusMessage');
         messageDiv.textContent = isCorrect ? `  כל הכבוד!` : `  זה היה קרוב!`;
         setTimeout(() => messageDiv.textContent = '', 3000);
     }
 
-    
 
     function updateScore(newScore) {
         score = newScore;
