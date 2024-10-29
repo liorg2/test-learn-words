@@ -8,323 +8,310 @@
 
     <style>
         .highlight {
-
-            background-color : lavender !important;
+            background-color: lavender !important;
         }
 
         .dragging {
-            box-shadow : 0px 0px 10px 5px rgba(0, 123, 255, 0.5); /* Example of a soft blue shadow */
-            border     : 2px dashed #007bff; /* Dashed border style */
+            box-shadow: 0px 0px 10px 5px rgba(0, 123, 255, 0.5); /* Example of a soft blue shadow */
+            border: 2px dashed #007bff; /* Dashed border style */
         }
 
         @keyframes blink-correct {
-            0%, 100% { background-color : green; opacity : 1; }
-            50% { background-color : green; opacity : 0.5; }
+            0%, 100% { background-color: green; opacity: 1; }
+            50% { background-color: green; opacity: 0.5; }
         }
 
         @keyframes blink-incorrect {
-            0%, 100% { background-color : red; opacity : 1; }
-            50% { background-color : red; opacity : 0.5; }
+            0%, 100% { background-color: red; opacity: 1; }
+            50% { background-color: red; opacity: 0.5; }
         }
 
         .blink-correct {
-            animation : blink-correct 0.2s step-end 5; /* Total of 1 second */
+            animation: blink-correct 0.2s step-end 5; /* Total of 1 second */
         }
 
         .blink-incorrect {
-            animation : blink-incorrect 0.2s step-end 2; /* Total of 1 second */
+            animation: blink-incorrect 0.2s step-end 2; /* Total of 1 second */
         }
 
         @keyframes fall {
             0% {
-                transform : translateY(0) rotate(0deg);
+                transform: translateY(0) rotate(0deg);
             }
-
             100% {
-                transform : translateY(500px) rotate(360deg);
+                transform: translateY(500px) rotate(360deg);
             }
         }
 
         .confetti {
-            position         : absolute;
-            width            : 10px;
-            height           : 10px;
-            background-color : #ffcc00;
-            animation        : fall 1s linear infinite;
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #ffcc00;
+            animation: fall 1s linear infinite;
         }
 
         body {
-            font-family         : 'Arial', sans-serif;
-            background-image    : url("./back.jpg");
-            background-repeat   : no-repeat;
-            background-position : center center;
-            background-size     : cover;
-            margin              : 0;
-            display             : flex;
-            flex-direction      : column;
-            align-items         : center;
-            justify-content     : flex-start;
-            height              : 100vh;
+            font-family: "Arial", sans-serif;
+            background-image: url("./back.jpg");
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
         }
 
         .game-area {
-            width     : 90%;
-            max-width : 1900px;
+            width: 90%;
+            max-width: 1900px;
         }
 
         .word-container,
         .translation-container {
-            display         : flex;
-            flex-wrap       : wrap;
-            justify-content : center;
-            gap             : 10px;
-            margin          : 10px 0;
-            font-weight     : bold;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0;
+            font-weight: bold;
         }
 
         .word,
         .translation {
-            border           : 3px solid #007BFF;
-            border-radius    : 5px;
-            padding          : 10px;
-            background-color : #E1ECF4;
-            cursor           : pointer;
-            user-select      : none;
-            font-size        : 25px;
-            margin           : 5px 10px;
+            border: 3px solid #007BFF;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #E1ECF4;
+            cursor: pointer;
+            user-select: none;
+            font-size: 25px;
+            margin: 5px 10px;
         }
 
         .translation {
-            direction : rtl;
+            direction: rtl;
         }
 
         .separator {
-            border     : none;
-            height     : 2px;
-            background : linear-gradient(to right, #fff, mediumpurple, #fff);
-            margin     : 20px 0;
+            border: none;
+            height: 2px;
+            background: linear-gradient(to right, #fff, mediumpurple, #fff);
+            margin: 20px 0;
         }
 
         @keyframes slide {
             to {
-                left : 100%;
+                left: 100%;
             }
         }
 
-
         .instructions {
-            font-size   : 24px;
-            font-weight : bold;
-            color       : #0056b3;
-            margin      : 20px;
-            text-align  : center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #0056b3;
+            margin: 20px;
+            text-align: center;
         }
 
-
         .status-message {
-            font-weight      : bold;
-            position         : fixed;
+            font-weight: bold;
+            position: fixed;
             /* או absolute, תלוי במבנה הדף */
-            top              : 0;
-            left             : 50%;
-            transform        : translateX(-50%);
-            font-size        : 20px;
-            background-color : #76B947;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            background-color: #76B947;
             /* צבע רקע - ניתן לשנות לפי העדפה */
-            color            : white;
+            color: white;
             /* צבע טקסט */
-            padding          : 10px 20px;
-            border-radius    : 0 0 10px 10px;
+            padding: 10px 20px;
+            border-radius: 0 0 10px 10px;
             /* קורנרים מעוגלים בחלק התחתון */
         }
 
         #nameInput {
-            padding       : 10px;
-
-            border        : 2px solid #007BFF;
-            border-radius : 5px;
-            font-size     : 16px;
-            display       : block;
-            margin        : 20px auto;
-            width         : 200px;
-            text-align    : center;
+            padding: 10px;
+            border: 2px solid #007BFF;
+            border-radius: 5px;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto;
+            width: 200px;
+            text-align: center;
             /* Text aligned to the center */
         }
 
         #reset {
-            color       : green;
-            font-weight : bold;
-
+            color: green;
+            font-weight: bold;
         }
 
         #testSelect {
-            padding          : 5px 10px;
+            padding: 5px 10px;
             /* Increase padding to make it larger */
-            font-size        : 16px;
+            font-size: 16px;
             /* Larger font size for better readability */
-
-            display          : block;
+            display: block;
             /* Make it a block element to take width settings properly */
-            cursor           : pointer;
+            cursor: pointer;
             /* Shows a pointer cursor on hover */
-            background-color : #ffffff;
+            background-color: #ffffff;
             /* Background color */
-            color            : #000000;
+            color: #000000;
             /* Text color */
-            border           : 2px solid #007BFF;
+            border: 2px solid #007BFF;
             /* Border properties */
-            border-radius    : 5px;
+            border-radius: 5px;
             /* Rounded corners */
         }
 
         #testSelect:hover {
-            background-color : #f8f8f8;
+            background-color: #f8f8f8;
             /* Slightly change background on hover for visual feedback */
         }
 
-
         .control-panel {
-            margin-bottom    : 10px;
-            display          : flex;
-            justify-content  : center;
-            align-items      : flex-end;
-            padding          : 10px;
-            background-color : #f0f0f0;
-            border           : 1px solid #ccc;
-            width            : 100%;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            width: 100%;
         }
 
         #testSelect {
-            flex-grow    : 1;
+            flex-grow: 1;
             /* Allows the select element to grow and fill the space */
-            margin-right : 10px;
+            margin-right: 10px;
             /* Adds some space between the select and the button */
         }
 
         #resetGameButton {
-            padding          : 5px 10px;
-            font-size        : 16px;
-            background-color : #007BFF;
-            color            : white;
-            border-radius    : 5px;
-            text-decoration  : none;
-            cursor           : pointer;
-            transition       : background-color 0.3s;
+            padding: 5px 10px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
 
         #resetGameButton:hover {
-            background-color : #0056b3;
+            background-color: #0056b3;
         }
-
 
         #decreaseFont,
         #increaseFont {
-            padding          : 5px 10px;
+            padding: 5px 10px;
             /* Standard padding to ensure buttons are the same size */
-            cursor           : pointer;
-            border           : 1px solid #007BFF;
-            border-radius    : 5px;
-            background-color : #E1ECF4;
-            width            : 50px;
+            cursor: pointer;
+            border: 1px solid #007BFF;
+            border-radius: 5px;
+            background-color: #E1ECF4;
+            width: 50px;
             /* Fixed width to ensure buttons are the same size */
-            display          : inline-block;
+            display: inline-block;
             /* Ensure the button does not stretch to fit its container */
-            text-align       : center;
+            text-align: center;
             /* Centers the text within the button */
-            line-height      : 20px;
+            line-height: 20px;
             /* Adjust line height to vertically center the text */
-            font-weight      : bold;
+            font-weight: bold;
         }
 
         #decreaseFont {
-            font-size : 12px;
+            font-size: 12px;
             /* Smaller font size for "A-" */
         }
 
         #increaseFont {
-            font-size : 18px;
+            font-size: 18px;
             /* Larger font size for "A+" */
-
         }
-
 
         #voiceSelect,
         button {
-            cursor        : pointer;
-            margin-right  : 10px;
-            font-size     : 16px;
-            padding       : 5px 10px;
-            border-radius : 5px;
-            border        : 1px solid #007BFF;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 16px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #007BFF;
         }
 
-
         .dropdown-group {
-            display        : flex;
-            flex-direction : column;
-            margin-left    : 20px;
+            display: flex;
+            flex-direction: column;
+            margin-left: 20px;
         }
 
         .dropdown-group label {
-            direction     : rtl;
-            padding-right : 15px;;
+            direction: rtl;
+            padding-right: 15px;;
         }
 
         #resetGameButton,
         #decreaseFont,
         #increaseFont {
-            margin-right : 10px;
+            margin-right: 10px;
         }
 
         /* Add this to your CSS file */
         body {
-            font-family      : Arial, sans-serif;
-            margin           : 0;
-            padding          : 0;
-            display          : flex;
-            flex-direction   : column;
-            align-items      : center;
-            justify-content  : flex-start;
-            height           : 100vh;
-            background-color : #f0f0f0;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            background-color: #f0f0f0;
         }
 
         #wordContainer, #translationContainer {
-            display         : flex;
-            flex-wrap       : wrap;
-            justify-content : center;
-            margin          : 10px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 10px;
         }
 
         .word, .translation {
-            margin           : 5px;
-            padding          : 10px;
-            background-color : #fff;
-            border           : 1px solid #ccc;
-            border-radius    : 5px;
-            cursor           : pointer;
-            user-select      : none;
-
+            margin: 5px;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            user-select: none;
         }
 
-        @media (max-width : 600px) {
+        @media (max-width: 600px) {
             .word, .translation {
-                font-size : 14px;
-                padding   : 8px;
+                font-size: 14px;
+                padding: 8px;
             }
         }
 
         .statistics {
-            display          : flex; /* Use flexbox to align children in a row */
-            justify-content  : space-around; /* Distribute space evenly around items */
-            align-items      : center; /* Align items vertically in the center */
-            padding          : 10px; /* Add padding for better spacing */
-            background-color : #f0f0f0; /* Optional: background color for visibility */
-            border           : 1px solid #ccc; /* Optional: border for better visibility */
+            display: flex; /* Use flexbox to align children in a row */
+            justify-content: space-around; /* Distribute space evenly around items */
+            align-items: center; /* Align items vertically in the center */
+            padding: 10px; /* Add padding for better spacing */
+            background-color: #f0f0f0; /* Optional: background color for visibility */
+            border: 1px solid #ccc; /* Optional: border for better visibility */
         }
 
         .statistics p {
-            margin : 0 10px; /* Add horizontal spacing between items */
+            margin: 0 10px; /* Add horizontal spacing between items */
         }
     </style>
 </head>
@@ -534,7 +521,7 @@
         wordDiv.textContent = word.text;
         wordDiv.draggable = true;
         wordDiv.addEventListener('dragstart', handleDragStart);
-        wordDiv.addEventListener('touchstart', handleTouchStart, {passive: false});
+        wordDiv.addEventListener('touchstart', (event) => handleTouchStart(event, language), {passive: false});
         wordDiv.addEventListener('touchmove', handleTouchMove, {passive: false});
         wordDiv.addEventListener('touchend', handleTouchEnd, {passive: false});
         wordDiv.addEventListener('mouseenter', () => handleMouseEnter(wordDiv, language));
@@ -549,11 +536,11 @@
         translationDiv.addEventListener('dragover', handleDragOver);
         translationDiv.addEventListener('dragleave', handleDragLeave);
         translationDiv.addEventListener('drop', handleDrop);
-        
+
         return translationDiv;
     }
 
-   
+
     function handleMouseEnter(wordDiv, language) {
         log('handleMouseEnter ' + wordDiv.textContent + ' ' + language);
         if (!hasEnabledVoice) {
@@ -575,9 +562,9 @@
     let draggedElement = null;
     let draggedWord = null;
 
-    function handleTouchStart(event) {
+    function handleTouchStart(event, language) { // Modified to accept language
         log('handleTouchStart');
-         
+
         event.preventDefault();
         draggedElement = event.target;
         draggedWord = event.target.textContent;
@@ -585,9 +572,7 @@
             wordDiv.classList.remove('dragging');
         });
         draggedElement.classList.add('dragging');
-        
-        // event.target.style.opacity = '0.7';
-        // event.target.style.transform = 'scale(1.1)';
+
         if (!hasEnabledVoice) {
             const lecture = new SpeechSynthesisUtterance('hello');
             lecture.volume = 0;
@@ -599,7 +584,7 @@
             const selectedVoice = voiceSelect.value;
             const utterance = new SpeechSynthesisUtterance(draggedWord);
             utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === selectedVoice);
-            utterance.lang = voiceSelect.options[voiceSelect.selectedIndex].dataset.lang;
+            utterance.lang = language; // Modified to use the correct language
             speechSynthesis.speak(utterance);
         }, 1000);
     }
@@ -687,11 +672,11 @@
         log('handleDrop');
         event.preventDefault();
         if (!draggedElement) return;
-        
+
         if (event.target.classList.contains('translation')) {
             event.target.classList.remove('highlight');
         }
-        
+
         const dropTarget = event.target;
         if (dropTarget.classList.contains('translation')) {
             const isCorrect = words.some(word =>
