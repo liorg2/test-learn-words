@@ -394,6 +394,11 @@
         return array;
     }
 
+    function log(msg) {
+        console.log(msg);
+
+    }
+
     function loadSelectedTest() {
         const select = document.getElementById('testSelect');
         setTimeout(() => {
@@ -403,6 +408,7 @@
     }
 
     function loadVoices(language) {
+        log('loadVoices');
         const voiceSelect = document.getElementById('voiceSelect');
         voiceSelect.innerHTML = '';
         let attempts = 0, maxAttempts = 50;
@@ -425,6 +431,7 @@
     }
 
     function loadVoiceSettings() {
+        log('loadVoiceSettings');
         const savedVoiceName = localStorage.getItem('selectedVoice');
         const voiceSelect = document.getElementById('voiceSelect');
         if (savedVoiceName) {
@@ -438,6 +445,7 @@
     }
 
     function loadWords(language) {
+        log('loadWords ' + language);
         const select = document.getElementById('testSelect');
         const scriptUrl = select.value;
         const existingScript = document.querySelector('script[data-source="dynamic-words"]');
@@ -450,6 +458,7 @@
     }
 
     function initializeGame(language) {
+        log('initializeGame ' + language);
         if (!words || !Array.isArray(words)) return;
         const wordContainer = document.getElementById('wordContainer');
         const translationContainer = document.getElementById('translationContainer');
@@ -471,19 +480,36 @@
         });
     }
 
-    function handleAnswer(element, isCorrect) {
+    function handleAnswer(translationElement, isCorrect, wordElement) {
+
+        log('handleAnswer ' + translationElement.textContent + ' ' + wordElement.textContent + ' ' + isCorrect);
         const blinkClass = isCorrect ? 'blink-correct' : 'blink-incorrect';
-        element.classList.add(blinkClass);
-        element.addEventListener('animationend', function onAnimationEnd() {
-            element.classList.remove(blinkClass);
-            element.removeEventListener('animationend', onAnimationEnd);
+        translationElement.classList.add(blinkClass);
+        translationElement.addEventListener('animationend', function onAnimationEnd() {
+            translationElement.classList.remove(blinkClass);
+            translationElement.removeEventListener('animationend', onAnimationEnd);
             if (isCorrect) {
-                element.style.transition = 'opacity 0.5s, transform 0.5s';
-                element.style.opacity = '0';
-                element.style.transform = 'scale(0)';
-                element.addEventListener('transitionend', function onTransitionEnd() {
-                    element.style.display = 'none';
-                    element.removeEventListener('transitionend', onTransitionEnd);
+                translationElement.style.transition = 'opacity 0.5s, transform 0.5s';
+                translationElement.style.opacity = '0';
+                translationElement.style.transform = 'scale(0)';
+                translationElement.addEventListener('transitionend', function onTransitionEnd() {
+                    translationElement.style.display = 'none';
+                    translationElement.removeEventListener('transitionend', onTransitionEnd);
+                });
+            }
+        });
+
+        wordElement.classList.add(blinkClass);
+        wordElement.addEventListener('animationend', function onAnimationEnd() {
+            wordElement.classList.remove(blinkClass);
+            wordElement.removeEventListener('animationend', onAnimationEnd);
+            if (isCorrect) {
+                wordElement.style.transition = 'opacity 0.5s, transform 0.5s';
+                wordElement.style.opacity = '0';
+                wordElement.style.transform = 'scale(0)';
+                wordElement.addEventListener('transitionend', function onTransitionEnd() {
+                    wordElement.style.display = 'none';
+                    wordElement.removeEventListener('transitionend', onTransitionEnd);
                 });
             }
         });
@@ -497,6 +523,7 @@
     }
 
     function updateFailures(newVal) {
+        log('updateFailures ' + newVal);
         failures = newVal;
         document.getElementById('numFailures').textContent = newVal;
     }
@@ -506,7 +533,12 @@
         wordDiv.className = 'word';
         wordDiv.textContent = word.text;
         wordDiv.draggable = true;
-        addEventListenersToWordDiv(wordDiv, language);
+        wordDiv.addEventListener('dragstart', handleDragStart);
+        wordDiv.addEventListener('touchstart', handleTouchStart, {passive: false});
+        wordDiv.addEventListener('touchmove', handleTouchMove, {passive: false});
+        wordDiv.addEventListener('touchend', handleTouchEnd, {passive: false});
+        wordDiv.addEventListener('mouseenter', () => handleMouseEnter(wordDiv, language));
+        wordDiv.addEventListener('mouseleave', () => clearTimeout(speakTimeout));
         return wordDiv;
     }
 
@@ -514,22 +546,16 @@
         const translationDiv = document.createElement('div');
         translationDiv.className = 'translation';
         translationDiv.textContent = word.translation;
-        translationDiv.addEventListener('dragover', dragOver);
-        translationDiv.addEventListener('dragleave', dragLeave);
+        translationDiv.addEventListener('dragover', handleDragOver);
+        translationDiv.addEventListener('dragleave', handleDragLeave);
         translationDiv.addEventListener('drop', handleDrop);
+        
         return translationDiv;
     }
 
-    function addEventListenersToWordDiv(wordDiv, language) {
-        wordDiv.addEventListener('dragstart', dragStart);
-        wordDiv.addEventListener('touchstart', handleTouchStart, {passive: false});
-        wordDiv.addEventListener('touchmove', handleTouchMove, {passive: false});
-        wordDiv.addEventListener('touchend', handleTouchEnd, {passive: false});
-        wordDiv.addEventListener('mouseenter', () => handleMouseEnter(wordDiv, language));
-        wordDiv.addEventListener('mouseleave', () => clearTimeout(speakTimeout));
-    }
-
+   
     function handleMouseEnter(wordDiv, language) {
+        log('handleMouseEnter ' + wordDiv.textContent + ' ' + language);
         if (!hasEnabledVoice) {
             const lecture = new SpeechSynthesisUtterance('hello');
             lecture.volume = 0;
@@ -550,12 +576,18 @@
     let draggedWord = null;
 
     function handleTouchStart(event) {
-        console.log('touch start event');
+        log('handleTouchStart');
+         
         event.preventDefault();
         draggedElement = event.target;
         draggedWord = event.target.textContent;
-        event.target.style.opacity = '0.7';
-        event.target.style.transform = 'scale(1.1)';
+        document.querySelectorAll('.word').forEach(wordDiv => {
+            wordDiv.classList.remove('dragging');
+        });
+        draggedElement.classList.add('dragging');
+        
+        // event.target.style.opacity = '0.7';
+        // event.target.style.transform = 'scale(1.1)';
         if (!hasEnabledVoice) {
             const lecture = new SpeechSynthesisUtterance('hello');
             lecture.volume = 0;
@@ -580,9 +612,11 @@
         draggedElement.style.left = `${touch.clientX - (draggedElement.offsetWidth / 2)}px`;
         draggedElement.style.top = `${touch.clientY - (draggedElement.offsetHeight / 2)}px`;
         draggedElement.style.zIndex = '1000';
+        // draggedElement.style.border = '2px dashed #007bff';
     }
 
     function handleTouchEnd(event) {
+        log('handleTouchEnd');
 
         event.preventDefault();
         if (!draggedElement) return;
@@ -597,52 +631,23 @@
         const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
 
         if (dropTarget && dropTarget.classList.contains('translation')) {
-            
+
             const isCorrect = words.some(word =>
                 word.text === draggedWord &&
                 word.translation === dropTarget.textContent
             );
+            handleAnswer(dropTarget, isCorrect, draggedElement);
 
-            if (isCorrect) {
-                dropTarget.classList.add('fade-out');
-                draggedElement.classList.add('fade-out');
-                setTimeout(() => {
-                    dropTarget.style.display = 'none';
-                    draggedElement.style.display = 'none';
-                }, 1000); // Match the duration of the fade-out animation
-                handleAnswer(dropTarget, true);
-                document.querySelectorAll('.word').forEach(wordDiv => {
-                    if (wordDiv.textContent === draggedWord) {
-                        handleAnswer(wordDiv, true);
-                    }
-                });
-                updateScore(score + 1);
-                showMessage(true);
-
-                if (score === words.length) {
-                    document.getElementById('statusMessage').textContent = "המשחק הסתיים בהצלחה!";
-                    showConfetti();
-                }
-            } else {
-                handleAnswer(dropTarget, false);
-                document.querySelectorAll('.word').forEach(wordDiv => {
-                    if (wordDiv.textContent === draggedWord) {
-                        handleAnswer(wordDiv, false);
-                    }
-                });
-                updateFailures(failures + 1);
-                showMessage(false);
-            }
         } else {
-          
+
             console.log('touch end event null');
         }
 
-        draggedElement = null;
-        draggedWord = null;
+        resetDraggedElement();
     }
 
     function resetDraggedElement() {
+        log('resetDraggedElement');
         document.querySelectorAll('.word').forEach(wordDiv => {
             wordDiv.classList.remove('dragging');
         });
@@ -652,56 +657,50 @@
         draggedWord = null;
     }
 
-    function dragStart(event) {
+    function handleDragStart(event) {
+        log('dragStart ' + event.target.textContent);
+        draggedElement = event.target;
+        draggedWord = event.target.textContent;
         event.dataTransfer.setData("text", event.target.textContent);
         document.querySelectorAll('.word').forEach(wordDiv => {
             wordDiv.classList.remove('dragging');
         });
-        event.target.classList.add('dragging');
+        draggedElement.classList.add('dragging');
     }
 
-    function dragOver(event) {
+    function handleDragOver(event) {
+        log('dragOver');
         event.preventDefault();
         if (event.target.classList.contains('translation')) {
             event.target.classList.add('highlight');
         }
     }
 
-    function dragLeave(event) {
+    function handleDragLeave(event) {
+        log('dragLeave');
         if (event.target.classList.contains('highlight')) {
             event.target.classList.remove('highlight');
         }
     }
 
     function handleDrop(event) {
+        log('handleDrop');
         event.preventDefault();
+        if (!draggedElement) return;
+        
         if (event.target.classList.contains('translation')) {
             event.target.classList.remove('highlight');
         }
-        const draggedText = event.dataTransfer.getData("text");
+        
         const dropTarget = event.target;
-        if (dropTarget.classList.contains('translation') && words.some(word => word.text === draggedText && word.translation === dropTarget.textContent)) {
-            handleAnswer(dropTarget, true);
-            document.querySelectorAll('.word').forEach(wordDiv => {
-                if (wordDiv.textContent === draggedText) {
-                    handleAnswer(wordDiv, true);
-                }
-            });
-            updateScore(score + 1);
-            showMessage(true);
-            if (score === words.length) {
-                document.getElementById('statusMessage').textContent = "המשחק הסתיים בהצלחה!";
-                showConfetti();
-            }
-        } else {
-            handleAnswer(dropTarget, false);
-            document.querySelectorAll('.word').forEach(wordDiv => {
-                if (wordDiv.textContent === draggedText) {
-                    handleAnswer(wordDiv, false);
-                }
-            });
-            updateFailures(failures + 1);
-            showMessage(false);
+        if (dropTarget.classList.contains('translation')) {
+            const isCorrect = words.some(word =>
+                word.text === draggedWord &&
+                word.translation === dropTarget.textContent
+            );
+            handleAnswer(dropTarget, isCorrect, draggedElement);
+
+
         }
         resetDraggedElement();
     }
@@ -715,8 +714,14 @@
     }
 
     function updateScore(newScore) {
+        log('updateScore ' + newScore);
         score = newScore;
         document.getElementById('scoreDisplay').textContent = `נקודות: ${score}`;
+
+        if (score === words.length) {
+            document.getElementById('statusMessage').textContent = "המשחק הסתיים בהצלחה!";
+            showConfetti();
+        }
     }
 
     function showConfetti() {
