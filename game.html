@@ -535,9 +535,9 @@
         wordDiv.textContent = word.text;
         wordDiv.draggable = true;
         wordDiv.addEventListener('dragstart', handleDragStart);
-        wordDiv.addEventListener('touchstart', (event) => handleTouchStart(event, language), {passive: false});
-        wordDiv.addEventListener('touchmove', handleTouchMove, {passive: false});
-        wordDiv.addEventListener('touchend', handleTouchEnd, {passive: false});
+        wordDiv.addEventListener('touchstart', (event) => handleTouchStart(event, language));
+        wordDiv.addEventListener('touchmove', handleTouchMove);
+        wordDiv.addEventListener('touchend', handleTouchEnd);
         wordDiv.addEventListener('mouseenter', () => handleMouseEnter(wordDiv, language));
         wordDiv.addEventListener('mouseleave', () => clearTimeout(speakTimeout));
         return wordDiv;
