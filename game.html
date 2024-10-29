@@ -383,11 +383,15 @@
         return array;
     }
 
+
     function log(msg) {
         console.log(msg);
         const logElement = document.getElementById('log');
-        logElement.textContent  = msg + '\n' +logElement.textContent;
+        const p = document.createElement('p');
+        p.textContent = msg;
+        logElement.insertBefore(p, logElement.firstChild);
     }
+
 
     function loadSelectedTest() {
         const select = document.getElementById('testSelect');
