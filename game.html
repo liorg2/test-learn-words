@@ -347,6 +347,8 @@
     <div class="separator"></div>
     <div class="translation-container" id="translationContainer"></div>
 </div>
+
+<div id="log"></div>
 <!--    <script src="list.js"></script>-->
 <script>
     const list = [
@@ -383,7 +385,8 @@
 
     function log(msg) {
         console.log(msg);
-
+        const logElement = document.getElementById('log');
+        logElement.textContent += msg + '\n';
     }
 
     function loadSelectedTest() {
