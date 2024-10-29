@@ -398,19 +398,21 @@
         const select = document.getElementById('testSelect');
         setTimeout(() => {
             loadVoices(select.options[select.selectedIndex].dataset.lang);
-        }, 100);
-        loadWords(select.options[select.selectedIndex].dataset.lang);
+            loadWords(select.options[select.selectedIndex].dataset.lang);
+        }, 500);
+        
     }
 
     function loadVoices(language) {
-        log('loadVoices' + language);
+        log('loadVoices ' + language);
         const voiceSelect = document.getElementById('voiceSelect');
         voiceSelect.innerHTML = '';
         let attempts = 0, maxAttempts = 50;
         const checkVoices = () => {
             const voices = speechSynthesis.getVoices().filter(voice => voice.lang.startsWith(language));
-            log('checkVoices voices: ' + voices.length); 
+           
             if (voices.length > 0 || attempts >= maxAttempts) {
+                log('checkVoices voices: ' + voices.length);
                 voices.forEach(voice => {
                     let option = document.createElement('option');
                     option.textContent = `${voice.name} (${voice.lang})`;
@@ -419,6 +421,7 @@
                 });
                 loadVoiceSettings();
             } else {
+                log ('checkVoices will retry attempts: ' + attempts);
                 attempts++;
                 setTimeout(checkVoices, 50);
             }
@@ -434,6 +437,7 @@
             log ('loadVoiceSettings savedVoiceName: ' + savedVoiceName);
             for (let option of voiceSelect.options) {
                 if (option.value === savedVoiceName) {
+                    log('savedVoiceName found loadVoiceSettings option.index: ' + option.index);
                     voiceSelect.selectedIndex = option.index;
                     break;
                 }
