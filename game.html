@@ -606,7 +606,7 @@
                 const utterance = new SpeechSynthesisUtterance(draggedWord);
                 utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === selectedVoice);
                 utterance.lang = language; // Modified to use the correct language
-                log ('handleTouchStart speak: ' + utterance.lang + ' ' + utterance.voice + ' ' + wordDiv.textContent);
+                log ('handleTouchStart speak: ' + utterance.lang + ' ' + utterance.voice + ' ' + draggedWord);
                 speechSynthesis.speak(utterance);
             } catch (e) {
                 log('error: ' + e);
