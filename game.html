@@ -362,6 +362,12 @@
     let hasEnabledVoice = false;
     let speakTimeout;
 
+    document.addEventListener('click', () => {
+        const lecture = new SpeechSynthesisUtterance('hello');
+        lecture.volume = 0;
+        speechSynthesis.speak(lecture);
+        hasEnabledVoice = true;
+    });
     document.addEventListener('DOMContentLoaded', function () {
         loadVoices('en-US');
         const select = document.getElementById('testSelect');
