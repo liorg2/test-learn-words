@@ -569,6 +569,7 @@
             const utterance = new SpeechSynthesisUtterance(wordDiv.textContent);
             utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === selectedVoice);
             utterance.lang = language;
+            log (' handleMouseEnter speak: ' + utterance.lang + ' ' + utterance.voice + ' ' + wordDiv.textContent); 
             speechSynthesis.speak(utterance);
         }, 1000);
     }
@@ -599,6 +600,7 @@
             const utterance = new SpeechSynthesisUtterance(draggedWord);
             utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === selectedVoice);
             utterance.lang = language; // Modified to use the correct language
+            log ('handleTouchStart speak: ' + utterance.lang + ' ' + utterance.voice + ' ' + wordDiv.textContent);
             speechSynthesis.speak(utterance);
         }, 1000);
     }
