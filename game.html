@@ -578,7 +578,7 @@
     let draggedWord = null;
 
     function handleTouchStart(event, language) { // Modified to accept language
-        log('handleTouchStart' + language + ' ' + hasEnabledVoice);
+        log('handleTouchStart ' + language + ' ' + hasEnabledVoice);
 
         event.preventDefault();
         draggedElement = event.target;
@@ -589,19 +589,29 @@
         draggedElement.classList.add('dragging');
 
         if (!hasEnabledVoice) {
-            const lecture = new SpeechSynthesisUtterance('hello');
-            lecture.volume = 0;
-            speechSynthesis.speak(lecture);
-            hasEnabledVoice = true;
+            try {
+                const lecture = new SpeechSynthesisUtterance('hello');
+                lecture.volume = 0;
+                speechSynthesis.speak(lecture);
+                hasEnabledVoice = true;
+            } catch (e) {
+                log('error: ' + e);
+            }
+          
         }
         speakTimeout = setTimeout(() => {
-            const voiceSelect = document.getElementById('voiceSelect');
-            const selectedVoice = voiceSelect.value;
-            const utterance = new SpeechSynthesisUtterance(draggedWord);
-            utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === selectedVoice);
-            utterance.lang = language; // Modified to use the correct language
-            log ('handleTouchStart speak: ' + utterance.lang + ' ' + utterance.voice + ' ' + wordDiv.textContent);
-            speechSynthesis.speak(utterance);
+            try {
+                const voiceSelect = document.getElementById('voiceSelect');
+                const selectedVoice = voiceSelect.value;
+                const utterance = new SpeechSynthesisUtterance(draggedWord);
+                utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === selectedVoice);
+                utterance.lang = language; // Modified to use the correct language
+                log ('handleTouchStart speak: ' + utterance.lang + ' ' + utterance.voice + ' ' + wordDiv.textContent);
+                speechSynthesis.speak(utterance);
+            } catch (e) {
+                log('error: ' + e);
+            }
+           
         }, 1000);
     }
 
