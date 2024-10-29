@@ -594,6 +594,7 @@
                 lecture.volume = 0;
                 speechSynthesis.speak(lecture);
                 hasEnabledVoice = true;
+                log ('handleTouchStart hasEnabledVoice: ' + hasEnabledVoice);
             } catch (e) {
                 log('error: ' + e);
             }
