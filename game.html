@@ -363,6 +363,7 @@
     let speakTimeout;
 
     document.addEventListener('DOMContentLoaded', function () {
+        loadVoices('en-US');
         const select = document.getElementById('testSelect');
         list.forEach(item => {
             let option = document.createElement('option');
@@ -402,12 +403,13 @@
     }
 
     function loadVoices(language) {
-        log('loadVoices');
+        log('loadVoices' + language);
         const voiceSelect = document.getElementById('voiceSelect');
         voiceSelect.innerHTML = '';
         let attempts = 0, maxAttempts = 50;
         const checkVoices = () => {
             const voices = speechSynthesis.getVoices().filter(voice => voice.lang.startsWith(language));
+            log('checkVoices voices: ' + voices.length); 
             if (voices.length > 0 || attempts >= maxAttempts) {
                 voices.forEach(voice => {
                     let option = document.createElement('option');
@@ -429,6 +431,7 @@
         const savedVoiceName = localStorage.getItem('selectedVoice');
         const voiceSelect = document.getElementById('voiceSelect');
         if (savedVoiceName) {
+            log ('loadVoiceSettings savedVoiceName: ' + savedVoiceName);
             for (let option of voiceSelect.options) {
                 if (option.value === savedVoiceName) {
                     voiceSelect.selectedIndex = option.index;
@@ -549,7 +552,7 @@
 
 
     function handleMouseEnter(wordDiv, language) {
-        log('handleMouseEnter ' + wordDiv.textContent + ' ' + language);
+        log('handleMouseEnter ' + wordDiv.textContent + ' ' + language+ ' ' + hasEnabledVoice);
         if (!hasEnabledVoice) {
             const lecture = new SpeechSynthesisUtterance('hello');
             lecture.volume = 0;
@@ -570,7 +573,7 @@
     let draggedWord = null;
 
     function handleTouchStart(event, language) { // Modified to accept language
-        log('handleTouchStart');
+        log('handleTouchStart' + language + ' ' + hasEnabledVoice);
 
         event.preventDefault();
         draggedElement = event.target;
