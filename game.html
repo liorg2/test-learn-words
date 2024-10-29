@@ -386,7 +386,7 @@
     function log(msg) {
         console.log(msg);
         const logElement = document.getElementById('log');
-        logElement.textContent += msg + '\n';
+        logElement.textContent  = msg + '\n' +logElement.textContent;
     }
 
     function loadSelectedTest() {
