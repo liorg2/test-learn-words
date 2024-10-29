@@ -578,7 +578,7 @@
     let draggedWord = null;
 
     function handleTouchStart(event, language) { // Modified to accept language
-        log('handleTouchStart ' + language + ' ' + hasEnabledVoice);
+        log('handleTouchStart ' + language + ' ' + hasEnabledVoice + ' ' + event.isTrusted);
 
         event.preventDefault();
         draggedElement = event.target;
