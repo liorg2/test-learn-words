@@ -21,7 +21,7 @@ words = [
     { text: "certain", translation: 'בטוח' },
     { text: "lovely", translation: 'נחמד' },
     { text: "main", translation: 'עיקרי' },
-    { text: "typica", translation: ' טיפוסי' },
+    { text: "typical", translation: ' טיפוסי' },
     { text: "warm", translation: 'חם' },
     { text: "according to", translation: 'לפי' }
     
