@@ -437,7 +437,7 @@
     <div class="translation-container" id="translationContainer"></div>
 </div>
 
-<div id="log" style="background-color: antiquewhite"></div>
+<!--<div id="log" style="background-color: antiquewhite"></div>-->
 
 <script>
     const list = [
@@ -451,6 +451,8 @@
     let hasEnabledVoice = false;
     let speakTimeout;
     let startTime, endTime;
+    let draggedElement = null;
+    let draggedWord = null;
     
     document.body.addEventListener('click', () => {
         const lecture = new SpeechSynthesisUtterance('hello');
@@ -568,10 +570,10 @@
 
     function log(msg) {
         console.log(msg);
-        const logElement = document.getElementById('log');
-        const p = document.createElement('p');
-        p.textContent = msg;
-        logElement.insertBefore(p, logElement.firstChild);
+        // const logElement = document.getElementById('log');
+        // const p = document.createElement('p');
+        // p.textContent = msg;
+        // logElement.insertBefore(p, logElement.firstChild);
     }
 
 
@@ -755,8 +757,7 @@
         }, 1000);
     }
 
-    let draggedElement = null;
-    let draggedWord = null;
+   
 
     function handleTouchStart(event, language) { // Modified to accept language
         log('handleTouchStart ' + language + ' ' + hasEnabledVoice + ' ' + event.isTrusted + ' ' + event.target.textContent);
@@ -844,10 +845,7 @@
         document.querySelectorAll('.word').forEach(wordDiv => {
             wordDiv.classList.remove('dragging');
         });
-
-
-        draggedElement = null;
-        draggedWord = null;
+ 
     }
 
     function handleDragStart(event) {
