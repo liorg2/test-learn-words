@@ -460,6 +460,7 @@
     }, {once: true});
 
     document.addEventListener('DOMContentLoaded', function () {
+        log('DOMContentLoaded innerWidth= ' + window.innerWidth);
         if (window.innerWidth <= 768) {
 
             const overlay = document.getElementById("overlay");
