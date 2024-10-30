@@ -7,6 +7,16 @@
     <!--    <link rel="stylesheet" href="style.css">-->
 
     <style>
+
+        @keyframes blink-once {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        #newGameBtn.blink-once {
+            animation: blink-once 0.3s step-end 5;
+        }
+
         .highlight {
             background-color: lavender !important;
         }
@@ -193,7 +203,7 @@
             /* Adds some space between the select and the button */
         }
 
-        #resetGameButton {
+        #newGameBtn {
             padding: 5px 10px;
             font-size: 16px;
             background-color: #007BFF;
@@ -204,13 +214,13 @@
             transition: background-color 0.3s;
         }
 
-        #resetGameButton:hover {
+        #newGameBtn:hover {
             background-color: #0056b3;
         }
 
         #decreaseFont,
         #increaseFont {
-            padding: 5px 10px;
+            padding: 5px 5px;
             /* Standard padding to ensure buttons are the same size */
             cursor: pointer;
             border: 1px solid #007BFF;
@@ -258,7 +268,7 @@
             padding-right: 15px;;
         }
 
-        #resetGameButton,
+        #newGameBtn,
         #decreaseFont,
         #increaseFont {
             margin-right: 10px;
@@ -320,7 +330,7 @@
 
 
 <div class="control-panel">
-    <button id="resetGameButton" onclick="loadSelectedTest()">חדש</button>
+    <button id="newGameBtn" onclick="loadSelectedTest()">משחק חדש</button>
     <button id="decreaseFont" onclick="changeFontSize(-1)">A-</button>
     <button id="increaseFont" onclick="changeFontSize(1)">A+</button>
 
@@ -330,7 +340,7 @@
     </div>
 
     <div class="dropdown-group">
-        <label for="testSelect">בחר הכתבה:</label>
+        <label for="testSelect"> הכתבה:</label>
         <select id="testSelect"></select>
     </div>
 </div>
@@ -349,7 +359,7 @@
 </div>
 
 <div id="log" style="background-color: antiquewhite"></div>
- 
+
 <script>
     const list = [
         {scriptUrl: "./maya/english/10-2024/words2.js", name: "אנגלית אוקטובר 2024 חלק 2", lang: 'en-US'},
@@ -362,14 +372,22 @@
     let hasEnabledVoice = false;
     let speakTimeout;
 
-    document.addEventListener('click', () => {
+    document.body.addEventListener('click', () => {
         const lecture = new SpeechSynthesisUtterance('hello');
         lecture.volume = 0;
         speechSynthesis.speak(lecture);
         hasEnabledVoice = true;
-    });
+    }, {once: true});
+
     document.addEventListener('DOMContentLoaded', function () {
         loadVoices('en-US');
+
+        const newGameBtn = document.getElementById('newGameBtn');
+        newGameBtn.classList.add('blink-once');
+        newGameBtn.addEventListener('animationend', function () {
+            newGameBtn.classList.remove('blink-once'); // Remove class after animation to prevent re-blinking on further interactions
+        });
+
         const select = document.getElementById('testSelect');
         list.forEach(item => {
             let option = document.createElement('option');
@@ -406,7 +424,7 @@
             loadVoices(select.options[select.selectedIndex].dataset.lang);
             loadWords(select.options[select.selectedIndex].dataset.lang);
         }, 500);
-        
+
     }
 
     function loadVoices(language) {
@@ -416,7 +434,7 @@
         let attempts = 0, maxAttempts = 50;
         const checkVoices = () => {
             const voices = speechSynthesis.getVoices().filter(voice => voice.lang.startsWith(language));
-           
+
             if (voices.length > 0 || attempts >= maxAttempts) {
                 log('checkVoices voices: ' + voices.length);
                 voices.forEach(voice => {
@@ -427,7 +445,7 @@
                 });
                 loadVoiceSettings();
             } else {
-                log ('checkVoices will retry attempts: ' + attempts);
+                log('checkVoices will retry attempts: ' + attempts);
                 attempts++;
                 setTimeout(checkVoices, 50);
             }
@@ -440,7 +458,7 @@
         const savedVoiceName = localStorage.getItem('selectedVoice');
         const voiceSelect = document.getElementById('voiceSelect');
         if (savedVoiceName) {
-            log ('loadVoiceSettings savedVoiceName: ' + savedVoiceName);
+            log('loadVoiceSettings savedVoiceName: ' + savedVoiceName);
             for (let option of voiceSelect.options) {
                 if (option.value === savedVoiceName) {
                     log('savedVoiceName found loadVoiceSettings option.index: ' + option.index);
@@ -562,7 +580,7 @@
 
 
     function handleMouseEnter(wordDiv, language) {
-        log('handleMouseEnter ' + wordDiv.textContent + ' ' + language+ ' ' + hasEnabledVoice);
+        log('handleMouseEnter ' + wordDiv.textContent + ' ' + language + ' ' + hasEnabledVoice);
         if (!hasEnabledVoice) {
             const lecture = new SpeechSynthesisUtterance('hello');
             lecture.volume = 0;
@@ -575,7 +593,7 @@
             const utterance = new SpeechSynthesisUtterance(wordDiv.textContent);
             utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === selectedVoice);
             utterance.lang = language;
-            log (' handleMouseEnter speak: ' + utterance.lang + ' ' + utterance.voice + ' ' + wordDiv.textContent); 
+            log(' handleMouseEnter speak: ' + utterance.lang + ' ' + utterance.voice + ' ' + wordDiv.textContent);
             speechSynthesis.speak(utterance);
         }, 1000);
     }
@@ -600,11 +618,11 @@
                 lecture.volume = 0;
                 speechSynthesis.speak(lecture);
                 hasEnabledVoice = true;
-                log ('handleTouchStart hasEnabledVoice: ' + hasEnabledVoice);
+                log('handleTouchStart hasEnabledVoice: ' + hasEnabledVoice);
             } catch (e) {
                 log('error: ' + e);
             }
-          
+
         }
         speakTimeout = setTimeout(() => {
             try {
@@ -613,12 +631,12 @@
                 const utterance = new SpeechSynthesisUtterance(draggedWord);
                 utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === selectedVoice);
                 utterance.lang = language; // Modified to use the correct language
-                log ('handleTouchStart speak: ' + utterance.lang + ' ' + utterance.voice + ' ' + draggedWord);
+                log('handleTouchStart speak: ' + utterance.lang + ' ' + utterance.voice + ' ' + draggedWord);
                 speechSynthesis.speak(utterance);
             } catch (e) {
                 log('error: ' + e);
             }
-           
+
         }, 1000);
     }
 

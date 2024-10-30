@@ -169,7 +169,7 @@ body {
     /* Adds some space between the select and the button */
 }
 
-#resetGameButton {
+#newGameBtn {
     padding: 5px 10px;
     font-size: 16px;
     background-color: #007BFF;
@@ -180,7 +180,7 @@ body {
     transition: background-color 0.3s;
 }
 
-#resetGameButton:hover {
+#newGameBtn:hover {
     background-color: #0056b3;
 }
 
@@ -246,7 +246,7 @@ button {
     ;
 }
 
-#resetGameButton,
+#newGameBtn,
 #decreaseFont,
 #increaseFont {
     margin-right: 10px;
