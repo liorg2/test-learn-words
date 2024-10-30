@@ -323,6 +323,29 @@
         .statistics p {
             margin: 0 10px; /* Add horizontal spacing between items */
         }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        .overlay-control {
+            margin: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
     </style>
 </head>
 
@@ -371,7 +394,7 @@
     let failures = 0;
     let hasEnabledVoice = false;
     let speakTimeout;
-
+    let startTime, endTime;
     document.body.addEventListener('click', () => {
         const lecture = new SpeechSynthesisUtterance('hello');
         lecture.volume = 0;
@@ -380,25 +403,87 @@
     }, {once: true});
 
     document.addEventListener('DOMContentLoaded', function () {
-        loadVoices('en-US');
+        const overlay = document.createElement('div');
+        overlay.id = 'overlay';
+        document.body.appendChild(overlay);
 
-        const newGameBtn = document.getElementById('newGameBtn');
-        newGameBtn.classList.add('blink-once');
-        newGameBtn.addEventListener('animationend', function () {
-            newGameBtn.classList.remove('blink-once'); // Remove class after animation to prevent re-blinking on further interactions
+        const originalTestSelect = document.getElementById('testSelect');
+    
+
+        // Populate the original dropdown before cloning
+        populateTestSelect(originalTestSelect, function () {
+            // Clone the testSelect and newGameBtn after the dropdown is populated
+            const testSelectClone = originalTestSelect.cloneNode(true);
+
+
+            // Create a control panel on the overlay
+            const overlayControl = document.createElement('div');
+            overlayControl.className = 'overlay-control';
+            overlayControl.appendChild(testSelectClone);
+            overlay.appendChild(overlayControl);
+
+
+            testSelectClone.addEventListener('change', function () {
+                // Sync the original select with the clone
+                document.body.removeChild(overlay);
+                originalTestSelect.value = this.value;
+                loadSelectedTest();
+                const lecture = new SpeechSynthesisUtterance('hello');
+                lecture.volume = 0;
+                speechSynthesis.speak(lecture);
+                hasEnabledVoice = true;
+            });
         });
+    });
 
-        const select = document.getElementById('testSelect');
+    function populateTestSelect(selectElement, callback) {
+
+        let option = document.createElement('option');
+        option.value =null;
+        option.textContent = "בחירת הכתבה";
+     
+        selectElement.appendChild(option);
+        
         list.forEach(item => {
             let option = document.createElement('option');
             option.value = item.scriptUrl;
             option.textContent = item.name;
             option.dataset.lang = item.lang;
-            select.appendChild(option);
+            selectElement.appendChild(option);
         });
-        select.addEventListener('change', loadSelectedTest);
-        loadSelectedTest();
-    });
+        callback(); // Execute callback after populating the select
+    }
+
+
+    // document.addEventListener('DOMContentLoaded', function () {
+    //     loadVoices('en-US');
+    //
+    //     const newGameBtn = document.getElementById('newGameBtn');
+    //     newGameBtn.classList.add('blink-once');
+    //     newGameBtn.addEventListener('animationend', function () {
+    //         newGameBtn.classList.remove('blink-once'); // Remove class after animation to prevent re-blinking on further interactions
+    //     });
+    //
+    //     const overlay = document.getElementById('overlay');
+    //  
+    //
+    //     newGameBtn.addEventListener('click', function() {
+    //         overlay.style.display = 'none'; // Hide the overlay
+    //         startTime = new Date(); // Start the timer
+    //         loadSelectedTest();
+    //     });
+    //
+    //     const select = document.getElementById('testSelect');
+    //     list.forEach(item => {
+    //         let option = document.createElement('option');
+    //         option.value = item.scriptUrl;
+    //         option.textContent = item.name;
+    //         option.dataset.lang = item.lang;
+    //         select.appendChild(option);
+    //     });
+    //     select.addEventListener('change', loadSelectedTest);
+    //  
+    // });
 
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
@@ -755,7 +840,10 @@
         document.getElementById('scoreDisplay').textContent = `נקודות: ${score}`;
 
         if (score === words.length) {
-            document.getElementById('statusMessage').textContent = "המשחק הסתיים בהצלחה!";
+            endTime = new Date(); // End time when game finishes
+            const duration = (endTime - startTime) / 1000; // Calculate duration in seconds
+            document.getElementById('statusMessage').textContent = "המשחק הסתיים בהצלחה! Duration: " + duration + " seconds";
+            document.getElementById('statusMessage').style.display = 'block';
             showConfetti();
         }
     }
