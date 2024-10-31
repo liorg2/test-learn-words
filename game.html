@@ -177,6 +177,7 @@
             border: 2px solid #007BFF;
             /* Border properties */
             border-radius: 5px;
+            direction: rtl;
             /* Rounded corners */
         }
 
@@ -486,6 +487,7 @@
             emptyOption.textContent = "בחירת הכתבה";
             testSelectClone.insertBefore(emptyOption, testSelectClone.firstChild);
             testSelectClone.selectedIndex = 0;
+            testSelectClone.style.fontsize='20px';
 
             // Create a control panel on the overlay
             const overlayControl = document.getElementById("overlay-control");
