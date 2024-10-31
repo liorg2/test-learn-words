@@ -304,12 +304,12 @@
             user-select: none;
         }
 
-        @media (max-width: 600px) {
-            .word, .translation {
-                font-size: 14px;
-                padding: 8px;
-            }
-        }
+        /*@media (max-width: 600px) {*/
+        /*    .word, .translation {*/
+        /*        font-size: 14px;*/
+        /*        padding: 8px;*/
+        /*    }*/
+        /*}*/
 
         .statistics {
             display: flex; /* Use flexbox to align children in a row */
@@ -414,7 +414,7 @@
     <button id="increaseFont" onclick="changeFontSize(1)">A+</button>
 
     <div class="dropdown-group">
-        <label for="voiceSelect">קולות מותקנים במכשיר:</label>
+        <label for="voiceSelect"  >קולות מותקנים במכשיר:</label>
         <select id="voiceSelect"></select>
     </div>
 
@@ -477,6 +477,8 @@
 
             // Clone the populated select
             const testSelectClone = originalTestSelect.cloneNode(true);
+            testSelectClone.removeAttribute('id');
+            testSelectClone.id='testSelectClone';
 
             // Add empty option only to clone
             let emptyOption = document.createElement('option');
@@ -499,7 +501,7 @@
                 hasEnabledVoice = true;
             });
         } else {
-            loadVoices('en-US');
+            
             loadSelectedTest();
         }
     });
@@ -547,6 +549,14 @@
         const voiceSelect = document.getElementById('voiceSelect');
         voiceSelect.innerHTML = '';
         let attempts = 0, maxAttempts = 50;
+        voiceSelect.removeEventListener('change', saveSelectedVoice);
+        voiceSelect.addEventListener('change', saveSelectedVoice);
+
+        function saveSelectedVoice() {
+            log('saveSelectedVoice ' + this.value + ' ' + language);
+            localStorage.setItem('selectedVoice_' + language, this.value);
+        }
+
         const checkVoices = () => {
             const voices = speechSynthesis.getVoices().filter(voice => voice.lang.startsWith(language));
 
@@ -558,7 +568,7 @@
                     option.value = voice.name;
                     voiceSelect.appendChild(option);
                 });
-                loadVoiceSettings();
+                loadVoiceSettings(language);
             } else {
                 log('checkVoices will retry attempts: ' + attempts);
                 attempts++;
@@ -568,9 +578,9 @@
         checkVoices();
     }
 
-    function loadVoiceSettings() {
+    function loadVoiceSettings(language) {
         log('loadVoiceSettings');
-        const savedVoiceName = localStorage.getItem('selectedVoice');
+        const savedVoiceName = localStorage.getItem('selectedVoice_'+language);
         const voiceSelect = document.getElementById('voiceSelect');
         if (savedVoiceName) {
             log('loadVoiceSettings savedVoiceName: ' + savedVoiceName);
@@ -583,6 +593,7 @@
             }
         }
     }
+     
 
     function loadWords(language) {
         log('loadWords ' + language);
@@ -710,7 +721,7 @@
             utterance.lang = language;
             log(' handleMouseEnter speak: ' + utterance.lang + ' ' + utterance.voice + ' ' + wordDiv.textContent);
             speechSynthesis.speak(utterance);
-        }, 1000);
+        }, 500);
     }
 
 
@@ -750,7 +761,7 @@
                 log('error: ' + e);
             }
 
-        }, 1000);
+        }, 500);
     }
 
     function handleTouchMove(event) {
