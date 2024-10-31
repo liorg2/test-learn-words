@@ -530,6 +530,7 @@
         speechSynthesis.speak(lecture);
         hasEnabledVoice = true;
     }, {once: true});
+    
 
     document.addEventListener('DOMContentLoaded', function () {
         log('DOMContentLoaded innerWidth= ' + window.innerWidth);
@@ -675,7 +676,18 @@
         saveFontSizeToLocal(words[0].style.fontSize);
     }
 
-
+    function saveFontSizeToLocal(fontSize) {
+        localStorage.setItem('fontSize', fontSize);
+    }
+    function loadFontSize() {
+        const savedFontSize = localStorage.getItem('fontSize');
+        if (savedFontSize) {
+            const words = document.querySelectorAll('.word, .translation');
+            words.forEach(word => {
+                word.style.fontSize = savedFontSize;
+            });
+        }
+    }
     function loadWords(language) {
         log('loadWords ' + language);
         const select = document.getElementById('testSelect');
@@ -710,6 +722,7 @@
             const translationDiv = createTranslationDiv(word);
             translationContainer.appendChild(translationDiv);
         });
+        loadFontSize()
     }
 
     function handleAnswer(translationElement, isCorrect, wordElement) {
