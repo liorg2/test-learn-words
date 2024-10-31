@@ -819,88 +819,41 @@
     }
 
 
-    function handleTouchStart(event, language) { // Modified to accept language
-        log('handleTouchStart ' + language + ' ' + hasEnabledVoice + ' ' + event.isTrusted + ' ' + event.target.textContent);
-
+    function handleTouchStart(event, language) {
         event.preventDefault();
-        draggedElement = event.target;
-        draggedWord = event.target.textContent;
-        document.querySelectorAll('.word').forEach(wordDiv => {
-            wordDiv.classList.remove('dragging');
-        });
-        draggedElement.classList.add('dragging');
-
-        if (!hasEnabledVoice) {
-            try {
-                const lecture = new SpeechSynthesisUtterance('hello');
-                lecture.volume = 0;
-                speechSynthesis.speak(lecture);
-                hasEnabledVoice = true;
-                log('handleTouchStart hasEnabledVoice: ' + hasEnabledVoice);
-            } catch (e) {
-                log('error: ' + e);
-            }
-
-        }
-        speakTimeout = setTimeout(() => {
-            try {
-                const voiceSelect = document.getElementById('voiceSelect');
-                const selectedVoice = voiceSelect.value;
-                const utterance = new SpeechSynthesisUtterance(draggedWord);
-                utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === selectedVoice);
-                utterance.lang = language; // Modified to use the correct language
-                log('handleTouchStart speak: ' + utterance.lang + ' ' + utterance.voice + ' ' + draggedWord);
-                speechSynthesis.speak(utterance);
-            } catch (e) {
-                log('error: ' + e);
-            }
-
-        }, 500);
+        draggedElement = event.target.cloneNode(true);
+        document.body.appendChild(draggedElement);
+        draggedElement.style.position = 'fixed';
+        draggedElement.style.zIndex = '1000';
+        draggedElement.style.opacity = '0.5'; // Optional: make the clone semi-transparent
+        handleTouchMove(event); // Update position immediately
+        event.target.classList.add('dragging'); // Indicate original element is being dragged
     }
 
     function handleTouchMove(event) {
-        event.preventDefault();
         if (!draggedElement) return;
         const touch = event.touches[0];
-        draggedElement.style.position = 'fixed';
         draggedElement.style.left = `${touch.clientX - (draggedElement.offsetWidth / 2)}px`;
         draggedElement.style.top = `${touch.clientY - (draggedElement.offsetHeight / 2)}px`;
-        draggedElement.style.zIndex = '1000';
-        draggedElement.style.transform = 'none';  // Ensures no scale transform is affecting the position
-        draggedElement.style.pointerEvents = 'none';  // Ensures the element does not block detecting drop target
     }
 
     function handleTouchEnd(event) {
-        log('handleTouchEnd');
-
         event.preventDefault();
         if (!draggedElement) return;
-
-        // Reset visual feedback
-        draggedElement.style.opacity = '1';
-        draggedElement.style.transform = 'none';
-        draggedElement.style.position = 'static';
-        draggedElement.style.zIndex = 'auto';
-        draggedElement.style.pointerEvents = 'auto';  // Re-enables pointer events
-
 
         const touch = event.changedTouches[0];
         const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
 
         if (dropTarget && dropTarget.classList.contains('translation')) {
-
             const isCorrect = words.some(word =>
-                word.text === draggedWord &&
+                word.text === draggedElement.textContent &&
                 word.translation === dropTarget.textContent
             );
             handleAnswer(dropTarget, isCorrect, draggedElement);
-
-        } else {
-
-            console.log('touch end event null');
         }
 
-        resetDraggedElement();
+        document.body.removeChild(draggedElement); // Remove the cloned element
+        resetDraggedElement(); // Reset styles and cleanup
     }
 
     function resetDraggedElement() {
