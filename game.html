@@ -664,7 +664,17 @@
             }
         }
     }
-     
+    function changeFontSize(change) {
+        const words = document.querySelectorAll('.word, .translation');
+        words.forEach(word => {
+            const currentSize = parseInt(window.getComputedStyle(word, null).getPropertyValue('font-size'), 10);
+            const newSize = currentSize + change;
+            word.style.fontSize = `${newSize}px`;
+        });
+        // Save the new font size to local storage
+        saveFontSizeToLocal(words[0].style.fontSize);
+    }
+
 
     function loadWords(language) {
         log('loadWords ' + language);
