@@ -866,7 +866,8 @@
         draggedElement.style.left = `${touch.clientX - (draggedElement.offsetWidth / 2)}px`;
         draggedElement.style.top = `${touch.clientY - (draggedElement.offsetHeight / 2)}px`;
         draggedElement.style.zIndex = '1000';
-        // draggedElement.style.border = '2px dashed #007bff';
+        draggedElement.style.transform = 'none';  // Ensures no scale transform is affecting the position
+        draggedElement.style.pointerEvents = 'none';  // Ensures the element does not block detecting drop target
     }
 
     function handleTouchEnd(event) {
@@ -880,6 +881,8 @@
         draggedElement.style.transform = 'none';
         draggedElement.style.position = 'static';
         draggedElement.style.zIndex = 'auto';
+        draggedElement.style.pointerEvents = 'auto';  // Re-enables pointer events
+
 
         const touch = event.changedTouches[0];
         const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
