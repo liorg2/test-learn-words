@@ -234,7 +234,7 @@
             /* Ensure the button does not stretch to fit its container */
             text-align: center;
             /* Centers the text within the button */
-            line-height: 20px;
+          
             /* Adjust line height to vertically center the text */
             font-weight: bold;
         }
@@ -326,20 +326,6 @@
             margin: 0 10px; /* Add horizontal spacing between items */
         }
 
-        #overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: white;
-        }
 
         .overlay-control {
             margin: 20px;
@@ -359,9 +345,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             font-size: 24px;
             color: white;
+            padding-top: 50px;
         }
 
         .overlay-control {
@@ -522,6 +509,7 @@
     let speakTimeout;
     let startTime, endTime;
     let draggedElement = null;
+    let draggedElementOriginal = null;
     let draggedWord = null;
 
     document.body.addEventListener('click', () => {
@@ -821,6 +809,7 @@
 
     function handleTouchStart(event, language) {
         event.preventDefault();
+        draggedElementOriginal=event.target;
         draggedElement = event.target.cloneNode(true);
         document.body.appendChild(draggedElement);
         draggedElement.style.position = 'fixed';
@@ -842,15 +831,26 @@
         event.preventDefault();
         if (!draggedElement) return;
 
+        // Temporarily hide the dragged element to correctly detect the drop target
+        draggedElement.style.display = 'none';
+
         const touch = event.changedTouches[0];
-        const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+        let dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+
+        // Re-display the dragged element
+        draggedElement.style.display = 'block';
+
+        // Navigate up the DOM tree to find the drop target with 'translation' class if not directly hit
+        while (dropTarget && !dropTarget.classList.contains('translation') && dropTarget.parentNode) {
+            dropTarget = dropTarget.parentNode;
+        }
 
         if (dropTarget && dropTarget.classList.contains('translation')) {
             const isCorrect = words.some(word =>
                 word.text === draggedElement.textContent &&
                 word.translation === dropTarget.textContent
             );
-            handleAnswer(dropTarget, isCorrect, draggedElement);
+            handleAnswer(dropTarget, isCorrect, draggedElementOriginal);
         }
 
         document.body.removeChild(draggedElement); // Remove the cloned element
