@@ -825,6 +825,7 @@
         document.body.appendChild(draggedElement);
         draggedElement.style.position = 'fixed';
         draggedElement.style.zIndex = '1000';
+        draggedElement.style.border = '2px dashed red'; // Optional: add a dashed border
         draggedElement.style.opacity = '0.5'; // Optional: make the clone semi-transparent
         handleTouchMove(event); // Update position immediately
         event.target.classList.add('dragging'); // Indicate original element is being dragged
