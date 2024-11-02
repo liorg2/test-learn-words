@@ -351,10 +351,24 @@
 
 <script>
     const list = [
-        {scriptUrl: "./maya/english/10-2024/words2.js", name: "אנגלית אוקטובר 2024 חלק 2", lang: 'en-US'},
-        {scriptUrl: "./maya/english/10-2024/words.js", name: "אנגלית אוקטובר 2024 חלק 1", lang: 'en-US'},
-        {scriptUrl: "./maya/french/10-2024/words.js", name: "צרפתית אוקטובר 2024", lang: 'fr-FR'}
+
+        {
+            scriptUrl: "./maya/english/11-2024/words2.js",
+            name: "אנגלית נובמבר 2024 חלק 2",
+            lang: 'en-US',
+        },
+        {
+            scriptUrl: "./maya/english/11-2024/words.js",
+            name: "אנגלית נובמבר 2024 חלק 1",
+            lang: 'en-US',
+        },
+        {
+            scriptUrl: "./maya/french/10-2024/words.js",
+            name: "צרפתית אוקטובר 2024",
+            lang: 'fr-FR',
+        }
     ];
+
 
     let score = 0;
     let failures = 0;
@@ -624,12 +638,12 @@
         wordDiv.draggable = true;
         wordDiv.addEventListener('dragstart', (event) => handleDragStart(event, language));
         wordDiv.addEventListener('dragend', handleDragEnd); // Add this line
-        
+
         wordDiv.addEventListener('touchstart', (event) => handleTouchStart(event, language));
         document.addEventListener('touchcancel', handleTouchCancel, {passive: false});
         wordDiv.addEventListener('touchmove', handleTouchMove);
         wordDiv.addEventListener('touchend', handleTouchEnd);
-        
+
         wordDiv.addEventListener('mouseenter', () => handleMouseEnter(wordDiv, language));
         wordDiv.addEventListener('mouseleave', () => clearTimeout(speakTimeout));
         return wordDiv;
@@ -697,8 +711,18 @@
         if (!draggedElement) return;
 
 
+        draggedElement.style.display = 'none';
+
         const touch = event.changedTouches[0];
         let dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+
+        // Re-display the dragged element
+        draggedElement.style.display = 'block';
+
+        // Navigate up the DOM tree to find the drop target with 'translation' class if not directly hit
+        while (dropTarget && dropTarget.classList && !dropTarget.classList.contains('translation') && dropTarget.parentNode) {
+            dropTarget = dropTarget.parentNode;
+        }
 
         if (!dropTarget) {
             log('handleTouchEnd no dropTarget');
@@ -708,7 +732,8 @@
         }
 
 
-        if (dropTarget && dropTarget.classList.contains('translation')) {
+        if (dropTarget && dropTarget.classList && dropTarget.classList.contains('translation')) {
+          
             const isCorrect = words.some(word =>
                 word.text === draggedElement.textContent &&
                 word.translation === dropTarget.textContent
@@ -721,6 +746,7 @@
     }
 
     function resetDraggedElement() {
+        debugger
         log('resetDraggedElement');
         document.querySelectorAll('.dragging').forEach(el => {
             el.classList.remove('dragging');
@@ -755,11 +781,14 @@
             speechSynthesis.speak(utterance);
         }, 500);
     }
+
     function handleDragEnd(event) {
-         if (draggedElement) {
+        log ('dragEnd');
+        if (draggedElement) {
             resetDraggedElement();
         }
-     }
+    }
+
     function handleDragOver(event) {
         log('dragOver');
         event.preventDefault();
