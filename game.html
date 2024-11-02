@@ -212,8 +212,6 @@
             font-weight: bold;
         }
 
-       
-
         #voiceSelect,
         button {
             cursor: pointer;
@@ -625,9 +623,13 @@
         wordDiv.textContent = word.text;
         wordDiv.draggable = true;
         wordDiv.addEventListener('dragstart', (event) => handleDragStart(event, language));
+        wordDiv.addEventListener('dragend', handleDragEnd); // Add this line
+        
         wordDiv.addEventListener('touchstart', (event) => handleTouchStart(event, language));
+        document.addEventListener('touchcancel', handleTouchCancel, {passive: false});
         wordDiv.addEventListener('touchmove', handleTouchMove);
         wordDiv.addEventListener('touchend', handleTouchEnd);
+        
         wordDiv.addEventListener('mouseenter', () => handleMouseEnter(wordDiv, language));
         wordDiv.addEventListener('mouseleave', () => clearTimeout(speakTimeout));
         return wordDiv;
@@ -674,6 +676,15 @@
         }, 500);
     }
 
+    function handleTouchCancel(event) {
+        log('handleTouchCancel');
+        event.preventDefault();
+        if (!draggedElement) return;
+        document.body.removeChild(draggedElement); // Remove the cloned element
+        resetDraggedElement();
+
+    }
+
     function handleTouchMove(event) {
         if (!draggedElement) return;
         const touch = event.touches[0];
@@ -685,19 +696,17 @@
         event.preventDefault();
         if (!draggedElement) return;
 
-        // Temporarily hide the dragged element to correctly detect the drop target
-        draggedElement.style.display = 'none';
 
         const touch = event.changedTouches[0];
         let dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
 
-        // Re-display the dragged element
-        draggedElement.style.display = 'block';
-
-        // Navigate up the DOM tree to find the drop target with 'translation' class if not directly hit
-        while (dropTarget && !dropTarget.classList.contains('translation') && dropTarget.parentNode) {
-            dropTarget = dropTarget.parentNode;
+        if (!dropTarget) {
+            log('handleTouchEnd no dropTarget');
+            document.body.removeChild(draggedElement); // Remove the cloned element
+            resetDraggedElement(); // Reset styles and cleanup
+            return;
         }
+
 
         if (dropTarget && dropTarget.classList.contains('translation')) {
             const isCorrect = words.some(word =>
@@ -716,6 +725,7 @@
         document.querySelectorAll('.dragging').forEach(el => {
             el.classList.remove('dragging');
         });
+
 
     }
 
@@ -745,7 +755,11 @@
             speechSynthesis.speak(utterance);
         }, 500);
     }
-
+    function handleDragEnd(event) {
+         if (draggedElement) {
+            resetDraggedElement();
+        }
+     }
     function handleDragOver(event) {
         log('dragOver');
         event.preventDefault();
