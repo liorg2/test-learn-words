@@ -253,6 +253,10 @@ button {
     direction: rtl;
     padding-right: 15px;
 }
+.buttons-group{
+    display: flex;
+    flex-direction: row; 
+}
 
 .statistics {
     display: flex;
