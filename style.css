@@ -104,8 +104,15 @@ body {
     background-color: #E1ECF4;
     cursor: pointer;
     user-select: none;
-    font-size: 1rem;
+    font-size: 1.2rem;
     xxmargin: 5px 10px;
+}
+
+@media (max-width: 1200px) {
+    .word,
+    .translation {
+        font-size: 1rem;
+    }
 }
 
 .translation {
@@ -213,6 +220,7 @@ body {
     text-decoration: none;
     cursor: pointer;
     transition: background-color 0.3s;
+    user-select: none;
 }
 
 #newGameBtn:hover {
@@ -241,6 +249,7 @@ button {
     border-radius: 5px;
     border: 1px solid #007BFF;
     max-width: 250px;
+    user-select: none;
 }
 
 .dropdown-group {

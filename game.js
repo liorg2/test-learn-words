@@ -1,17 +1,20 @@
 const list = [
 
     {
-        scriptUrl: "./maya/english/11-2024/words2.js",
+        user: "64cdd390-6bb7-4a8b-b0e0-b52294368613",
+        scriptUrl: "words2.js",
         name: "אנגלית נובמבר 2024 חלק 2",
         lang: 'en-US',
     },
     {
-        scriptUrl: "./maya/english/11-2024/words.js",
+        user: "64cdd390-6bb7-4a8b-b0e0-b52294368613",
+        scriptUrl: "words.js",
         name: "אנגלית נובמבר 2024 חלק 1",
         lang: 'en-US',
     },
     {
-        scriptUrl: "./maya/french/10-2024/words.js",
+        user: "64cdd390-6bb7-4a8b-b0e0-b52294368613",
+        scriptUrl: "/words3.js",
         name: "צרפתית אוקטובר 2024",
         lang: 'fr-FR',
     }
@@ -81,15 +84,35 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-function populateTestSelect(selectElement) {
-    list.forEach(item => {
-        let option = document.createElement('option');
-        option.value = item.scriptUrl;
-        option.textContent = item.name;
-        option.dataset.lang = item.lang;
-        selectElement.appendChild(option);
-    });
+function getGuid() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('guid'); // Assume 'guid' is the query string parameter
 }
+
+function populateTestSelect(selectElement) {
+    const guid = getGuid();
+    list.filter(item => {
+        return item.user === guid
+    })
+        .forEach(item => {
+            let option = document.createElement('option');
+            option.value = `./${guid}/${item.scriptUrl}`;
+            log (option.value);
+            option.textContent = item.name;
+            option.dataset.lang = item.lang;
+            selectElement.appendChild(option);
+        });
+}
+
+// function populateTestSelect(selectElement) {
+//     list.forEach(item => {
+//         let option = document.createElement('option');
+//         option.value = item.scriptUrl;
+//         option.textContent = item.name;
+//         option.dataset.lang = item.lang;
+//         selectElement.appendChild(option);
+//     });
+// }
 
 
 function shuffleArray(array) {
