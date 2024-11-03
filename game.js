@@ -29,6 +29,12 @@ const list = [
         scriptUrl: "/feelings.js",
         name: "רגשות",
         lang: 'en-US',
+    },
+    {
+        user: "396e2356-46d8-4dc3-a24b-7d006759a225",
+        scriptUrl: "/harry_potter.js",
+        name: "הארי פוטר",
+        lang: 'en-US',
     }
 ];
 
