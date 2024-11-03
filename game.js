@@ -17,6 +17,18 @@ const list = [
         scriptUrl: "/words3.js",
         name: "צרפתית אוקטובר 2024",
         lang: 'fr-FR',
+    },
+    {
+        user: "396e2356-46d8-4dc3-a24b-7d006759a225",
+        scriptUrl: "/animals.js",
+        name: "חיות",
+        lang: 'en-US',
+    },
+    {
+        user: "396e2356-46d8-4dc3-a24b-7d006759a225",
+        scriptUrl: "/feelings.js",
+        name: "רגשות",
+        lang: 'en-US',
     }
 ];
 
