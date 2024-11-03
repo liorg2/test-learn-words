@@ -77,6 +77,7 @@ body {
     align-items: center;
     justify-content: flex-start;
     height: 100vh;
+    direction: rtl;
 }
 
 .game-area {
@@ -188,7 +189,20 @@ body {
     width: 100%;
 }
 
-
+@media (max-width: 1200px) {
+    .control-panel {
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        padding: 10px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+}
 
 #newGameBtn {
     padding: 5px 10px;
@@ -226,7 +240,7 @@ button {
     padding: 5px 10px;
     border-radius: 5px;
     border: 1px solid #007BFF;
-    max-width: 300px;
+    max-width: 250px;
 }
 
 .dropdown-group {
