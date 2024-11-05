@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - התאמת מילים</title>
+    <link rel="stylesheet" href="admin-style.css">
+
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAv43I74dqnvAuvRU0NfNeBfsuC147S4QY",
+            authDomain: "word-game-e49cf.firebaseapp.com",
+            projectId: "word-game-e49cf",
+            storageBucket: "word-game-e49cf.firebasestorage.app",
+            messagingSenderId: "763891992812",
+            appId: "1:763891992812:web:d54602cc0ef059a0d07dc9"
+        };
+
+
+    </script>
+</head>
+<body>
+<div class="tabs">
+    <button class="tab-button" onclick="openTab(event, 'View')">צפה ברשימות ובמילים</button>
+    <button class="tab-button" onclick="openTab(event, 'Add')">הוסף רשימה חדשה / מילים</button>
+</div>
+
+<div id="View" class="tab-content">
+    <h2>Existing Lists and Words</h2>
+    <div id="listDisplay"></div>
+</div>
+
+<div id="Add" class="tab-content">
+    <h2>Add New List or Words</h2>
+    <form id="addForm">
+        <input type="text" placeholder="User ID" name="user" required>
+        <input type="text" placeholder="Script URL" name="scriptUrl" required>
+        <input type="text" placeholder="Name" name="name" required>
+        <input type="text" placeholder="Language" name="lang" required>
+        <button type="submit">Add List</button>
+    </form>
+</div>
+
+<script src="admin-script.js"></script>
+</body>
+</html>
