@@ -100,7 +100,7 @@ body {
 .translation {
     border: 3px solid #007BFF;
     border-radius: 5px;
-    padding: 10px;
+    padding: 5px;
     background-color: #E1ECF4;
     cursor: pointer;
     user-select: none;

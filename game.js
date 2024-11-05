@@ -108,7 +108,7 @@ function getGuid() {
 }
 
 function populateTestSelect(selectElement) {
-    const guid = getGuid();
+    const guid = getGuid() ?? "64cdd390-6bb7-4a8b-b0e0-b52294368613";
     list.filter(item => {
         return item.user === guid
     })
