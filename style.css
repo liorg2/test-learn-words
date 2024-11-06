@@ -2,14 +2,15 @@
 html {
     font-size: 16px;
 }
+
 @media (max-width: 1200px) {
     html {
-        font-size: 20px;  
+        font-size: 19px;
     }
 }
 
 body {
-    font-size: 1rem;  
+    font-size: 1rem;
 }
 
 @keyframes blink-once {
@@ -91,7 +92,6 @@ body {
 
 .word-container,
 .translation-container {
-    
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -111,8 +111,6 @@ body {
     user-select: none;
     font-size: 1.3rem;
     letter-spacing: 1px;
-    
-   
 }
 
 @media (max-width: 1200px) {
@@ -140,10 +138,10 @@ body {
 }
 
 .instructions {
-    font-size: 1.2rem;
-    font-weight: bold;
+    font-size: 0.8rem;
+    font-weight: normal;
     color: #0056b3;
-    margin: 20px;
+    margin: 10px;
     text-align: center;
 }
 
@@ -177,7 +175,6 @@ body {
 }
 
 #testSelect, #testSelectClone {
-    
     font-size: 1rem;
     xdisplay: block;
     cursor: pointer;
@@ -186,6 +183,7 @@ body {
     border: 2px solid #007BFF;
     border-radius: 5px;
     direction: rtl;
+    padding: 3px;
 }
 
 #testSelect:hover {
@@ -203,28 +201,30 @@ body {
     width: 100%;
     flex-direction: row;
 }
+
 .control-panel-bottom {
-    display: none;  /* Initially hidden */
+    display: none; /* Initially hidden */
     position: fixed;
     top: 0;
-    right: -100%;  /* Start hidden to the right */
-    max-width: 650px;  /* Fixed width */
-    height: 100%;  /* Full height */
+    right: -100%; /* Start hidden to the right */
+    max-width: 650px; /* Fixed width */
+    height: 100%; /* Full height */
     background-color: #f0f0f0;
-    box-shadow: -2px 0 5px rgba(0,0,0,0.5); /* Optional shadow */
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5); /* Optional shadow */
     transition: right 0.3s;
-    padding-top:55px;
+    padding-top: 55px;
 }
 
 .control-panel-bottom.active {
     display: block;
-    right: 0;  /* Slide in */
+    right: 0; /* Slide in */
 }
+
 .control-panel-bottom div,
 .control-panel-bottom select,
 .control-panel-bottom button {
     margin: 10px;
-    width: calc(100% - 20px);  /* Adjust width to fit parent */
+    width: calc(100% - 20px); /* Adjust width to fit parent */
 }
 
 @media (max-width: 1200px) {
@@ -233,12 +233,11 @@ body {
         display: flex;
         justify-content: center;
         align-items: flex-end;
-        padding: 10px;
         background-color: #f0f0f0;
         border: 1px solid #ccc;
         width: 100%;
-        flex-wrap: wrap;
-        gap: 10px;
+        padding: 10px 55px 10px 10px;
+        gap: 5px;
     }
 }
 
@@ -270,14 +269,17 @@ body {
     text-align: center;
     font-weight: bold;
 }
-#decreaseFont{
+
+#decreaseFont {
     font-weight: lighter;
     font-size: 0.7rem;
 }
-#increaseFont{
+
+#increaseFont {
     font-weight: bold;
     font-size: 1.2rem;
 }
+
 #voiceSelect,
 button {
     cursor: pointer;
@@ -292,34 +294,31 @@ button {
 
 .dropdown-group {
     display: flex;
-    
-    
-    
     flex-direction: row;
     align-items: center;
 }
 
 .dropdown-group label {
     direction: rtl;
-    padding-left :5px;
+    padding-left: 5px;
 }
-.buttons-group{
+
+.buttons-group {
     display: flex;
-    flex-direction: row; 
+    flex-direction: row;
 }
 
 .statistics {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    padding: 10px;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
+    padding: 5px;
+    direction: rtl;
+    font-size: 0.6rem;
+    gap: 10px;
 }
 
-.statistics p {
-    margin: 0 10px;
-}
+#scoreDisplay, #numFailures {font-weight: bold; font-size: 0.7rem;}
 
 .overlay-control {
     margin: 20px;
@@ -384,17 +383,16 @@ button {
     display: flex;
     flex-direction: column;
     justify-content: space-around;
-    width: 30px; /* Width of the hamburger button */
-    height: 25px; /* Height of the hamburger button */
+    width: 30px;
+    height: 25px;
     background: transparent;
     border: none;
     cursor: pointer;
     padding: 0;
     position: fixed;
-    top: 10px;
-    right: 10px;
+    top: 15px;
+    right: 7px;
     z-index: 20;
-    
 }
 
 .bar {

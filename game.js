@@ -539,7 +539,7 @@ function showMessage(isCorrect) {
 function updateScore(newScore) {
     log('updateScore ' + newScore);
     score = newScore;
-    document.getElementById('scoreDisplay').textContent = `נקודות: ${score}`;
+    document.getElementById('scoreDisplay').textContent = `${score}`;
 
     if (score === words.length) {
         // endTime = new Date(); // End time when game finishes

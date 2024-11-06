@@ -7,7 +7,7 @@
 
     <title> התאמת מילים</title>
     <link rel="stylesheet" href="style.css">
-    
+
 </head>
 
 <body>
@@ -20,20 +20,23 @@
     </div>
 </div>
 <div class="control-panel">
-
-    <select id="testSelect"></select>
-    <button id="newGameBtn" onclick="loadSelectedTest()">משחק חדש</button>
-  
  
+    <select id="testSelect"></select>
+    <button id="newGameBtn" onclick="loadSelectedTest()"> חדש</button>
+
+
 </div>
 <div class="statistics">
-    <p><span id="scoreDisplay">נקודות: 0</span></p>
+    <div class="instructions">יש לגרור כל מילה אל התרגום שלה.</div>
+ 
     <!--    <p>Number of Attempts: <span id="numAttempts">0</span></p>-->
+    <p>נקודות: <span id="scoreDisplay">0</span></p>
     <p>שגיאות: <span id="numFailures">0</span></p>
+   
 </div>
 
 <div class="status-message" style="display: none" id="statusMessage"></div>
-<div class="instructions">יש לגרור כל מילה אל התרגום שלה.</div>
+
 <div class="game-area">
     <div class="word-container" id="wordContainer"></div>
     <div class="separator"></div>
@@ -47,7 +50,7 @@
 
 <div class="control-panel-bottom" id="menu">
 
-    
+
     <div class="dropdown-group">
         <label for="voiceSelect">קולות מותקנים במכשיר:</label>
         <select id="voiceSelect"></select>
@@ -62,7 +65,6 @@
 
         </div>
     </div>
-   
 
 
 </div>
