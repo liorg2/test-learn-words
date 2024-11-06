@@ -405,7 +405,7 @@ button {
     border: none;
     cursor: pointer;
     padding: 0;
-    position: fixed;
+    position: absolute;
     top: 15px;
     right: 7px;
     z-index: 20;
