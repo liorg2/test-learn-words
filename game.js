@@ -1,20 +1,25 @@
 const list = [
-
     {
         user: "64cdd390-6bb7-4a8b-b0e0-b52294368613",
-        scriptUrl: "words2.js",
-        name: "אנגלית נובמבר 2024 חלק 2",
-        lang: 'en-US',
-    },
-    {
-        user: "64cdd390-6bb7-4a8b-b0e0-b52294368613",
-        scriptUrl: "words.js",
+        scriptUrl: "2024-nov-en-1.js",
         name: "אנגלית נובמבר 2024 חלק 1",
         lang: 'en-US',
     },
     {
         user: "64cdd390-6bb7-4a8b-b0e0-b52294368613",
-        scriptUrl: "/words3.js",
+        scriptUrl: "2024-nov-en-2.js",
+        name: "אנגלית נובמבר 2024 חלק 2",
+        lang: 'en-US',
+    },
+    {
+        user: "64cdd390-6bb7-4a8b-b0e0-b52294368613",
+        scriptUrl: "2024-nov-en-3.js",
+        name: "אנגלית נובמבר 2024 חלק 3",
+        lang: 'en-US',
+    },
+    {
+        user: "64cdd390-6bb7-4a8b-b0e0-b52294368613",
+        scriptUrl: "2024-oct-fr.js",
         name: "צרפתית אוקטובר 2024",
         lang: 'fr-FR',
     },
@@ -247,7 +252,9 @@ function loadWords(language) {
     document.body.appendChild(script);
     script.onload = () => initializeGame(language);
 }
-
+function sortTranslations(words) {
+    return words.sort((a, b) => a.translation.localeCompare(b.translation, 'he'));
+}
 function initializeGame(language) {
     log('initializeGame ' + language);
     if (!words || !Array.isArray(words)) return;
@@ -264,8 +271,10 @@ function initializeGame(language) {
         wordContainer.appendChild(wordDiv);
     });
 
-    const shuffledTranslations = shuffleArray([...words]);
-    shuffledTranslations.forEach(word => {
+    const sortedTranslations = sortTranslations([...words]);
+
+
+    sortedTranslations.forEach(word => {
         const translationDiv = createTranslationDiv(word);
         translationContainer.appendChild(translationDiv);
     });
@@ -535,7 +544,7 @@ function updateScore(newScore) {
     if (score === words.length) {
         // endTime = new Date(); // End time when game finishes
         //  const duration = (endTime - startTime) / 1000; // Calculate duration in seconds
-        document.getElementById('statusMessage').textContent = "המשחק הסתיים בהצלחה! Duration: ";
+        document.getElementById('statusMessage').textContent = "המשחק הסתיים בהצלחה! ";
         document.getElementById('statusMessage').style.display = 'block';
         showConfetti();
     }

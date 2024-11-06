@@ -84,16 +84,21 @@ body {
     width: 90%;
     max-width: 1900px;
     overflow: visible;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .word-container,
 .translation-container {
+    
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 15px;
     margin: 10px 0;
     font-weight: 400;
+    max-width: 768px;
 }
 
 .word,
@@ -106,6 +111,7 @@ body {
     user-select: none;
     font-size: 1.3rem;
     letter-spacing: 1px;
+    
    
 }
 
@@ -171,9 +177,9 @@ body {
 }
 
 #testSelect, #testSelectClone {
-    padding: 5px 10px;
+    
     font-size: 1rem;
-    display: block;
+    xdisplay: block;
     cursor: pointer;
     background-color: #ffffff;
     color: #000000;
@@ -195,6 +201,17 @@ body {
     background-color: #f0f0f0;
     border: 1px solid #ccc;
     width: 100%;
+}
+.control-panel-bottom{
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding: 5px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    width: 100%;
+    position: fixed;
+    bottom: 0;
 }
 
 @media (max-width: 1200px) {
@@ -255,13 +272,16 @@ button {
 
 .dropdown-group {
     display: flex;
-    flex-direction: column;
+    xflex-direction: column;
+    
     margin-left: 20px;
+    flex-direction: row;
+    align-items: flex-end;
 }
 
 .dropdown-group label {
     direction: rtl;
-    padding-right: 15px;
+    padding-left :5px;
 }
 .buttons-group{
     display: flex;

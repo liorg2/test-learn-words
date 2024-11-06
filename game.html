@@ -25,18 +25,8 @@
         <label for="testSelect"> הכתבה:</label>
         <select id="testSelect"></select>
     </div>
-
-    <div class="dropdown-group">
-        <label for="voiceSelect">קולות מותקנים במכשיר:</label>
-        <select id="voiceSelect"></select>
-    </div>
-    <div class="buttons-group">
-        <button id="decreaseFont" onclick="changeFontSize(-1)">A-</button>
-        <button id="increaseFont" onclick="changeFontSize(1)">A+</button>
-
-        <button id="newGameBtn" onclick="loadSelectedTest()">משחק חדש</button>
-    </div>
-    
+    <button id="newGameBtn" onclick="loadSelectedTest()">משחק חדש</button>
+  
  
 </div>
 <div class="statistics">
@@ -46,13 +36,28 @@
 </div>
 
 <div class="status-message" style="display: none" id="statusMessage"></div>
-<div class="instructions">.יש לגרור כל מילה אל התרגום שלה</div>
+<div class="instructions">יש לגרור כל מילה אל התרגום שלה.</div>
 <div class="game-area">
     <div class="word-container" id="wordContainer"></div>
     <div class="separator"></div>
     <div class="translation-container" id="translationContainer"></div>
 </div>
+<div class="control-panel-bottom">
 
+    
+    <div class="dropdown-group">
+        <label for="voiceSelect">קולות מותקנים במכשיר:</label>
+        <select id="voiceSelect"></select>
+    </div>
+    <div class="buttons-group">
+        <button id="decreaseFont" onclick="changeFontSize(-1)">A-</button>
+        <button id="increaseFont" onclick="changeFontSize(1)">A+</button>
+
+     
+    </div>
+
+
+</div>
 <!--<div id="log" style="background-color: antiquewhite"></div>-->
 
 <script src="game.js"></script>
