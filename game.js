@@ -2,25 +2,25 @@ const list = [
     {
         user: "64cdd390-6bb7-4a8b-b0e0-b52294368613",
         scriptUrl: "2024-nov-en-1.js",
-        name: "אנגלית נובמבר 2024 חלק 1",
+        name: "אנגלית 11-2024 חלק 1",
         lang: 'en-US',
     },
     {
         user: "64cdd390-6bb7-4a8b-b0e0-b52294368613",
         scriptUrl: "2024-nov-en-2.js",
-        name: "אנגלית נובמבר 2024 חלק 2",
+        name: "אנגלית 11-2024 חלק 2",
         lang: 'en-US',
     },
     {
         user: "64cdd390-6bb7-4a8b-b0e0-b52294368613",
         scriptUrl: "2024-nov-en-3.js",
-        name: "אנגלית נובמבר 2024 חלק 3",
+        name: "אנגלית 11-2024 חלק 3",
         lang: 'en-US',
     },
     {
         user: "64cdd390-6bb7-4a8b-b0e0-b52294368613",
         scriptUrl: "2024-oct-fr.js",
-        name: "צרפתית אוקטובר 2024",
+        name: "צרפתית 10-2024",
         lang: 'fr-FR',
     },
     {
