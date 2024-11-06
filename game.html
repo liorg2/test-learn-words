@@ -21,10 +21,7 @@
 </div>
 <div class="control-panel">
 
-    <div class="dropdown-group">
-        <label for="testSelect"> הכתבה:</label>
-        <select id="testSelect"></select>
-    </div>
+    <select id="testSelect"></select>
     <button id="newGameBtn" onclick="loadSelectedTest()">משחק חדש</button>
   
  
@@ -42,19 +39,30 @@
     <div class="separator"></div>
     <div class="translation-container" id="translationContainer"></div>
 </div>
-<div class="control-panel-bottom">
+<button id="toggleMenuBtn" class="hamburger">
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+</button>
+
+<div class="control-panel-bottom" id="menu">
 
     
     <div class="dropdown-group">
         <label for="voiceSelect">קולות מותקנים במכשיר:</label>
         <select id="voiceSelect"></select>
     </div>
-    <div class="buttons-group">
-        <button id="decreaseFont" onclick="changeFontSize(-1)">A-</button>
-        <button id="increaseFont" onclick="changeFontSize(1)">A+</button>
 
-     
+    <div class="dropdown-group">
+        <label for="font-sizes">שנה גודל כתב:</label>
+        <div class="buttons-group" id="font-sizes">
+            <button id="decreaseFont" onclick="changeFontSize(-1)">A-</button>
+            <button id="increaseFont" onclick="changeFontSize(1)">A+</button>
+
+
+        </div>
     </div>
+   
 
 
 </div>

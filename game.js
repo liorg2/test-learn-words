@@ -568,3 +568,8 @@ function showConfetti() {
         confettiElement.remove();
     }, 3000);
 }
+
+document.getElementById('toggleMenuBtn').addEventListener('click', function() {
+    const menu = document.getElementById('menu');
+    menu.classList.toggle('active'); // This toggles the visibility and position of the menu
+});
