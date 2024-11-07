@@ -188,7 +188,7 @@ body {
 
 #testSelect, #testSelectClone,#gameTypeSelect {
     font-size: 1rem;
-    xdisplay: block;
+ 
     cursor: pointer;
     background-color: #ffffff;
     color: #000000;
@@ -196,6 +196,11 @@ body {
     border-radius: 5px;
     direction: rtl;
     padding: 3px;
+}
+@media (max-width: 1200px) {
+    #testSelect,#gameTypeSelect {
+        font-size: 0.8rem;
+    }
 }
 
 #testSelect:hover {
@@ -214,6 +219,20 @@ body {
     flex-direction: row;
     gap: 10px;
 }
+@media (max-width: 1200px) {
+    .control-panel {
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        width: auto;
+        padding: 10px 80px 10px 10px;
+        gap: 5px;
+    }
+}
+
 
 .control-panel-bottom {
     display: none; /* Initially hidden */
@@ -240,19 +259,6 @@ body {
     width: calc(100% - 20px); /* Adjust width to fit parent */
 }
 
-@media (max-width: 1200px) {
-    .control-panel {
-        margin-bottom: 10px;
-        display: flex;
-        justify-content: center;
-        align-items: flex-end;
-        background-color: #f0f0f0;
-        border: 1px solid #ccc;
-        width: auto;
-        padding: 10px 80px 10px 10px;
-        gap: 5px;
-    }
-}
 
 #newGameBtn {
     padding: 5px 10px;
