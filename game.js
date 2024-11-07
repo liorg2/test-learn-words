@@ -124,7 +124,7 @@ function loadSelectedTest() {
         }
         else {
             
-            document.querySelector('.instructions').textContent = 'יש לגרור כל מילה לחלק הדיבר המתאים.';
+            document.querySelector('.instructions').textContent = 'יש לגרור כל מילה לחלק המשפט המתאים.';
         }
         updateUrlParam('test', testSelect.selectedIndex);
         updateUrlParam('gameType', gameTypeSelect.selectedIndex);
