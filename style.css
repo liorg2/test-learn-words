@@ -269,6 +269,11 @@ body {
 #newGameBtn:hover {
     background-color: #0056b3;
 }
+@media (max-width: 1200px) {
+    #newGameBtn {
+        display: none;
+    }
+}
 
 #decreaseFont,
 #increaseFont {
