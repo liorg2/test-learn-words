@@ -53,59 +53,6 @@ let draggedElement = null;
 let draggedElementOriginal = null;
 let draggedWord = null;
 
-document.body.addEventListener('click', () => {
-    const lecture = new SpeechSynthesisUtterance('hello');
-    lecture.volume = 0;
-    speechSynthesis.speak(lecture);
-    hasEnabledVoice = true;
-}, {once: true});
-
-
-document.addEventListener('DOMContentLoaded', function () {
-    log('DOMContentLoaded innerWidth= ' + window.innerWidth);
-    const originalTestSelect = document.getElementById('testSelect');
-
-    // Populate both dropdowns
-    populateTestSelect(originalTestSelect);
-
-    // Add change event to original select
-    originalTestSelect.addEventListener('change', loadSelectedTest);
-
-    if (window.innerWidth <= 1200) {
-        const overlay = document.getElementById("overlay");
-        overlay.style.display = "flex";
-
-        // Clone the populated select
-        const testSelectClone = originalTestSelect.cloneNode(true);
-        testSelectClone.removeAttribute('id');
-        testSelectClone.id = 'testSelectClone';
-
-        // Add empty option only to clone
-        let emptyOption = document.createElement('option');
-        emptyOption.value = "";
-        emptyOption.textContent = "בחירת הכתבה";
-        testSelectClone.insertBefore(emptyOption, testSelectClone.firstChild);
-        testSelectClone.selectedIndex = 0;
-        testSelectClone.style.fontSize = '20px';
-
-        // Create a control panel on the overlay
-        const overlayControl = document.getElementById("overlay-control");
-        overlayControl.appendChild(testSelectClone);
-
-        testSelectClone.addEventListener('change', function () {
-            document.body.removeChild(overlay);
-            originalTestSelect.value = this.value;
-            loadSelectedTest();
-            const lecture = new SpeechSynthesisUtterance('hello');
-            lecture.volume = 0;
-            speechSynthesis.speak(lecture);
-            hasEnabledVoice = true;
-        });
-    } else {
-
-        loadSelectedTest();
-    }
-});
 
 function getGuid() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -127,16 +74,18 @@ function populateTestSelect(selectElement) {
         });
 }
 
-// function populateTestSelect(selectElement) {
-//     list.forEach(item => {
-//         let option = document.createElement('option');
-//         option.value = item.scriptUrl;
-//         option.textContent = item.name;
-//         option.dataset.lang = item.lang;
-//         selectElement.appendChild(option);
-//     });
-// }
+function initSelects() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const testSelectValue = urlParams.get('test');
+    const gameTypeSelectValue = urlParams.get('gameType');
 
+    if (testSelectValue) {
+        document.getElementById('testSelect').selectedIndex = testSelectValue;
+    }
+    if (gameTypeSelectValue) {
+        document.getElementById('gameTypeSelect').selectedIndex = gameTypeSelectValue;
+    }
+}
 
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -146,7 +95,12 @@ function shuffleArray(array) {
     return array;
 }
 
-
+function updateUrlParam(key, value) {
+ 
+    const url = new URL(window.location);
+    url.searchParams.set(key, value);
+    window.history.pushState({}, '', url);
+}
 function log(msg) {
     console.log(msg);
     // const logElement = document.getElementById('log');
@@ -157,10 +111,26 @@ function log(msg) {
 
 
 function loadSelectedTest() {
-    const select = document.getElementById('testSelect');
+    const testSelect = document.getElementById('testSelect');
+    const gameTypeSelect = document.getElementById('gameTypeSelect');
+    
     setTimeout(() => {
-        loadVoices(select.options[select.selectedIndex].dataset.lang);
-        loadWords(select.options[select.selectedIndex].dataset.lang);
+ 
+        loadVoices(testSelect.options[testSelect.selectedIndex].dataset.lang);
+        loadWords(testSelect.options[testSelect.selectedIndex].dataset.lang);
+        if (gameTypeSelect.value === 'translation') {
+           
+            document.querySelector('.instructions').textContent = 'יש לגרור כל מילה אל התרגום שלה.';
+        }
+        else {
+            
+            document.querySelector('.instructions').textContent = 'יש לגרור כל מילה לחלק הדיבר המתאים.';
+        }
+        updateUrlParam('test', testSelect.selectedIndex);
+        updateUrlParam('gameType', gameTypeSelect.selectedIndex);
+         
+       
+      
     }, 500);
 
 }
@@ -255,11 +225,22 @@ function loadWords(language) {
 function sortTranslations(words) {
     return words.sort((a, b) => a.translation.localeCompare(b.translation, 'he'));
 }
+
+function loadTranslations(translationContainer) {
+    const sortedTranslations = sortTranslations([...words]);
+
+
+    sortedTranslations.forEach(word => {
+        const translationDiv = createTranslationDiv(word);
+        translationContainer.appendChild(translationDiv);
+    });
+}
+
 function initializeGame(language) {
     log('initializeGame ' + language);
     if (!words || !Array.isArray(words)) return;
     const wordContainer = document.getElementById('wordContainer');
-    const translationContainer = document.getElementById('translationContainer');
+    const translationContainer = document.getElementById('targetContainer');
     wordContainer.innerHTML = '';
     translationContainer.innerHTML = '';
     updateScore(0);
@@ -270,35 +251,43 @@ function initializeGame(language) {
         const wordDiv = createWordDiv(word, language);
         wordContainer.appendChild(wordDiv);
     });
+    const gameType = document.getElementById('gameTypeSelect').value;
+    if (gameType === 'translation') {
+        loadTranslations(translationContainer);
+    }
+    else{
+        loadPartsOfSpeech();
+    }
 
-    const sortedTranslations = sortTranslations([...words]);
-
-
-    sortedTranslations.forEach(word => {
-        const translationDiv = createTranslationDiv(word);
-        translationContainer.appendChild(translationDiv);
-    });
+   
     loadFontSize()
 }
+ 
+function handleAnswer(targetEl, isCorrect, wordElement) {
 
-function handleAnswer(translationElement, isCorrect, wordElement) {
-
-    log('handleAnswer ' + translationElement.textContent + ' ' + wordElement.textContent + ' ' + isCorrect);
+    const gameType = document.getElementById('gameTypeSelect').value;
+    
+ 
+    log('handleAnswer ' + targetEl.textContent + ' ' + wordElement.textContent + ' ' + isCorrect);
     const blinkClass = isCorrect ? 'blink-correct' : 'blink-incorrect';
-    translationElement.classList.add(blinkClass);
-    translationElement.addEventListener('animationend', function onAnimationEnd() {
-        translationElement.classList.remove(blinkClass);
-        translationElement.removeEventListener('animationend', onAnimationEnd);
-        if (isCorrect) {
-            translationElement.style.transition = 'opacity 0.5s, transform 0.5s';
-            translationElement.style.opacity = '0';
-            translationElement.style.transform = 'scale(0)';
-            translationElement.addEventListener('transitionend', function onTransitionEnd() {
-                translationElement.style.display = 'none';
-                translationElement.removeEventListener('transitionend', onTransitionEnd);
-            });
-        }
-    });
+    
+      
+        targetEl.classList.add(blinkClass);
+        targetEl.addEventListener('animationend', function onAnimationEnd() {
+            targetEl.classList.remove(blinkClass);
+            targetEl.removeEventListener('animationend', onAnimationEnd);
+            if (isCorrect) {
+                if(gameType === 'translation') {
+                targetEl.style.transition = 'opacity 0.5s, transform 0.5s';
+                targetEl.style.opacity = '0';
+                targetEl.style.transform = 'scale(0)';
+                targetEl.addEventListener('transitionend', function onTransitionEnd() {
+                    targetEl.style.display = 'none';
+                    targetEl.removeEventListener('transitionend', onTransitionEnd);
+                });
+            }}
+        });
+    
 
     wordElement.classList.add(blinkClass);
     wordElement.addEventListener('animationend', function onAnimationEnd() {
@@ -348,14 +337,14 @@ function createWordDiv(word, language) {
 }
 
 function createTranslationDiv(word) {
-    const translationDiv = document.createElement('div');
-    translationDiv.className = 'translation';
-    translationDiv.textContent = word.translation;
-    translationDiv.addEventListener('dragover', handleDragOver);
-    translationDiv.addEventListener('dragleave', handleDragLeave);
-    translationDiv.addEventListener('drop', handleDrop);
+    const targetDiv = document.createElement('div');
+    targetDiv.className = 'translation';
+    targetDiv.textContent = word.translation;
+    targetDiv.addEventListener('dragover', handleDragOver);
+    targetDiv.addEventListener('dragleave', handleDragLeave);
+    targetDiv.addEventListener('drop', handleDrop);
 
-    return translationDiv;
+    return targetDiv;
 }
 
 
@@ -432,19 +421,37 @@ function handleTouchEnd(event) {
 
     if (dropTarget && dropTarget.classList && dropTarget.classList.contains('translation')) {
 
-        const isCorrect = words.some(word =>
-            word.text === draggedElement.textContent &&
-            word.translation === dropTarget.textContent
-        );
+        const isCorrect = checkCorrectness(dropTarget);
+        // words.some(word =>
+        //     word.text === draggedElement.textContent &&
+        //     word.translation === dropTarget.textContent
+        // );
         handleAnswer(dropTarget, isCorrect, draggedElementOriginal);
     }
 
     document.body.removeChild(draggedElement); // Remove the cloned element
     resetDraggedElement(); // Reset styles and cleanup
 }
+function checkCorrectness(  dropTarget) {
+    const gameType = document.getElementById('gameTypeSelect').value;
+    log(`Checking correctness: Dragged [${draggedElement.textContent}], Target [${dropTarget.textContent}], Game Type [${gameType}]`);
+
+    if (gameType === 'translation') {
+        const isMatch = words.some(word => word.text === draggedElement.textContent && word.translation === dropTarget.textContent);
+        log(`Translation match: ${isMatch}`);
+        return isMatch;
+    } else if (gameType === 'partOfSpeech') {
+        const isMatch = words.some(word => word.text === draggedElement.textContent && word.partOfSpeech === dropTarget.textContent);
+        log(`Part of speech match: ${isMatch}`);
+        return isMatch;
+    }
+
+    log('Invalid game type or no match found');
+    return false;
+}
 
 function resetDraggedElement() {
-    debugger
+    
     log('resetDraggedElement');
     document.querySelectorAll('.dragging').forEach(el => {
         el.classList.remove('dragging');
@@ -516,11 +523,9 @@ function handleDrop(event) {
     }
 
     const dropTarget = event.target;
+   
     if (dropTarget.classList.contains('translation')) {
-        const isCorrect = words.some(word =>
-            word.text === draggedWord &&
-            word.translation === dropTarget.textContent
-        );
+       const isCorrect = checkCorrectness(dropTarget);
         handleAnswer(dropTarget, isCorrect, draggedElement);
 
 
@@ -569,7 +574,82 @@ function showConfetti() {
     }, 3000);
 }
 
+function loadPartsOfSpeech() {
+    // Populate partOfSpeechContainer with all parts of speech
+    const partOfSpeechContainer = document.getElementById('targetContainer');
+    partOfSpeechContainer.innerHTML = ''; // Clear previous content
+    const partsOfSpeech = new Set (words.map(m=>m.partOfSpeech));
+    partsOfSpeech.forEach(part => {
+        const targetDiv = document.createElement('div');
+        targetDiv.textContent = part;
+        targetDiv.className = 'translation';
+        targetDiv.addEventListener('dragover', handleDragOver);
+        targetDiv.addEventListener('dragleave', handleDragLeave);
+        targetDiv.addEventListener('drop', handleDrop);
+        partOfSpeechContainer.appendChild(targetDiv);
+    });
+}
+
 document.getElementById('toggleMenuBtn').addEventListener('click', function() {
     const menu = document.getElementById('menu');
     menu.classList.toggle('active'); // This toggles the visibility and position of the menu
+});
+
+document.body.addEventListener('click', () => {
+    const lecture = new SpeechSynthesisUtterance('hello');
+    lecture.volume = 0;
+    speechSynthesis.speak(lecture);
+    hasEnabledVoice = true;
+}, {once: true});
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    log('DOMContentLoaded innerWidth= ' + window.innerWidth);
+    const originalTestSelect = document.getElementById('testSelect');
+    const gameTypeSelect = document.getElementById('gameTypeSelect');
+    // Populate both dropdowns
+    populateTestSelect(originalTestSelect);
+
+    // Add change event to original select
+    originalTestSelect.addEventListener('change', loadSelectedTest);
+    gameTypeSelect.addEventListener('change', loadSelectedTest);
+
+    initSelects()
+    
+    if (window.innerWidth <= 1200) {
+        const overlay = document.getElementById("overlay");
+        overlay.style.display = "flex";
+
+        // Clone the populated select
+        const testSelectClone = originalTestSelect.cloneNode(true);
+        testSelectClone.removeAttribute('id');
+        testSelectClone.id = 'testSelectClone';
+
+        // Add empty option only to clone
+        let emptyOption = document.createElement('option');
+        emptyOption.value = "";
+        emptyOption.textContent = "בחירת הכתבה";
+        testSelectClone.insertBefore(emptyOption, testSelectClone.firstChild);
+        testSelectClone.selectedIndex = 0;
+        testSelectClone.style.fontSize = '20px';
+
+        // Create a control panel on the overlay
+        const overlayControl = document.getElementById("overlay-control");
+        overlayControl.appendChild(testSelectClone);
+
+        testSelectClone.addEventListener('change', function () {
+            document.body.removeChild(overlay);
+            originalTestSelect.value = this.value;
+            loadSelectedTest();
+            const lecture = new SpeechSynthesisUtterance('hello');
+            lecture.volume = 0;
+            speechSynthesis.speak(lecture);
+            hasEnabledVoice = true;
+        });
+    }
+    else {
+
+        loadSelectedTest();
+    }
+ 
 });

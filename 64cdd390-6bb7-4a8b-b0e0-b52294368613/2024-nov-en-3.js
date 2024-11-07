@@ -1,17 +1,13 @@
 words = [
-    { text: "oil", translation: 'שמן' },
-    { text: "possible", translation: 'אפשרי' },
-    { text: "interested in", translation: 'מתעניין ב...' },
-    { text: "village", translation: 'כפר' },
-    { text: "typical", translation: 'טיפוסי/אופייני' },
-    { text: "travel", translation: 'לטייל' },
-    { text: "choice", translation: 'בחירה' },
-    { text: "wide", translation: 'רחב' },
-    { text: "imagine", translation: 'לדמיין' },
-    { text: "lovely", translation: 'נעים, נחמד' },
-    { text: "join", translation: 'להצטרף' }
-  
-    
-    
-    
+    { text: "oil", translation: 'שמן', partOfSpeech: 'noun' },
+    { text: "possible", translation: 'אפשרי', partOfSpeech: 'adjective' },
+    { text: "interested in", translation: 'מתעניין ב...', partOfSpeech: 'verb' },
+    { text: "village", translation: 'כפר', partOfSpeech: 'noun' },
+    { text: "typical", translation: 'טיפוסי/אופייני', partOfSpeech: 'adjective' },
+    { text: "travel", translation: 'לטייל', partOfSpeech: 'verb' },
+    { text: "choice", translation: 'בחירה', partOfSpeech: 'noun' },
+    { text: "wide", translation: 'רחב', partOfSpeech: 'adjective' },
+    { text: "imagine", translation: 'לדמיין', partOfSpeech: 'verb' },
+    { text: "lovely", translation: 'נעים, נחמד', partOfSpeech: 'adjective' },
+    { text: "join", translation: 'להצטרף', partOfSpeech: 'verb' }
 ]
