@@ -248,7 +248,7 @@ body {
         align-items: flex-end;
         background-color: #f0f0f0;
         border: 1px solid #ccc;
-        width: 100%;
+        width: auto;
         padding: 10px 80px 10px 10px;
         gap: 5px;
     }
