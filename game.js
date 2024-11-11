@@ -1,49 +1,3 @@
-const list = [
-    {
-        user: "64cdd390-6bb7-4a8b-b0e0-b52294368613",
-        scriptUrl: "2024-nov-en-1.js",
-        name: "אנגלית 11-2024 חלק 1",
-        lang: 'en',
-    },
-    {
-        user: "64cdd390-6bb7-4a8b-b0e0-b52294368613",
-        scriptUrl: "2024-nov-en-2.js",
-        name: "אנגלית 11-2024 חלק 2",
-        lang: 'en',
-    },
-    {
-        user: "64cdd390-6bb7-4a8b-b0e0-b52294368613",
-        scriptUrl: "2024-nov-en-3.js",
-        name: "אנגלית 11-2024 חלק 3",
-        lang: 'en',
-    },
-    {
-        user: "64cdd390-6bb7-4a8b-b0e0-b52294368613",
-        scriptUrl: "2024-oct-fr.js",
-        name: "צרפתית 10-2024",
-        lang: 'fr',
-    },
-    {
-        user: "396e2356-46d8-4dc3-a24b-7d006759a225",
-        scriptUrl: "/animals.js",
-        name: "חיות",
-        lang: 'en',
-    },
-    {
-        user: "396e2356-46d8-4dc3-a24b-7d006759a225",
-        scriptUrl: "/feelings.js",
-        name: "רגשות",
-        lang: 'en',
-    },
-    {
-        user: "396e2356-46d8-4dc3-a24b-7d006759a225",
-        scriptUrl: "/harry_potter.js",
-        name: "הארי פוטר",
-        lang: 'en',
-    }
-];
-
-
 let score = 0;
 let failures = 0;
 let hasEnabledVoice = false;
@@ -54,27 +8,33 @@ let draggedElementOriginal = null;
 let draggedWord = null;
 let testWord = "hello";
 
+
 function getGuid() {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('guid'); // Assume 'guid' is the query string parameter
 }
 
-function populateTestSelect(selectElement) {
+function populateTestSelect(selectElement, callback) {
     const guid = getGuid() ?? "64cdd390-6bb7-4a8b-b0e0-b52294368613";
-    list.filter(item => {
-        return item.user === guid
-    })
-        .forEach(item => {
+    const scriptUrl = `./tests_lists/${guid}.js`;
+
+    const script = document.createElement('script');
+    script.src = scriptUrl;
+    script.onload = () => {
+        tests_list.forEach(item => {
             let option = document.createElement('option');
-            option.value = `./${guid}/${item.scriptUrl}`;
-            log(option.value);
+            option.value = `${guid}/${item.scriptUrl}`;
             option.textContent = item.name;
             option.dataset.lang = item.lang;
             selectElement.appendChild(option);
         });
+        callback();
+    };
+    document.head.appendChild(script);
 }
 
-function initSelects() {
+
+function initSelectsByURL() {
     const urlParams = new URLSearchParams(window.location.search);
     const testSelectValue = urlParams.get('test');
     const gameTypeSelectValue = urlParams.get('gameType');
@@ -654,47 +614,49 @@ document.addEventListener('DOMContentLoaded', function () {
     const originalTestSelect = document.getElementById('testSelect');
     const gameTypeSelect = document.getElementById('gameTypeSelect');
     // Populate both dropdowns
-    populateTestSelect(originalTestSelect);
+    populateTestSelect(originalTestSelect, function () {
 
-    // Add change event to original select
-    originalTestSelect.addEventListener('change', loadSelectedTest);
-    gameTypeSelect.addEventListener('change', loadSelectedTest);
+        // Add change event to original select
+        originalTestSelect.addEventListener('change', loadSelectedTest);
+        gameTypeSelect.addEventListener('change', loadSelectedTest);
 
-    initSelects()
+        initSelectsByURL()
 
-    if (window.innerWidth <= 1200) {
-        const overlay = document.getElementById("overlay-start");
-        overlay.style.display = "flex";
+        if (window.innerWidth <= 1200) {
+            const overlay = document.getElementById("overlay-start");
+            overlay.style.display = "flex";
 
-        // Clone the populated select
-        const testSelectClone = originalTestSelect.cloneNode(true);
-        testSelectClone.removeAttribute('id');
-        testSelectClone.id = 'testSelectClone';
+            // Clone the populated select
+            const testSelectClone = originalTestSelect.cloneNode(true);
+            testSelectClone.removeAttribute('id');
+            testSelectClone.id = 'testSelectClone';
 
-        // Add empty option only to clone
-        let emptyOption = document.createElement('option');
-        emptyOption.value = "";
-        emptyOption.textContent = "בחירת הכתבה";
-        testSelectClone.insertBefore(emptyOption, testSelectClone.firstChild);
-        testSelectClone.selectedIndex = 0;
-        testSelectClone.style.fontSize = '20px';
+            // Add empty option only to clone
+            let emptyOption = document.createElement('option');
+            emptyOption.value = "";
+            emptyOption.textContent = "בחירת הכתבה";
+            testSelectClone.insertBefore(emptyOption, testSelectClone.firstChild);
+            testSelectClone.selectedIndex = 0;
+            testSelectClone.style.fontSize = '20px';
 
-        // Create a control panel on the overlay
-        const overlayControl = document.getElementById("overlay-control");
-        overlayControl.appendChild(testSelectClone);
+            // Create a control panel on the overlay
+            const overlayControl = document.getElementById("overlay-control");
+            overlayControl.appendChild(testSelectClone);
 
-        testSelectClone.addEventListener('change', function () {
-            document.body.removeChild(overlay);
-            originalTestSelect.value = this.value;
+            testSelectClone.addEventListener('change', function () {
+                document.body.removeChild(overlay);
+                originalTestSelect.value = this.value;
+                loadSelectedTest();
+                const lecture = new SpeechSynthesisUtterance('hello');
+                lecture.volume = 0;
+                speechSynthesis.speak(lecture);
+                hasEnabledVoice = true;
+            });
+        } else {
+
             loadSelectedTest();
-            const lecture = new SpeechSynthesisUtterance('hello');
-            lecture.volume = 0;
-            speechSynthesis.speak(lecture);
-            hasEnabledVoice = true;
-        });
-    } else {
+        }
+    });
 
-        loadSelectedTest();
-    }
 
 });
