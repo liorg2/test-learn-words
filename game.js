@@ -8,6 +8,12 @@ let draggedElementOriginal = null;
 let draggedWord = null;
 let testWord = "hello";
 
+const GameTypes = {
+    TRANSLATION: "translation",
+    PART_OF_SPEECH: "partOfSpeech",
+    MISSING_WORD: "missingWord"
+};
+
 
 function getGuid() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -82,12 +88,12 @@ function loadSelectedTest() {
 
         loadVoices(testSelect.options[testSelect.selectedIndex].dataset.lang);
         loadWords(testSelect.options[testSelect.selectedIndex].dataset.lang);
-        if (gameTypeSelect.value === 'translation') {
-
+        if (gameTypeSelect.value === GameTypes.TRANSLATION) {//todo: function
             document.querySelector('.instructions').textContent = 'יש לגרור כל מילה אל התרגום שלה.';
-        } else {
-
+        } else if (gameTypeSelect.value === GameTypes.PART_OF_SPEECH) {
             document.querySelector('.instructions').textContent = 'יש לגרור כל מילה לחלק המשפט המתאים.';
+        } else if (gameTypeSelect.value === GameTypes.MISSING_WORD) {
+            document.querySelector('.instructions').textContent = 'יש לגרור את המילה החסרה במשפט.';
         }
         updateUrlParam('test', testSelect.selectedIndex);
         updateUrlParam('gameType', gameTypeSelect.selectedIndex);
@@ -240,10 +246,13 @@ function initializeGame(language) {
         wordContainer.appendChild(wordDiv);
     });
     const gameType = document.getElementById('gameTypeSelect').value;
-    if (gameType === 'translation') {
+
+    if (gameType === GameTypes.TRANSLATION) {
         loadTranslations(translationContainer);
-    } else {
+    } else if (gameType === GameTypes.PART_OF_SPEECH) {
         loadPartsOfSpeech();
+    } else if (gameType === GameTypes.MISSING_WORD) {
+        loadSentences();
     }
 
 
@@ -266,9 +275,11 @@ function handleAnswer(targetEl, isCorrect, wordElement) {
     targetEl.classList.add(blinkClass);
     targetEl.addEventListener('animationend', function onAnimationEnd() {
         targetEl.classList.remove(blinkClass);
+       
         targetEl.removeEventListener('animationend', onAnimationEnd);
         if (isCorrect) {
-            if (gameType === 'translation') {
+            wordElement.classList.add("correct")
+            if (gameType === GameTypes.TRANSLATION) {
                 targetEl.style.transition = 'opacity 0.5s, transform 0.5s';
                 targetEl.style.opacity = '0';
                 targetEl.style.transform = 'scale(0)';
@@ -276,6 +287,8 @@ function handleAnswer(targetEl, isCorrect, wordElement) {
                     targetEl.style.display = 'none';
                     targetEl.removeEventListener('transitionend', onTransitionEnd);
                 });
+            }else if (gameType === GameTypes.MISSING_WORD) {
+                 loadSentences();
             }
         }
     });
@@ -430,13 +443,18 @@ function checkCorrectness(dropTarget) {
     const gameType = document.getElementById('gameTypeSelect').value;
     log(`Checking correctness: Dragged [${draggedElement.textContent}], Target [${dropTarget.textContent}], Game Type [${gameType}]`);
 
-    if (gameType === 'translation') {
+    if (gameType === GameTypes.TRANSLATION) {
         const isMatch = words.some(word => word.text === draggedElement.textContent && word.translation === dropTarget.textContent);
         log(`Translation match: ${isMatch}`);
         return isMatch;
-    } else if (gameType === 'partOfSpeech') {
+    } else if (gameType === GameTypes.PART_OF_SPEECH) {
         const isMatch = words.some(word => word.text === draggedElement.textContent && word.partOfSpeech === dropTarget.textContent);
         log(`Part of speech match: ${isMatch}`);
+        return isMatch;
+    } else if (gameType === GameTypes.MISSING_WORD) {
+        // Check if the dragged word correctly fills the blank in the target sentence
+        const isMatch = draggedElement.textContent === dropTarget.dataset.selectedWord;
+        log(`Missing word match: ${isMatch}`);
         return isMatch;
     }
 
@@ -573,6 +591,52 @@ function showConfetti() {
     setTimeout(() => {
         confettiElement.remove();
     }, 3000);
+}
+
+function loadSentences() {
+    const sentenceContainer = document.getElementById('targetContainer');
+    sentenceContainer.innerHTML = ''; // Clear previous content
+    const randomSentance = getRandomWordAndModifiedSentence();
+
+    const targetDiv = document.createElement('div');
+    targetDiv.textContent = randomSentance.modifiedSentence;
+    targetDiv.className = 'translation ltr';
+    targetDiv.addEventListener('dragover', handleDragOver);
+    targetDiv.addEventListener('dragleave', handleDragLeave);
+    targetDiv.addEventListener('drop', handleDrop);
+    targetDiv.dataset.selectedWord = randomSentance.selectedWord;
+    sentenceContainer.appendChild(targetDiv);
+
+}
+
+function getRandomWordAndModifiedSentence() {
+    // Select a random word object
+
+    const displayedWords = Array.from(document.querySelectorAll('.word'))
+        .filter(element => element.offsetParent !== null && !element.classList.contains('correct'))
+        .map(element => element.textContent);log('displayedWords ' + displayedWords.join(","));
+    // Filter the words array to include only those that are displayed
+    const filteredWords = words.filter(word => displayedWords.includes(word.text));
+
+    if (filteredWords.length === 0) {
+        log('No matching words found on the page.');
+        return null;  // or handle this case as needed
+    }
+
+    // Select a random word object from the filtered list
+    const randomWordIndex = Math.floor(Math.random() * filteredWords.length);
+    const selectedWord = filteredWords[randomWordIndex];
+
+    // Select a random sentence from the chosen word object
+    const randomSentenceIndex = Math.floor(Math.random() * selectedWord.sentences.length);
+    const selectedSentence = selectedWord.sentences[randomSentenceIndex].from;
+
+    // Replace the word in the sentence with underscores
+    // Ensure only whole words are replaced
+    const modifiedSentence = selectedSentence.replace(new RegExp(`(?<!\\w)${selectedWord.text}(?!\\w)`, 'gi'), "________");
+
+    log('getRandomWordAndModifiedSentence ' + selectedWord.text + ' ' + modifiedSentence + ' ' + selectedSentence);
+    return {selectedWord: selectedWord.text, modifiedSentence, selectedSentence};
 }
 
 function loadPartsOfSpeech() {

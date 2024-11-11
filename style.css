@@ -498,3 +498,7 @@ button {
 .settings-link i {
     font-size: 20px; /* Icon size, adjust as needed */
 }
+
+.ltr{
+    direction: ltr;
+}

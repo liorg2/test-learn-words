@@ -6,9 +6,14 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-JFJBS3FGK3"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+
         gtag('js', new Date());
         gtag('config', 'G-JFJBS3FGK3');
+
         function sendEvent(action, category, label, value) {
             try {
                 gtag('event', action, {
@@ -16,10 +21,10 @@
                     'event_label': label,
                     'value': value
                 });
-            }catch (e) {
-                
+            } catch (e) {
+
             }
-           
+
         }
     </script>
     <meta charset="UTF-8">
@@ -32,21 +37,28 @@
 
 <body>
 
-<div id="overlay-start"  style="display: none">
+<div id="overlay-start" style="display: none">
     <h2 class="overlay-title">ברוכים הבאים!</h2>
     <p class="overlay-text">בחרו משחק כדי להתחיל</p>
     <div class="overlay-control" id="overlay-control"></div>
 </div>
 
 <div class="control-panel">
- 
+
+    <label for="testSelect">תרגול:</label>
     <select id="testSelect"></select>
+    
+
+    <label for="gameTypeSelect">משחק:</label>
     <select id="gameTypeSelect">
         <option value="translation">תרגום</option>
         <option value="partOfSpeech">חלק משפט</option>
+        <option value="missingWord">השלמת משפטים</option>
     </select>
+    
+    
     <button id="newGameBtn" onclick="loadSelectedTest()">חדש</button>
-    <a href="javascript:;" id="toggleMenuBtn" class="settings-link" title="הגדרות" ><i class="fas fa-cog"></i> </a>
+    <a href="javascript:;" id="toggleMenuBtn" class="settings-link" title="הגדרות"><i class="fas fa-cog"></i> </a>
 </div>
 
 <div class="statistics">
@@ -55,7 +67,7 @@
     <p>שגיאות: <span id="numFailures">0</span></p>
 </div>
 
-<div class="status-message"   id="statusMessage"></div>
+<div class="status-message" id="statusMessage"></div>
 
 <div class="game-area">
     <div class="word-container" id="wordContainer"></div>
@@ -84,7 +96,7 @@
     </div>
 </div>
 
- 
+
 <div id="log"></div>
 
 <script src="voices.js?v=9-11-24"></script>
