@@ -27,7 +27,7 @@ body {
 }
 
 .dragging {
-    box-shadow: 0px 0px 10px 5px rgba(0, 123, 255, 0.5);
+    box-shadow: 0 0 10px 5px rgba(0, 123, 255, 0.5);
     border: 2px dashed #007bff;
 }
 
@@ -106,7 +106,7 @@ body {
 
 .word,
 .translation {
-    border: 3px solid #007BFF;
+    border: 1px solid #007BFF;
     border-radius: 5px;
     padding: 5px;
     background-color: #E1ECF4;
@@ -157,6 +157,7 @@ body {
     .instructions {font-size: 0.8rem;}
 }
 
+/* Base styles for the status message */
 .status-message {
     font-weight: bold;
     position: fixed;
@@ -168,7 +169,25 @@ body {
     color: white;
     padding: 10px 20px;
     border-radius: 0 0 10px 10px;
+    opacity: 0; /* Start hidden */
+    visibility: hidden; /* Ensure it doesn't interfere when not shown */
+    transition: visibility 0s, opacity 0.5s linear;
 }
+
+/* Class to show the message */
+.status-message.show {
+    visibility: visible;
+    opacity: 1;
+    animation: fadeOutMessage 6.5s forwards;
+}
+
+/* Keyframes to fade out the message */
+@keyframes fadeOutMessage {
+    0% { opacity: 1; }
+    85% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
 
 #nameInput {
     padding: 10px;
@@ -226,30 +245,79 @@ body {
     }
 }
 
-
 .control-panel-bottom {
-    display: none; /* Initially hidden */
+    display: none;
     position: fixed;
     top: 0;
-    right: -100%; /* Start hidden to the right */
-    max-width: 650px; /* Fixed width */
-    height: 100%; /* Full height */
-    background-color: #f0f0f0;
-    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5); /* Optional shadow */
-    transition: right 0.3s;
-    padding-top: 55px;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85); /* Dark overlay */
+    z-index: 10;
+    align-items: center;
+    justify-content: center;
 }
 
 .control-panel-bottom.active {
-    display: block;
-    right: 0; /* Slide in */
+    display: flex;
 }
 
+.control-popup-content {
+    width: 90%;
+    max-width: 400px;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Optional shadow for depth */
+ 
+    text-align: center;
+}
+
+
+ 
 .control-panel-bottom div,
 .control-panel-bottom select,
 .control-panel-bottom button {
     margin: 10px;
-    width: calc(100% - 20px); /* Adjust width to fit parent */
+  
+}
+
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.popup-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: black;
+}
+
+.close-button {
+    background-color: #bdc3c7; /* Light gray background */
+    color: #2c3e50; /* Dark gray text */
+    border: 2px solid #7f8c8d; /* Medium gray border */
+    border-radius: 50%;
+    font-size: 1.2rem;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    padding: 0;
+}
+
+.close-button:hover {
+    background-color: #7f8c8d; /* Darker gray on hover */
+    transform: scale(1.1); /* Slight zoom effect */
+}
+
+.close-button:focus {
+    outline: none; /* Remove default focus outline */
 }
 
 
@@ -356,7 +424,7 @@ button {
     align-items: center;
 }
 
-#overlay {
+#overlay-start {
     position: fixed;
     top: 0;
     left: 0;
@@ -408,27 +476,25 @@ button {
     background-color: #0056b3;
 }
 
-.hamburger {
+.settings-link {
+    padding: 5px;
+    margin-left: 10px; /* Space from adjacent controls */
+    background-color:transparent; /* Button-like appearance */
+    color: #2c3e50;
+    border-radius: 50%; /* Circular shape */
+    width: 30px; /* Fixed width for circle */
+    height: 30px; /* Fixed height for circle */
     display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    width: 30px;
-    height: 25px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    z-index: 20;
-    
+    justify-content: center; /* Center icon horizontally */
+    align-items: center; /* Center icon vertically */
+    text-decoration: none;
+    transition: background-color 0.3s;
 }
 
-.bar {
-    height: 3px;
-    width: 100%;
-    background-color: #333;
-    border-radius: 10px;
-    display: inline-block;
+.settings-link:hover {
+    background-color: #E1ECF4; /* Darker shade on hover */
 }
 
- 
- 
+.settings-link i {
+    font-size: 20px; /* Icon size, adjust as needed */
+}

@@ -3,43 +3,43 @@ const list = [
         user: "64cdd390-6bb7-4a8b-b0e0-b52294368613",
         scriptUrl: "2024-nov-en-1.js",
         name: "אנגלית 11-2024 חלק 1",
-        lang: 'en-US',
+        lang: 'en',
     },
     {
         user: "64cdd390-6bb7-4a8b-b0e0-b52294368613",
         scriptUrl: "2024-nov-en-2.js",
         name: "אנגלית 11-2024 חלק 2",
-        lang: 'en-US',
+        lang: 'en',
     },
     {
         user: "64cdd390-6bb7-4a8b-b0e0-b52294368613",
         scriptUrl: "2024-nov-en-3.js",
         name: "אנגלית 11-2024 חלק 3",
-        lang: 'en-US',
+        lang: 'en',
     },
     {
         user: "64cdd390-6bb7-4a8b-b0e0-b52294368613",
         scriptUrl: "2024-oct-fr.js",
         name: "צרפתית 10-2024",
-        lang: 'fr-FR',
+        lang: 'fr',
     },
     {
         user: "396e2356-46d8-4dc3-a24b-7d006759a225",
         scriptUrl: "/animals.js",
         name: "חיות",
-        lang: 'en-US',
+        lang: 'en',
     },
     {
         user: "396e2356-46d8-4dc3-a24b-7d006759a225",
         scriptUrl: "/feelings.js",
         name: "רגשות",
-        lang: 'en-US',
+        lang: 'en',
     },
     {
         user: "396e2356-46d8-4dc3-a24b-7d006759a225",
         scriptUrl: "/harry_potter.js",
         name: "הארי פוטר",
-        lang: 'en-US',
+        lang: 'en',
     }
 ];
 
@@ -52,7 +52,7 @@ let startTime, endTime;
 let draggedElement = null;
 let draggedElementOriginal = null;
 let draggedWord = null;
-
+let testWord = "hello";
 
 function getGuid() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -67,7 +67,7 @@ function populateTestSelect(selectElement) {
         .forEach(item => {
             let option = document.createElement('option');
             option.value = `./${guid}/${item.scriptUrl}`;
-            log (option.value);
+            log(option.value);
             option.textContent = item.name;
             option.dataset.lang = item.lang;
             selectElement.appendChild(option);
@@ -96,11 +96,12 @@ function shuffleArray(array) {
 }
 
 function updateUrlParam(key, value) {
- 
+
     const url = new URL(window.location);
     url.searchParams.set(key, value);
     window.history.pushState({}, '', url);
 }
+
 function log(msg) {
     console.log(msg);
     // const logElement = document.getElementById('log');
@@ -113,24 +114,38 @@ function log(msg) {
 function loadSelectedTest() {
     const testSelect = document.getElementById('testSelect');
     const gameTypeSelect = document.getElementById('gameTypeSelect');
-    
+    sendEvent('loadSelectedTest', 'game controls', 'start new game', {
+        game: testSelect.value,
+        type: gameTypeSelect.value
+    });
     setTimeout(() => {
- 
+
         loadVoices(testSelect.options[testSelect.selectedIndex].dataset.lang);
         loadWords(testSelect.options[testSelect.selectedIndex].dataset.lang);
         if (gameTypeSelect.value === 'translation') {
-           
+
             document.querySelector('.instructions').textContent = 'יש לגרור כל מילה אל התרגום שלה.';
-        }
-        else {
-            
+        } else {
+
             document.querySelector('.instructions').textContent = 'יש לגרור כל מילה לחלק המשפט המתאים.';
         }
         updateUrlParam('test', testSelect.selectedIndex);
         updateUrlParam('gameType', gameTypeSelect.selectedIndex);
-         
-       
-      
+
+
+    }, 500);
+
+}
+
+function saveSelectedVoice() {
+    log('saveSelectedVoice ' + this.value);
+
+    // speak the testWord
+    speakTimeout = setTimeout(() => {
+        const testVoiceMessage = new SpeechSynthesisUtterance(testWord);
+        testVoiceMessage.voice = speechSynthesis.getVoices().find(voice => voice.name === this.value);
+
+        speechSynthesis.speak(testVoiceMessage);
     }, 500);
 
 }
@@ -143,19 +158,30 @@ function loadVoices(language) {
     voiceSelect.removeEventListener('change', saveSelectedVoice);
     voiceSelect.addEventListener('change', saveSelectedVoice);
 
-    function saveSelectedVoice() {
-        log('saveSelectedVoice ' + this.value + ' ' + language);
-        localStorage.setItem('selectedVoice_' + language, this.value);
-    }
 
     const checkVoices = () => {
-        const voices = speechSynthesis.getVoices().filter(voice => voice.lang.startsWith(language));
+        const voiceConfigs = languages[language]?.voices;
+
+        const voices = speechSynthesis.getVoices().filter(v => {
+
+            const valid = v.lang.startsWith(`${language}-`);
+            //&& languages[language].voices.map(x => x.name).includes(v.name);
+            if (!valid) {
+                log('checkVoices voice: ' + v.name + ' ' + v.lang + ' ' + valid);
+            }
+            return valid;
+        });
+
 
         if (voices.length > 0 || attempts >= maxAttempts) {
+            sendEvent('loadVoices', 'game controls', 'load voices', {language: language, voices: voices.length});
+
+            testWord = languages[language].test_word;
             log('checkVoices voices: ' + voices.length);
             voices.forEach(voice => {
+                // const voiceConfig = voiceConfigs.find(vc => vc.name === voice.name && vc.language === voice.lang);
                 let option = document.createElement('option');
-                option.textContent = `${voice.name} (${voice.lang})`;
+                option.textContent = /*voiceConfig.label || */`${voice.name} (${voice.lang})`; // Fallback to name and language if label is missing
                 option.value = voice.name;
                 voiceSelect.appendChild(option);
             });
@@ -194,6 +220,7 @@ function changeFontSize(change) {
     });
     // Save the new font size to local storage
     saveFontSizeToLocal(words[0].style.fontSize);
+    sendEvent('changeFontSize', 'game controls', 'change font size', {change: change, size: words[0].style.fontSize});
 }
 
 function saveFontSizeToLocal(fontSize) {
@@ -222,6 +249,7 @@ function loadWords(language) {
     document.body.appendChild(script);
     script.onload = () => initializeGame(language);
 }
+
 function sortTranslations(words) {
     return words.sort((a, b) => a.translation.localeCompare(b.translation, 'he'));
 }
@@ -254,30 +282,33 @@ function initializeGame(language) {
     const gameType = document.getElementById('gameTypeSelect').value;
     if (gameType === 'translation') {
         loadTranslations(translationContainer);
-    }
-    else{
+    } else {
         loadPartsOfSpeech();
     }
 
-   
+
     loadFontSize()
 }
- 
+
 function handleAnswer(targetEl, isCorrect, wordElement) {
 
     const gameType = document.getElementById('gameTypeSelect').value;
-    
- 
+
+
     log('handleAnswer ' + targetEl.textContent + ' ' + wordElement.textContent + ' ' + isCorrect);
     const blinkClass = isCorrect ? 'blink-correct' : 'blink-incorrect';
-    
-      
-        targetEl.classList.add(blinkClass);
-        targetEl.addEventListener('animationend', function onAnimationEnd() {
-            targetEl.classList.remove(blinkClass);
-            targetEl.removeEventListener('animationend', onAnimationEnd);
-            if (isCorrect) {
-                if(gameType === 'translation') {
+
+    sendEvent('handleAnswer', 'game controls', 'answer', {
+        target: targetEl.textContent,
+        word: wordElement.textContent,
+        correct: isCorrect
+    });
+    targetEl.classList.add(blinkClass);
+    targetEl.addEventListener('animationend', function onAnimationEnd() {
+        targetEl.classList.remove(blinkClass);
+        targetEl.removeEventListener('animationend', onAnimationEnd);
+        if (isCorrect) {
+            if (gameType === 'translation') {
                 targetEl.style.transition = 'opacity 0.5s, transform 0.5s';
                 targetEl.style.opacity = '0';
                 targetEl.style.transform = 'scale(0)';
@@ -285,9 +316,10 @@ function handleAnswer(targetEl, isCorrect, wordElement) {
                     targetEl.style.display = 'none';
                     targetEl.removeEventListener('transitionend', onTransitionEnd);
                 });
-            }}
-        });
-    
+            }
+        }
+    });
+
 
     wordElement.classList.add(blinkClass);
     wordElement.addEventListener('animationend', function onAnimationEnd() {
@@ -372,7 +404,8 @@ function handleTouchStart(event, language) {
         const utterance = new SpeechSynthesisUtterance(draggedElement.textContent);
         utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === selectedVoice);
         utterance.lang = language;
-        log(' handleMouseEnter speak: ' + utterance.lang + ' ' + utterance.voice + ' ' + draggedElement.textContent);
+
+        log(' handleMouseEnter speak: ' + utterance.lang + ' ' + utterance.voice.name + ' ' + draggedElement.textContent);
         speechSynthesis.speak(utterance);
     }, 500);
 }
@@ -432,7 +465,8 @@ function handleTouchEnd(event) {
     document.body.removeChild(draggedElement); // Remove the cloned element
     resetDraggedElement(); // Reset styles and cleanup
 }
-function checkCorrectness(  dropTarget) {
+
+function checkCorrectness(dropTarget) {
     const gameType = document.getElementById('gameTypeSelect').value;
     log(`Checking correctness: Dragged [${draggedElement.textContent}], Target [${dropTarget.textContent}], Game Type [${gameType}]`);
 
@@ -451,7 +485,7 @@ function checkCorrectness(  dropTarget) {
 }
 
 function resetDraggedElement() {
-    
+
     log('resetDraggedElement');
     document.querySelectorAll('.dragging').forEach(el => {
         el.classList.remove('dragging');
@@ -482,7 +516,7 @@ function handleDragStart(event, language) {
         const utterance = new SpeechSynthesisUtterance(draggedWord);
         utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === selectedVoice);
         utterance.lang = language;
-        log(' handleDragStart speak: ' + utterance.lang + ' ' + utterance.voice + ' ' + draggedWord);
+        log(' handleDragStart speak: ' + utterance.lang + ' ' + utterance.voice.name + ' ' + draggedWord);
         speechSynthesis.speak(utterance);
     }, 500);
 }
@@ -523,9 +557,9 @@ function handleDrop(event) {
     }
 
     const dropTarget = event.target;
-   
+
     if (dropTarget.classList.contains('translation')) {
-       const isCorrect = checkCorrectness(dropTarget);
+        const isCorrect = checkCorrectness(dropTarget);
         handleAnswer(dropTarget, isCorrect, draggedElement);
 
 
@@ -549,8 +583,15 @@ function updateScore(newScore) {
     if (score === words.length) {
         // endTime = new Date(); // End time when game finishes
         //  const duration = (endTime - startTime) / 1000; // Calculate duration in seconds
-        document.getElementById('statusMessage').textContent = "המשחק הסתיים בהצלחה! ";
-        document.getElementById('statusMessage').style.display = 'block';
+        const statusMessage = document.getElementById('statusMessage');
+        statusMessage.textContent = "המשחק הסתיים בהצלחה!"; // Set message text
+        sendEvent('updateScore', 'game controls', 'game over', {score: score, failures: failures});
+        statusMessage.classList.add('show');
+
+        // Use setTimeout to allow the browser to redraw, then re-add the show class
+        setTimeout(() => {
+            statusMessage.classList.remove('show');
+        }, 4000); // Short delay
         showConfetti();
     }
 }
@@ -578,7 +619,7 @@ function loadPartsOfSpeech() {
     // Populate partOfSpeechContainer with all parts of speech
     const partOfSpeechContainer = document.getElementById('targetContainer');
     partOfSpeechContainer.innerHTML = ''; // Clear previous content
-    const partsOfSpeech = new Set (words.map(m=>m.partOfSpeech));
+    const partsOfSpeech = new Set(words.map(m => m.partOfSpeech));
     partsOfSpeech.forEach(part => {
         const targetDiv = document.createElement('div');
         targetDiv.textContent = part;
@@ -590,9 +631,14 @@ function loadPartsOfSpeech() {
     });
 }
 
-document.getElementById('toggleMenuBtn').addEventListener('click', function() {
+function closeSettings() {
+    document.getElementById('menu').classList.remove('active');
+}
+
+document.getElementById('toggleMenuBtn').addEventListener('click', function () {
     const menu = document.getElementById('menu');
     menu.classList.toggle('active'); // This toggles the visibility and position of the menu
+    sendEvent('toggleMenu', 'game controls', 'toggle menu', {active: menu.classList.contains('active')});
 });
 
 document.body.addEventListener('click', () => {
@@ -615,9 +661,9 @@ document.addEventListener('DOMContentLoaded', function () {
     gameTypeSelect.addEventListener('change', loadSelectedTest);
 
     initSelects()
-    
+
     if (window.innerWidth <= 1200) {
-        const overlay = document.getElementById("overlay");
+        const overlay = document.getElementById("overlay-start");
         overlay.style.display = "flex";
 
         // Clone the populated select
@@ -646,10 +692,9 @@ document.addEventListener('DOMContentLoaded', function () {
             speechSynthesis.speak(lecture);
             hasEnabledVoice = true;
         });
-    }
-    else {
+    } else {
 
         loadSelectedTest();
     }
- 
+
 });

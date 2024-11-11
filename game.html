@@ -2,32 +2,53 @@
 <html lang="he">
 
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JFJBS3FGK3"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-JFJBS3FGK3');
+
+        function sendEvent(action, category, label, value) {
+            try {
+                gtag('event', action, {
+                    'event_category': category,
+                    'event_label': label,
+                    'value': value
+                });
+            }catch (e) {
+                
+            }
+           
+        }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>התאמת מילים</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=9-11-24">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
 </head>
 
 <body>
 
-<div id="overlay" style="display: none">
+<div id="overlay-start"  style="display: none">
     <h2 class="overlay-title">ברוכים הבאים!</h2>
     <p class="overlay-text">בחרו משחק כדי להתחיל</p>
     <div class="overlay-control" id="overlay-control"></div>
 </div>
 
 <div class="control-panel">
-    <button id="toggleMenuBtn" class="hamburger">
-        <span class="bar"></span>
-        <span class="bar"></span>
-        <span class="bar"></span>
-    </button>
+ 
     <select id="testSelect"></select>
     <select id="gameTypeSelect">
         <option value="translation">תרגום</option>
         <option value="partOfSpeech">חלק משפט</option>
     </select>
     <button id="newGameBtn" onclick="loadSelectedTest()">חדש</button>
+    <a href="javascript:;" id="toggleMenuBtn" class="settings-link" title="הגדרות" ><i class="fas fa-cog"></i> </a>
 </div>
 
 <div class="statistics">
@@ -36,7 +57,7 @@
     <p>שגיאות: <span id="numFailures">0</span></p>
 </div>
 
-<div class="status-message" style="display: none" id="statusMessage"></div>
+<div class="status-message"   id="statusMessage"></div>
 
 <div class="game-area">
     <div class="word-container" id="wordContainer"></div>
@@ -45,21 +66,31 @@
 </div>
 
 
-
 <div class="control-panel-bottom" id="menu">
-    <div class="dropdown-group">
-        <label for="voiceSelect">קולות מותקנים במכשיר:</label>
-        <select id="voiceSelect"></select>
-    </div>
-    <div class="dropdown-group">
-        <label for="font-sizes">שנה גודל כתב:</label>
-        <div class="buttons-group" id="font-sizes">
-            <button id="decreaseFont" onclick="changeFontSize(-1)">A-</button>
-            <button id="increaseFont" onclick="changeFontSize(1)">A+</button>
+    <div class="control-popup-content">
+        <div class="popup-header">
+            <h2>הגדרות</h2>
+            <button class="close-button" onclick="closeSettings()">×</button>
+        </div>
+        <div class="dropdown-group">
+            <label for="voiceSelect">קול:</label>
+            <select id="voiceSelect"></select>
+        </div>
+        <div class="dropdown-group">
+            <label for="font-sizes">שנה גודל כתב:</label>
+            <div class="buttons-group" id="font-sizes">
+                <button id="decreaseFont" onclick="changeFontSize(-1)">A-</button>
+                <button id="increaseFont" onclick="changeFontSize(1)">A+</button>
+            </div>
         </div>
     </div>
 </div>
 
-<script src="game.js"></script>
+ 
+<div id="log"></div>
+
+<script src="voices.js?v=9-11-24"></script>
+<script src="game.js?v=9-11-24"></script>
+
 </body>
 </html>
