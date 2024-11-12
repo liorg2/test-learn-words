@@ -240,7 +240,7 @@ body {
 }
 @media (max-width: 1200px) {
     .control-panel {
- 
+        align-items:flex-end;
         gap: 5px;
     }
 }
@@ -477,7 +477,7 @@ button {
 }
 
 .settings-link {
-    padding: 5px;
+    padding: 1px;
     margin-left: 10px; /* Space from adjacent controls */
     background-color:transparent; /* Button-like appearance */
     color: #2c3e50;
@@ -501,4 +501,14 @@ button {
 
 .ltr{
     direction: ltr;
+}
+
+@media (max-width: 600px) {
+    .form-field {
+        display: flex;
+        flex-direction: column;
+    }
+    .form-field label {
+        font-size: 0.7rem;
+    }
 }
