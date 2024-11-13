@@ -1,32 +1,9 @@
 import {languages} from './voices.js';
-
-declare global {
-    interface Window {
-        dataLayer: any[];
-    }
-}
-
-window.dataLayer = window.dataLayer || [];
-
-function gtag(...args: any[]) {
-    window.dataLayer.push(args);
-}
-
-gtag('js', new Date());
-gtag('config', 'G-JFJBS3FGK3');
-
-function sendEvent(action: string, category: string, label: string, value: any) {
-    try {
-        gtag('event', action, {
-            'event_category': category,
-            'event_label': label,
-            'value': value
-        });
-    } catch (e) {
-        // Do nothing
-    }
-}
-
+import { sendEvent } from './analytics.js';
+import {shuffleArray, updateUrlParam} from "./utilities.js";
+ 
+ 
+ 
 
 ///////////////////// end ga
 let score = 0;
@@ -38,7 +15,7 @@ let draggedElement: HTMLElement | null = null;
 let draggedElementOriginal: HTMLElement | null = null;
 let draggedWord: string | null = null;
 let testWord = 'hello';
-let words= [];
+let words = [];
 
 
 const GameTypes = {
@@ -72,7 +49,8 @@ function populateTestSelect(selectElement: HTMLSelectElement, callback: () => vo
                 option.dataset.lang = item.lang;
                 selectElement.appendChild(option);
             });
-        callback();
+            callback();
+             
         } else {
             console.error('Loaded script did not set the tests_list array.');
         }
@@ -98,19 +76,7 @@ function initSelectsByURL() {
     }
 }
 
-function shuffleArray<T>(array: T[]): T[] {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
 
-function updateUrlParam(key: string, value: string) {
-    const url = new URL(window.location.href);
-    url.searchParams.set(key, value);
-    window.history.pushState({}, '', url);
-}
 
 function log(msg) {
     console.log(msg);
@@ -465,7 +431,7 @@ function handleTouchEnd(event: TouchEvent) {
 
     const touch = event.changedTouches[0];
     let dropTarget = document.elementFromPoint(touch.clientX, touch.clientY) as HTMLElement;
-    
+
 
     // Re-display the dragged element
     draggedElement.style.display = 'block';
@@ -603,14 +569,6 @@ function handleDrop(event: DragEvent) {
     resetDraggedElement();
 }
 
-function showMessage(isCorrect) {
-
-    // const messageDiv = document.getElementById('statusMessage');
-    // messageDiv.style.display = 'block';
-    // messageDiv.textContent = isCorrect ? "כל הכבוד!" : "נסה שוב!";
-    // setTimeout(() => { messageDiv.style.display = 'none'; }, 3000);
-}
-
 function updateScore(newScore: number) {
     log('updateScore ' + newScore);
     score = newScore;
@@ -714,9 +672,6 @@ function loadPartsOfSpeech() {
     });
 }
 
-function closeSettings() {
-    document.getElementById('menu').classList.remove('active');
-}
 
 document.getElementById('toggleMenuBtn').addEventListener('click', function () {
     const menu = document.getElementById('menu');
@@ -734,8 +689,8 @@ document.body.addEventListener('click', () => {
 
 document.addEventListener('DOMContentLoaded', function () {
     log('DOMContentLoaded innerWidth= ' + window.innerWidth);
-    const originalTestSelect:HTMLSelectElement = document.getElementById('testSelect') as HTMLSelectElement;
-    const gameTypeSelect:HTMLSelectElement = document.getElementById('gameTypeSelect') as HTMLSelectElement;
+    const originalTestSelect: HTMLSelectElement = document.getElementById('testSelect') as HTMLSelectElement;
+    const gameTypeSelect: HTMLSelectElement = document.getElementById('gameTypeSelect') as HTMLSelectElement;
     // Populate both dropdowns
     populateTestSelect(originalTestSelect, function () {
 

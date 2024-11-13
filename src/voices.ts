@@ -2,6 +2,7 @@ export const languages = {
     "fr": {
         test_word:"Bonjour, Enchanté de vous rencontrer",
         voices:[
+            
             {
                 "name": "Audrey",
                 "label": "Audrey",

@@ -1,22 +1,6 @@
 import { languages } from './voices.js';
-window.dataLayer = window.dataLayer || [];
-function gtag(...args) {
-    window.dataLayer.push(args);
-}
-gtag('js', new Date());
-gtag('config', 'G-JFJBS3FGK3');
-function sendEvent(action, category, label, value) {
-    try {
-        gtag('event', action, {
-            'event_category': category,
-            'event_label': label,
-            'value': value
-        });
-    }
-    catch (e) {
-        // Do nothing
-    }
-}
+import { sendEvent } from './analytics.js';
+import { shuffleArray, updateUrlParam } from "./utilities.js";
 ///////////////////// end ga
 let score = 0;
 let failures = 0;
@@ -78,18 +62,6 @@ function initSelectsByURL() {
         const gameTypeSelect = document.getElementById('gameTypeSelect');
         gameTypeSelect.selectedIndex = parseInt(gameTypeSelectValue, 10);
     }
-}
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
-function updateUrlParam(key, value) {
-    const url = new URL(window.location.href);
-    url.searchParams.set(key, value);
-    window.history.pushState({}, '', url);
 }
 function log(msg) {
     console.log(msg);
@@ -504,12 +476,6 @@ function handleDrop(event) {
     }
     resetDraggedElement();
 }
-function showMessage(isCorrect) {
-    // const messageDiv = document.getElementById('statusMessage');
-    // messageDiv.style.display = 'block';
-    // messageDiv.textContent = isCorrect ? "כל הכבוד!" : "נסה שוב!";
-    // setTimeout(() => { messageDiv.style.display = 'none'; }, 3000);
-}
 function updateScore(newScore) {
     log('updateScore ' + newScore);
     score = newScore;
@@ -597,9 +563,6 @@ function loadPartsOfSpeech() {
         targetDiv.addEventListener('drop', handleDrop);
         partOfSpeechContainer.appendChild(targetDiv);
     });
-}
-function closeSettings() {
-    document.getElementById('menu').classList.remove('active');
 }
 document.getElementById('toggleMenuBtn').addEventListener('click', function () {
     const menu = document.getElementById('menu');
