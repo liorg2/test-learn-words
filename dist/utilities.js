@@ -10,3 +10,15 @@ export function updateUrlParam(key, value) {
     url.searchParams.set(key, value);
     window.history.pushState({}, '', url);
 }
+export function log(msg) {
+    console.log(msg);
+    // const logElement = document.getElementById('log');
+    // const p = document.createElement('p');
+    // p.textContent = msg;
+    // logElement.insertBefore(p, logElement.firstChild);
+}
+//guid is a class
+export function getGuid() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('guid') || null;
+}
