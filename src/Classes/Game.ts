@@ -11,14 +11,14 @@ export class Game {
     score = 0;
     failures = 0;
     language: string;
-  
+
     hasEnabledVoice = false;
     speakTimeout: ReturnType<typeof setTimeout> | undefined;
- 
+
     draggedElement: HTMLElement | null = null;
     draggedElementOriginal: HTMLElement | null = null;
     draggedWord: string | null = null;
-     
+
 
     constructor(words: GameWord[], language: string) {
         this.language = language;
@@ -28,6 +28,22 @@ export class Game {
         this.wordContainer = document.getElementById('wordContainer')!;
         this.wordContainer.innerHTML = '';
         this.translationContainer.innerHTML = '';
+        document.getElementById('scoreDisplay').textContent = `${this.score}`;
+        document.getElementById('numFailures')!.textContent = `${this.failures}`;
+
+        this.bindEventHandlers();
+    }
+
+    bindEventHandlers() {
+        this.handleDragOver = this.handleDragOver.bind(this);
+        this.handleDragLeave = this.handleDragLeave.bind(this);
+        this.handleDrop = this.handleDrop.bind(this);
+        this.handleTouchStart = this.handleTouchStart.bind(this);
+        this.handleTouchCancel = this.handleTouchCancel.bind(this);
+        this.handleTouchMove = this.handleTouchMove.bind(this);
+        this.handleTouchEnd = this.handleTouchEnd.bind(this);
+        this.handleDragStart = this.handleDragStart.bind(this);
+        this.handleDragEnd = this.handleDragEnd.bind(this);
     }
 
     render() {
@@ -102,7 +118,7 @@ export class Game {
         }, 3000);
     }
 
-    checkCorrectness(dropTarget: HTMLElement ) {
+    checkCorrectness(dropTarget: HTMLElement) {
         const gameTypeSelect = document.getElementById('gameTypeSelect') as HTMLSelectElement;
 
         const gameType = gameTypeSelect.value;
@@ -149,8 +165,8 @@ export class Game {
         wordDiv.addEventListener('mouseleave', () => clearTimeout(this.speakTimeout));
         return wordDiv;
     }
-    
-      handleDragLeave(event: DragEvent) {
+
+    handleDragLeave(event: DragEvent) {
         log('dragLeave');
         const target = event.target as HTMLElement;
         if (target.classList.contains('highlight')) {
@@ -162,16 +178,17 @@ export class Game {
         });
     }
 
-      handleDrop(event: DragEvent) {
+    handleDrop(event: DragEvent) {
         log('handleDrop');
         event.preventDefault();
+
         if (!this.draggedElement) return;
+
+
         const dropTarget = event.target as HTMLElement;
         if (dropTarget.classList.contains('translation')) {
             dropTarget.classList.remove('highlight');
         }
-
-        ;
 
         if (dropTarget.classList.contains('translation')) {
             const isCorrect = this.checkCorrectness(dropTarget);
@@ -179,8 +196,9 @@ export class Game {
 
 
         }
-          this. resetDraggedElement();
+        this.resetDraggedElement();
     }
+
     handleTouchStart(event: TouchEvent, language: string) {
         event.preventDefault();
         this.draggedElementOriginal = event.target as HTMLElement;
@@ -218,7 +236,7 @@ export class Game {
         if (!this.draggedElement) return;
         const touch = event.touches[0];
         this.draggedElement.style.left = `${touch.clientX - (this.draggedElement.offsetWidth / 2)}px`;
-        this. draggedElement.style.top = `${touch.clientY - (this.draggedElement.offsetHeight / 2)}px`;
+        this.draggedElement.style.top = `${touch.clientY - (this.draggedElement.offsetHeight / 2)}px`;
     }
 
     handleTouchEnd(event: TouchEvent) {
@@ -250,7 +268,7 @@ export class Game {
 
         if (dropTarget && dropTarget.classList && dropTarget.classList.contains('translation')) {
 
-            const isCorrect = this.checkCorrectness(dropTarget );
+            const isCorrect = this.checkCorrectness(dropTarget);
             this.handleAnswer(dropTarget, isCorrect, this.draggedElementOriginal);
         }
 
@@ -270,9 +288,10 @@ export class Game {
     }
 
     handleDragStart(event: DragEvent, language: string) {
+
         this.draggedElement = event.target as HTMLElement;
-        log('dragStart ' + this.draggedElement.textContent);
         this.draggedWord = this.draggedElement.textContent;
+        log('dragStart ' + this.draggedElement.textContent);
         event.dataTransfer.setData("text", this.draggedElement.textContent);
         document.querySelectorAll('.word').forEach(wordDiv => {
             wordDiv.classList.remove('dragging');
@@ -314,7 +333,7 @@ export class Game {
 
     handleAnswer(targetEl: HTMLElement, isCorrect: boolean, wordElement: HTMLElement) {
         const gameType = (document.getElementById('gameTypeSelect') as HTMLSelectElement).value as typeof GameType[keyof typeof GameType];
-const self=this;
+        const self = this;
         log('handleAnswer ' + targetEl.textContent + ' ' + wordElement.textContent + ' ' + isCorrect);
         const blinkClass = isCorrect ? 'blink-correct' : 'blink-incorrect';
 

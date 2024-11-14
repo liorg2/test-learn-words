@@ -16,6 +16,21 @@ export class Game {
         this.wordContainer = document.getElementById('wordContainer');
         this.wordContainer.innerHTML = '';
         this.translationContainer.innerHTML = '';
+        document.getElementById('scoreDisplay').textContent = `${this.score}`;
+        document.getElementById('numFailures').textContent = `${this.failures}`;
+        this.bindEventHandlers();
+    }
+
+    bindEventHandlers() {
+        this.handleDragOver = this.handleDragOver.bind(this);
+        this.handleDragLeave = this.handleDragLeave.bind(this);
+        this.handleDrop = this.handleDrop.bind(this);
+        this.handleTouchStart = this.handleTouchStart.bind(this);
+        this.handleTouchCancel = this.handleTouchCancel.bind(this);
+        this.handleTouchMove = this.handleTouchMove.bind(this);
+        this.handleTouchEnd = this.handleTouchEnd.bind(this);
+        this.handleDragStart = this.handleDragStart.bind(this);
+        this.handleDragEnd = this.handleDragEnd.bind(this);
     }
     render() {
         this.updateInstructions();
@@ -137,7 +152,6 @@ export class Game {
         if (dropTarget.classList.contains('translation')) {
             dropTarget.classList.remove('highlight');
         }
-        ;
         if (dropTarget.classList.contains('translation')) {
             const isCorrect = this.checkCorrectness(dropTarget);
             this.handleAnswer(dropTarget, isCorrect, this.draggedElement);
@@ -214,8 +228,8 @@ export class Game {
     }
     handleDragStart(event, language) {
         this.draggedElement = event.target;
-        log('dragStart ' + this.draggedElement.textContent);
         this.draggedWord = this.draggedElement.textContent;
+        log('dragStart ' + this.draggedElement.textContent);
         event.dataTransfer.setData("text", this.draggedElement.textContent);
         document.querySelectorAll('.word').forEach(wordDiv => {
             wordDiv.classList.remove('dragging');
