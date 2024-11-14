@@ -20,7 +20,6 @@ export class Game {
         document.getElementById('numFailures').textContent = `${this.failures}`;
         this.bindEventHandlers();
     }
-
     bindEventHandlers() {
         this.handleDragOver = this.handleDragOver.bind(this);
         this.handleDragLeave = this.handleDragLeave.bind(this);

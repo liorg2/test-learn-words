@@ -1,14 +1,13 @@
-import {languages} from './voices.js';
-import {sendEvent} from './analytics.js';
-import {getGuid, log, updateUrlParam} from "./utilities.js";
-import {GameFactory} from "./Classes/GameFactory.js";
+import { languages } from './voices.js';
+import { sendEvent } from './analytics.js';
+import { getGuid, log, updateUrlParam } from "./utilities.js";
+import { GameFactory } from "./Classes/GameFactory.js";
 ///////////////////// end ga
 let words = [];
 let game;
 let testWord = 'hello';
 let hasEnabledVoice = false;
 let speakTimeout;
-
 function populateTestSelect(selectElement, callback) {
     const guid = getGuid() || '64cdd390-6bb7-4a8b-b0e0-b52294368613';
     const scriptUrl = `./tests_lists/${guid}.js`;
@@ -29,7 +28,8 @@ function populateTestSelect(selectElement, callback) {
                 selectElement.appendChild(option);
             });
             callback();
-        } else {
+        }
+        else {
             console.error('Loaded script did not set the tests_list array.');
         }
     };
@@ -37,7 +37,6 @@ function populateTestSelect(selectElement, callback) {
         console.error('Error loading test list:', error);
     };
 }
-
 function initSelectsByURL() {
     const urlParams = new URLSearchParams(window.location.search);
     const testSelectValue = urlParams.get('test');
@@ -51,7 +50,6 @@ function initSelectsByURL() {
         gameTypeSelect.selectedIndex = parseInt(gameTypeSelectValue, 10);
     }
 }
-
 function loadSelectedTest() {
     const testSelect = document.getElementById('testSelect');
     const gameTypeSelect = document.getElementById('gameTypeSelect');
@@ -69,7 +67,6 @@ function loadSelectedTest() {
         updateUrlParam('gameType', gameTypeSelect.selectedIndex.toString());
     }, 500);
 }
-
 function saveSelectedVoice() {
     log('saveSelectedVoice ' + this.value);
     // Speak the testWord
@@ -79,7 +76,6 @@ function saveSelectedVoice() {
         speechSynthesis.speak(testVoiceMessage);
     }, 500);
 }
-
 function loadVoices(language) {
     log('loadVoices ' + language);
     const voiceSelect = document.getElementById('voiceSelect');
@@ -96,7 +92,7 @@ function loadVoices(language) {
             return valid;
         });
         if (voices.length > 0 || attempts >= maxAttempts) {
-            sendEvent('loadVoices', 'game controls', 'load voices', {language: language, voices: voices.length});
+            sendEvent('loadVoices', 'game controls', 'load voices', { language: language, voices: voices.length });
             testWord = languages[language].test_word;
             log('checkVoices voices: ' + voices.length);
             voices.forEach(voice => {
@@ -106,7 +102,8 @@ function loadVoices(language) {
                 voiceSelect.appendChild(option);
             });
             loadVoiceSettings(language);
-        } else {
+        }
+        else {
             log('checkVoices will retry attempts: ' + attempts);
             attempts++;
             setTimeout(checkVoices, 50);
@@ -114,7 +111,6 @@ function loadVoices(language) {
     };
     checkVoices();
 }
-
 function loadVoiceSettings(language) {
     log('loadVoiceSettings');
     const savedVoiceName = localStorage.getItem('selectedVoice_' + language);
@@ -130,7 +126,6 @@ function loadVoiceSettings(language) {
         }
     }
 }
-
 function changeFontSize(change) {
     const words = document.querySelectorAll('.word, .translation');
     words.forEach(word => {
@@ -140,13 +135,11 @@ function changeFontSize(change) {
     });
     // Save the new font size to local storage
     saveFontSizeToLocal(`${words[0].style.fontSize}`);
-    sendEvent('changeFontSize', 'game controls', 'change font size', {change: change, size: words[0].style.fontSize});
+    sendEvent('changeFontSize', 'game controls', 'change font size', { change: change, size: words[0].style.fontSize });
 }
-
 function saveFontSizeToLocal(fontSize) {
     localStorage.setItem('fontSize', fontSize);
 }
-
 function loadFontSize() {
     const savedFontSize = localStorage.getItem('fontSize');
     if (savedFontSize) {
@@ -156,7 +149,6 @@ function loadFontSize() {
         });
     }
 }
-
 function loadWords() {
     return new Promise((resolve, reject) => {
         const select = document.getElementById('testSelect');
@@ -172,7 +164,8 @@ function loadWords() {
             if (window['words']) {
                 words = window['words'];
                 resolve();
-            } else {
+            }
+            else {
                 reject(new Error('Loaded script did not set the words array.'));
             }
         };
@@ -180,7 +173,6 @@ function loadWords() {
         document.body.appendChild(script);
     });
 }
-
 function buildGame(language) {
     log(`buildGame ${language}`);
     if (!words || !Array.isArray(words))
@@ -190,26 +182,42 @@ function buildGame(language) {
     game.render();
     loadFontSize();
 }
-
 function closeSettings() {
     document.getElementById('menu').classList.remove('active');
 }
-
+document.addEventListener('click', function (event) {
+    const menu = document.getElementById('menu');
+    const toggleButton = document.getElementById('toggleMenuBtn');
+    // Check if the menu is visible, the click is outside the menu, and not on the toggle button
+    if (menu.classList.contains('active') &&
+        !menu.contains(event.target) && // Check if click is not on a menu or its descendants
+        !toggleButton.contains(event.target)) {
+        menu.classList.remove('active'); // Hide the menu
+    }
+});
 document.addEventListener('DOMContentLoaded', function () {
     log('DOMContentLoaded innerWidth= ' + window.innerWidth);
     const originalTestSelect = document.getElementById('testSelect');
     const gameTypeSelect = document.getElementById('gameTypeSelect');
+    // document.getElementById('toggleMenuBtn').addEventListener('click', function () {
+    //     const menu = document.getElementById('menu');
+    //     menu.classList.toggle('active'); // This toggles the visibility and position of the menu
+    //     sendEvent('toggleMenu', 'game controls', 'toggle menu', {active: menu.classList.contains('active')});
+    // });
     document.getElementById('toggleMenuBtn').addEventListener('click', function () {
         const menu = document.getElementById('menu');
-        menu.classList.toggle('active'); // This toggles the visibility and position of the menu
-        sendEvent('toggleMenu', 'game controls', 'toggle menu', {active: menu.classList.contains('active')});
+        const btnRect = this.getBoundingClientRect(); // Get button's position and dimensions
+        menu.style.top = `${btnRect.bottom}px`; // Position menu below the button
+        menu.style.left = `${btnRect.left}px`; // Align menu left edge with button left edge
+        menu.classList.toggle('active'); // Toggle visibility
+        sendEvent('toggleMenu', 'game controls', 'toggle menu', { active: menu.classList.contains('active') });
     });
     document.body.addEventListener('click', () => {
         const lecture = new SpeechSynthesisUtterance('hello');
         lecture.volume = 0;
         speechSynthesis.speak(lecture);
         hasEnabledVoice = true;
-    }, {once: true}); //needed
+    }, { once: true }); //needed
     document.getElementById('increaseFont').addEventListener('click', () => changeFontSize(1));
     document.getElementById('decreaseFont').addEventListener('click', () => changeFontSize(-1));
     document.getElementById('newGameBtn').addEventListener('click', loadSelectedTest);
@@ -246,7 +254,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 speechSynthesis.speak(lecture);
                 hasEnabledVoice = true;
             });
-        } else {
+        }
+        else {
             loadSelectedTest();
         }
     });

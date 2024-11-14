@@ -223,14 +223,35 @@ function closeSettings() {
     document.getElementById('menu').classList.remove('active');
 }
 
+document.addEventListener('click', function (event) {
+    const menu = document.getElementById('menu');
+    const toggleButton = document.getElementById('toggleMenuBtn');
+
+    // Check if the menu is visible, the click is outside the menu, and not on the toggle button
+    if (menu.classList.contains('active') &&
+        !menu.contains(event.target as Node) && // Check if click is not on a menu or its descendants
+        !toggleButton.contains(event.target as Node)) {
+        menu.classList.remove('active'); // Hide the menu
+    }
+});
+
 document.addEventListener('DOMContentLoaded', function () {
     log('DOMContentLoaded innerWidth= ' + window.innerWidth);
     const originalTestSelect: HTMLSelectElement = document.getElementById('testSelect') as HTMLSelectElement;
     const gameTypeSelect: HTMLSelectElement = document.getElementById('gameTypeSelect') as HTMLSelectElement;
 
+    // document.getElementById('toggleMenuBtn').addEventListener('click', function () {
+    //     const menu = document.getElementById('menu');
+    //     menu.classList.toggle('active'); // This toggles the visibility and position of the menu
+    //     sendEvent('toggleMenu', 'game controls', 'toggle menu', {active: menu.classList.contains('active')});
+    // });
+
     document.getElementById('toggleMenuBtn').addEventListener('click', function () {
         const menu = document.getElementById('menu');
-        menu.classList.toggle('active'); // This toggles the visibility and position of the menu
+        const btnRect = this.getBoundingClientRect(); // Get button's position and dimensions
+        menu.style.top = `${btnRect.bottom}px`; // Position menu below the button
+        menu.style.left = `${btnRect.left}px`; // Align menu left edge with button left edge
+        menu.classList.toggle('active'); // Toggle visibility
         sendEvent('toggleMenu', 'game controls', 'toggle menu', {active: menu.classList.contains('active')});
     });
 

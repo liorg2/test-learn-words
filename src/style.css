@@ -90,11 +90,9 @@ body {
     align-items: center;
 }
 
- 
 .word-container,
 .translation-container,
-.target-container
-{
+.target-container {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -116,10 +114,10 @@ body {
     letter-spacing: 1px;
 }
 
-.word
-{
+.word {
     cursor: move;
 }
+
 @media (max-width: 1200px) {
     .word,
     .translation {
@@ -188,7 +186,6 @@ body {
     100% { opacity: 0; }
 }
 
-
 #nameInput {
     padding: 10px;
     border: 2px solid #007BFF;
@@ -205,9 +202,8 @@ body {
     font-weight: bold;
 }
 
-#testSelect, #testSelectClone,#gameTypeSelect {
+#testSelect, #testSelectClone, #gameTypeSelect {
     font-size: 1rem;
- 
     cursor: pointer;
     background-color: #ffffff;
     color: #000000;
@@ -216,8 +212,9 @@ body {
     direction: rtl;
     padding: 3px;
 }
+
 @media (max-width: 1200px) {
-    #testSelect,#gameTypeSelect {
+    #testSelect, #gameTypeSelect {
         font-size: 0.8rem;
     }
 }
@@ -238,48 +235,59 @@ body {
     gap: 10px;
     padding: 10px 30px 10px 10px;
 }
+
 @media (max-width: 1200px) {
     .control-panel {
-        align-items:flex-end;
+        align-items: flex-end;
         gap: 5px;
     }
 }
 
+.control-panel-bottom::before {
+    /*content: "";*/
+    /*position: absolute;*/
+    /*top: -10px; !* Adjust this value to change the position *!*/
+    /*left: 10px; !* Position from the left edge *!*/
+    /*width: 20px;*/
+    /*height: 20px;*/
+    /*background-color: rgb(245, 245, 245);*/
+    /*border-left: 1px solid #ccc;*/
+    /*border-top: 1px solid #ccc;*/
+    /*transform: rotate(45deg); !* Rotate to create an arrow shape *!*/
+    /*box-shadow: -3px -3px 5px rgba(0,0,0,0.1); !* Optional: add shadow to the arrow *!*/
+}
+
 .control-panel-bottom {
     display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.85); /* Dark overlay */
-    z-index: 10;
-    align-items: center;
-    justify-content: center;
+    position: absolute;
+    background-color: rgb(245, 245, 245);
+    border: 1px solid #ccc;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Enhanced shadow */
+    z-index: 100;
+    padding: 4px;
+    width: auto;
 }
 
 .control-panel-bottom.active {
-    display: flex;
+    display: block;
 }
 
 .control-popup-content {
-    width: 90%;
-    max-width: 400px;
-    background: white;
-    padding: 20px;
+    /* width: 90%; */
+    min-width: 500px;
+    /* max-width: 400px; */
+    background-color: #fff;
     border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Optional shadow for depth */
- 
+    /* padding: 20px; */
+    /* border-radius: 10px; */
+    /*box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);*/
     text-align: center;
 }
 
-
- 
 .control-panel-bottom div,
 .control-panel-bottom select,
 .control-panel-bottom button {
     margin: 10px;
-  
 }
 
 .popup-header {
@@ -296,31 +304,28 @@ body {
 }
 
 .close-button {
-    background-color: #bdc3c7; /* Light gray background */
-    color: #2c3e50; /* Dark gray text */
-    border: 2px solid #7f8c8d; /* Medium gray border */
-    border-radius: 50%;
-    font-size: 1.2rem;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s;
-    padding: 0;
+    /*background-color: #bdc3c7; !* Light gray background *!*/
+    /*color: #2c3e50; !* Dark gray text *!*/
+    /*border: 2px solid #7f8c8d; !* Medium gray border *!*/
+    /*border-radius: 50%;*/
+    /*font-size: 1.2rem;*/
+    /*width: 30px;*/
+    /*height: 30px;*/
+    /*display: flex;*/
+    /*align-items: center;*/
+    /*justify-content: center;*/
+    /*cursor: pointer;*/
+    /*transition: background-color 0.3s, transform 0.2s;*/
+    /*padding: 0;*/
 }
 
-.close-button:hover {
-    background-color: #7f8c8d; /* Darker gray on hover */
-    transform: scale(1.1); /* Slight zoom effect */
-}
-
-.close-button:focus {
-    outline: none; /* Remove default focus outline */
-}
-
-
+/*.close-button:hover {*/
+/*    background-color: #7f8c8d; !* Darker gray on hover *!*/
+/*    transform: scale(1.1); !* Slight zoom effect *!*/
+/*}*/
+/*.close-button:focus {*/
+/*    outline: none; !* Remove default focus outline *!*/
+/*}*/
 #newGameBtn {
     padding: 5px 10px;
     font-size: 0.9rem;
@@ -336,6 +341,7 @@ body {
 #newGameBtn:hover {
     background-color: #0056b3;
 }
+
 @media (max-width: 1200px) {
     #newGameBtn {
         display: none;
@@ -368,7 +374,6 @@ body {
 #voiceSelect,
 button {
     cursor: pointer;
-    
     font-size: 0.9rem;
     padding: 5px 10px;
     border-radius: 5px;
@@ -479,7 +484,7 @@ button {
 .settings-link {
     padding: 1px;
     margin-left: 10px; /* Space from adjacent controls */
-    background-color:transparent; /* Button-like appearance */
+    background-color: transparent; /* Button-like appearance */
     color: #2c3e50;
     border-radius: 50%; /* Circular shape */
     width: 30px; /* Fixed width for circle */
@@ -499,7 +504,7 @@ button {
     font-size: 20px; /* Icon size, adjust as needed */
 }
 
-.ltr{
+.ltr {
     direction: ltr;
 }
 
@@ -508,6 +513,7 @@ button {
         display: flex;
         flex-direction: column;
     }
+
     .form-field label {
         font-size: 0.7rem;
     }
