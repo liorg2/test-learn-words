@@ -40,6 +40,10 @@ body {
     border: 2px dashed #007bff;
 }
 
+.dragging {
+    user-select: none;
+}
+
 @keyframes blink-correct {
     0%, 100% { background-color: green; opacity: 1; }
     50% { background-color: green; opacity: 0.5; }
