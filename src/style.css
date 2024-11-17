@@ -120,6 +120,7 @@ body {
     user-select: none;
     font-size: 1.3rem;
     letter-spacing: 1px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
 }
 
 .word {
