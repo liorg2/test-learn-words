@@ -121,7 +121,7 @@ body {
 
 .word,
 .translation {
-    border: 1px solid #007BFF;
+    xborder: 1px solid #007BFF;
     border-radius: 5px;
     padding: 5px;
     background-color: #E1ECF4;
