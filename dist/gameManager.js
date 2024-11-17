@@ -178,8 +178,8 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('toggleMenuBtn').addEventListener('click', function () {
         const menu = document.getElementById('menu');
         const btnRect = this.getBoundingClientRect(); // Get button's position and dimensions
-        menu.style.top = `${btnRect.bottom}px`; // Position menu below the button
-        menu.style.left = `${btnRect.left}px`; // Align menu left edge with button left edge
+        menu.style.top = `${btnRect.bottom + 10}px`; // Position menu below the button
+        menu.style.left = `${btnRect.left - 5}px`; // Align menu left edge with button left edge
         menu.classList.toggle('active'); // Toggle visibility
         sendEvent('toggleMenu', 'game controls', 'toggle menu', { active: menu.classList.contains('active') });
     });

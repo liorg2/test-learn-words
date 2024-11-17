@@ -282,11 +282,13 @@ body {
     position: absolute;
     background-color: rgb(245, 245, 245);
     border: 1px solid #ccc;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Enhanced shadow */
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.6); /* Enhanced shadow */
     z-index: 100;
     padding: 4px;
-    width: 550px;
+    width: 400px;
     max-width: 90%;
+    xbox-shadow: -3px -3px 5px rgba(0, 0, 0, 0.1); /* Optional: add shadow to the arrow */
+    border-radius: 4px;
 }
 
 .control-panel-bottom.active {
