@@ -99,13 +99,15 @@ export class VoiceService {
     public speak(text: string, language: string, volume: number = 1): void {
         const speakerEnabled = localStorage.getItem('speakerEnabled');
 
-        if (!speakerEnabled || speakerEnabled === 'false') {
-            log('speak disabled');
+        if (speakerEnabled === 'false') {
+            log('speak disabled');// by default true if not set
             return;
         }
+
         if (!this.hasEnabledVoice) {
             const lecture = new SpeechSynthesisUtterance('hello Lior');
             lecture.volume = 0;
+            window.speechSynthesis.cancel();
             speechSynthesis.speak(lecture);
             this.hasEnabledVoice = true;
         }
@@ -127,9 +129,9 @@ export class VoiceService {
 
             utterance.volume = volume;
 
-
+            window.speechSynthesis.cancel(); // must be called before speaking
             log('speak: ' + utterance.lang + ' ' + (utterance.voice?.name || 'default') + ' ' + text);
-            window.speechSynthesis.cancel(); // must be called before speak
+
             window.speechSynthesis.speak(utterance);
         }, 500);
     }

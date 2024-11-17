@@ -170,7 +170,7 @@ document.addEventListener('click', function (event) {
         menu.classList.remove('active'); // Hide the menu
     }
 });
-let speakerEnabled = false; // Initially disabled
+let speakerEnabled = true; // Initially disabled
 document.addEventListener('DOMContentLoaded', function () {
     log('DOMContentLoaded innerWidth= ' + window.innerWidth);
     const originalTestSelect = document.getElementById('testSelect');

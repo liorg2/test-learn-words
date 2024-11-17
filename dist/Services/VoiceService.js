@@ -90,13 +90,14 @@ export class VoiceService {
     }
     speak(text, language, volume = 1) {
         const speakerEnabled = localStorage.getItem('speakerEnabled');
-        if (!speakerEnabled || speakerEnabled === 'false') {
-            log('speak disabled');
+        if (speakerEnabled === 'false') {
+            log('speak disabled'); // by default true if not set
             return;
         }
         if (!this.hasEnabledVoice) {
             const lecture = new SpeechSynthesisUtterance('hello Lior');
             lecture.volume = 0;
+            window.speechSynthesis.cancel();
             speechSynthesis.speak(lecture);
             this.hasEnabledVoice = true;
         }
@@ -116,8 +117,8 @@ export class VoiceService {
                 utterance.lang = language;
             }
             utterance.volume = volume;
+            window.speechSynthesis.cancel(); // must be called before speaking
             log('speak: ' + utterance.lang + ' ' + (((_a = utterance.voice) === null || _a === void 0 ? void 0 : _a.name) || 'default') + ' ' + text);
-            window.speechSynthesis.cancel(); // must be called before speak
             window.speechSynthesis.speak(utterance);
         }, 500);
     }
