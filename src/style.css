@@ -250,7 +250,7 @@ body {
 @media (max-width: 1200px) {
     .control-panel {
         align-items: flex-end;
-        gap: 5px;
+        gap: 8px;
     }
 }
 
