@@ -244,17 +244,17 @@ body {
 }
 
 .control-panel-bottom::before {
-    /*content: "";*/
-    /*position: absolute;*/
-    /*top: -10px; !* Adjust this value to change the position *!*/
-    /*left: 10px; !* Position from the left edge *!*/
-    /*width: 20px;*/
-    /*height: 20px;*/
-    /*background-color: rgb(245, 245, 245);*/
-    /*border-left: 1px solid #ccc;*/
-    /*border-top: 1px solid #ccc;*/
-    /*transform: rotate(45deg); !* Rotate to create an arrow shape *!*/
-    /*box-shadow: -3px -3px 5px rgba(0,0,0,0.1); !* Optional: add shadow to the arrow *!*/
+    content: "";
+    position: absolute;
+    top: -10px; /* Adjust this value to change the position */
+    left: 10px; /* Position from the left edge */
+    width: 20px;
+    height: 20px;
+    background-color: rgb(245, 245, 245);
+    border-left: 1px solid #ccc;
+    border-top: 1px solid #ccc;
+    transform: rotate(45deg); /* Rotate to create an arrow shape */
+    box-shadow: -3px -3px 5px rgba(0, 0, 0, 0.1); /* Optional: add shadow to the arrow */
 }
 
 .control-panel-bottom {
@@ -349,12 +349,12 @@ body {
 
 #decreaseFont,
 #increaseFont {
-    padding: 5px;
+    padding: 3px;
     cursor: pointer;
     border: 1px solid #007BFF;
     border-radius: 5px;
     background-color: #E1ECF4;
-    width: 50px;
+    width: 40px;
     display: inline-block;
     text-align: center;
     font-weight: bold;
@@ -367,7 +367,7 @@ body {
 
 #increaseFont {
     font-weight: bold;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
 }
 
 #voiceSelect,
