@@ -22,9 +22,18 @@ body {
     animation: blink-once 0.3s step-end 5;
 }
 
-.highlight {
-    background-color: lavender !important;
+@keyframes accordionEffect {
+    0% { transform: scaleY(1); }
+    50% { transform: scaleY(1.5); }
+    100% { transform: scaleY(1); }
 }
+
+.highlight {
+    transition: transform 0.5s ease-in-out;
+    animation: accordionEffect 0.5s ease-in-out;
+    font-weight: 400;
+}
+
 
 .dragging {
     box-shadow: 0 0 10px 5px rgba(0, 123, 255, 0.5);
@@ -493,7 +502,7 @@ button {
 
 .settings-link {
     padding: 1px;
-    margin-left: 10px; /* Space from adjacent controls */
+    xmargin-left: 10px; /* Space from adjacent controls */
     background-color: transparent; /* Button-like appearance */
     color: #2c3e50;
     border-radius: 50%; /* Circular shape */

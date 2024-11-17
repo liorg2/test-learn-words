@@ -1,6 +1,7 @@
 import { log, shuffleArray } from "../utilities.js";
 import { GameType } from "../enums.js";
 import { sendEvent } from "../analytics.js";
+import { VoiceService } from '../Services/VoiceService.js';
 export class Game {
     constructor(words, language) {
         this.score = 0;
@@ -115,7 +116,7 @@ export class Game {
         return false;
     }
     handleMouseEnter(wordDiv, language) {
-        log('handleMouseEnter ' + wordDiv.textContent + ' ' + language + ' ' + this.hasEnabledVoice);
+        // log('handleMouseEnter ' + wordDiv.textContent + ' ' + language + ' ' + this.hasEnabledVoice);
     }
     createWordDiv(word, language) {
         const wordDiv = document.createElement('div');
@@ -124,9 +125,9 @@ export class Game {
         wordDiv.draggable = true;
         wordDiv.addEventListener('dragstart', (event) => this.handleDragStart(event, language));
         wordDiv.addEventListener('dragend', this.handleDragEnd);
-        wordDiv.addEventListener('touchstart', (event) => this.handleTouchStart(event, language));
+        wordDiv.addEventListener('touchstart', (event) => this.handleTouchStart(event, language), { passive: true });
         document.addEventListener('touchcancel', this.handleTouchCancel, { passive: false });
-        wordDiv.addEventListener('touchmove', this.handleTouchMove);
+        wordDiv.addEventListener('touchmove', this.handleTouchMove, { passive: true });
         wordDiv.addEventListener('touchend', this.handleTouchEnd);
         wordDiv.addEventListener('mouseenter', () => this.handleMouseEnter(wordDiv, language));
         wordDiv.addEventListener('mouseleave', () => clearTimeout(this.speakTimeout));
@@ -168,15 +169,7 @@ export class Game {
         this.draggedElement.style.opacity = '0.5'; // Optional: make the clone semi-transparent
         this.handleTouchMove(event); // Update position immediately
         this.draggedElementOriginal.classList.add('dragging'); // Indicate original element is being dragged
-        this.speakTimeout = setTimeout(() => {
-            const voiceSelect = document.getElementById('voiceSelect');
-            const selectedVoice = voiceSelect.value;
-            const utterance = new SpeechSynthesisUtterance(this.draggedElement.textContent);
-            utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === selectedVoice);
-            utterance.lang = language;
-            log(' handleMouseEnter speak: ' + utterance.lang + ' ' + utterance.voice.name + ' ' + this.draggedElement.textContent);
-            speechSynthesis.speak(utterance);
-        }, 500);
+        VoiceService.getInstance().speak(this.draggedElement.textContent, language);
     }
     handleTouchCancel(event) {
         log('handleTouchCancel');
@@ -234,21 +227,7 @@ export class Game {
             wordDiv.classList.remove('dragging');
         });
         this.draggedElement.classList.add('dragging');
-        // if (!hasEnabledVoice) {
-        //     const lecture = new SpeechSynthesisUtterance('hello');
-        //     lecture.volume = 0;
-        //     speechSynthesis.speak(lecture);
-        //     hasEnabledVoice = true;
-        // }
-        this.speakTimeout = setTimeout(() => {
-            const voiceSelect = document.getElementById('voiceSelect');
-            const selectedVoice = voiceSelect.value;
-            const utterance = new SpeechSynthesisUtterance(this.draggedWord);
-            utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === selectedVoice);
-            utterance.lang = language;
-            log(' handleDragStart speak: ' + utterance.lang + ' ' + utterance.voice.name + ' ' + this.draggedWord);
-            speechSynthesis.speak(utterance);
-        }, 500);
+        VoiceService.getInstance().speak(this.draggedWord, language);
     }
     handleDragEnd(event) {
         log('dragEnd');

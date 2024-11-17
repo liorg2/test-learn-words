@@ -1,13 +1,10 @@
-import { languages } from './voices.js';
 import { sendEvent } from './analytics.js';
 import { getGuid, log, updateUrlParam } from "./utilities.js";
+import { VoiceService } from './Services/VoiceService.js';
 import { GameFactory } from "./Classes/GameFactory.js";
 ///////////////////// end ga
 let words = [];
 let game;
-let testWord = 'hello';
-let hasEnabledVoice = false;
-let speakTimeout;
 function populateTestSelect(selectElement, callback) {
     const guid = getGuid() || '64cdd390-6bb7-4a8b-b0e0-b52294368613';
     const scriptUrl = `./tests_lists/${guid}.js`;
@@ -67,65 +64,41 @@ function loadSelectedTest() {
         updateUrlParam('gameType', gameTypeSelect.selectedIndex.toString());
     }, 500);
 }
-function saveSelectedVoice() {
-    log('saveSelectedVoice ' + this.value);
-    // Speak the testWord
-    speakTimeout = setTimeout(() => {
-        const testVoiceMessage = new SpeechSynthesisUtterance(testWord);
-        testVoiceMessage.voice = speechSynthesis.getVoices().find(voice => voice.name === this.value);
-        speechSynthesis.speak(testVoiceMessage);
-    }, 500);
-}
+// function saveSelectedVoice(this: HTMLSelectElement) {
+//     log('saveSelectedVoice ' + this.value);
+//
+//     log('saveSelectedVoice ' + this.value);
+//     localStorage.setItem(`selectedVoice_${this.dataset.lang}`, this.value);
+//     voiceService.speak(testWord, this.dataset.lang);
+//    
+//
+//     // // Speak the testWord
+//     // speakTimeout = setTimeout(() => {
+//     //     const testVoiceMessage = new SpeechSynthesisUtterance(testWord);
+//     //     testVoiceMessage.voice = speechSynthesis.getVoices().find(voice => voice.name === this.value)!;
+//     //     speechSynthesis.speak(testVoiceMessage);
+//     // }, 500);
+// }
 function loadVoices(language) {
-    log('loadVoices ' + language);
-    const voiceSelect = document.getElementById('voiceSelect');
-    voiceSelect.innerHTML = '';
-    let attempts = 0, maxAttempts = 50;
-    voiceSelect.removeEventListener('change', saveSelectedVoice);
-    voiceSelect.addEventListener('change', saveSelectedVoice);
-    const checkVoices = () => {
-        const voices = speechSynthesis.getVoices().filter(v => {
-            const valid = v.lang.startsWith(`${language}-`);
-            if (!valid) {
-                log('checkVoices voice: ' + v.name + ' ' + v.lang + ' ' + valid);
-            }
-            return valid;
-        });
-        if (voices.length > 0 || attempts >= maxAttempts) {
-            sendEvent('loadVoices', 'game controls', 'load voices', { language: language, voices: voices.length });
-            testWord = languages[language].test_word;
-            log('checkVoices voices: ' + voices.length);
-            voices.forEach(voice => {
-                const option = document.createElement('option');
-                option.textContent = `${voice.name} (${voice.lang})`;
-                option.value = voice.name;
-                voiceSelect.appendChild(option);
-            });
-            loadVoiceSettings(language);
-        }
-        else {
-            log('checkVoices will retry attempts: ' + attempts);
-            attempts++;
-            setTimeout(checkVoices, 50);
-        }
-    };
-    checkVoices();
+    VoiceService.getInstance().loadVoices(language).then(() => {
+        log('loadVoices');
+    });
 }
-function loadVoiceSettings(language) {
-    log('loadVoiceSettings');
-    const savedVoiceName = localStorage.getItem('selectedVoice_' + language);
-    const voiceSelect = document.getElementById('voiceSelect');
-    if (savedVoiceName) {
-        log('loadVoiceSettings savedVoiceName: ' + savedVoiceName);
-        for (let i = 0; i < voiceSelect.options.length; i++) {
-            if (voiceSelect.options[i].value === savedVoiceName) {
-                log('savedVoiceName found loadVoiceSettings option.index: ' + i);
-                voiceSelect.selectedIndex = i;
-                break;
-            }
-        }
-    }
-}
+// function loadVoiceSettings(language: string) {
+//     log('loadVoiceSettings');
+//     const savedVoiceName = localStorage.getItem('selectedVoice_' + language);
+//     const voiceSelect = document.getElementById('voiceSelect') as HTMLSelectElement;
+//     if (savedVoiceName) {
+//         log('loadVoiceSettings savedVoiceName: ' + savedVoiceName);
+//         for (let i = 0; i < voiceSelect.options.length; i++) {
+//             if (voiceSelect.options[i].value === savedVoiceName) {
+//                 log('savedVoiceName found loadVoiceSettings option.index: ' + i);
+//                 voiceSelect.selectedIndex = i;
+//                 break;
+//             }
+//         }
+//     }
+// }
 function changeFontSize(change) {
     const words = document.querySelectorAll('.word, .translation');
     words.forEach(word => {
@@ -188,22 +161,20 @@ function closeSettings() {
 document.addEventListener('click', function (event) {
     const menu = document.getElementById('menu');
     const toggleButton = document.getElementById('toggleMenuBtn');
+    const toggleSpeakerBtn = document.getElementById('toggleSpeakerBtn');
     // Check if the menu is visible, the click is outside the menu, and not on the toggle button
     if (menu.classList.contains('active') &&
         !menu.contains(event.target) && // Check if click is not on a menu or its descendants
-        !toggleButton.contains(event.target)) {
+        !toggleButton.contains(event.target) &&
+        !toggleSpeakerBtn.contains(event.target)) {
         menu.classList.remove('active'); // Hide the menu
     }
 });
+let speakerEnabled = false; // Initially disabled
 document.addEventListener('DOMContentLoaded', function () {
     log('DOMContentLoaded innerWidth= ' + window.innerWidth);
     const originalTestSelect = document.getElementById('testSelect');
     const gameTypeSelect = document.getElementById('gameTypeSelect');
-    // document.getElementById('toggleMenuBtn').addEventListener('click', function () {
-    //     const menu = document.getElementById('menu');
-    //     menu.classList.toggle('active'); // This toggles the visibility and position of the menu
-    //     sendEvent('toggleMenu', 'game controls', 'toggle menu', {active: menu.classList.contains('active')});
-    // });
     document.getElementById('toggleMenuBtn').addEventListener('click', function () {
         const menu = document.getElementById('menu');
         const btnRect = this.getBoundingClientRect(); // Get button's position and dimensions
@@ -212,12 +183,30 @@ document.addEventListener('DOMContentLoaded', function () {
         menu.classList.toggle('active'); // Toggle visibility
         sendEvent('toggleMenu', 'game controls', 'toggle menu', { active: menu.classList.contains('active') });
     });
-    document.body.addEventListener('click', () => {
-        const lecture = new SpeechSynthesisUtterance('hello');
-        lecture.volume = 0;
-        speechSynthesis.speak(lecture);
-        hasEnabledVoice = true;
-    }, { once: true }); //needed
+    const toggleSpeakerBtn = document.getElementById('toggleSpeakerBtn');
+    toggleSpeakerBtn.addEventListener('click', function () {
+        log('toggleSpeakerBtn clicked speakerEnabled= ' + speakerEnabled);
+        speakerEnabled = !speakerEnabled; // Toggle the state
+        localStorage.setItem('speakerEnabled', speakerEnabled.toString());
+        updateSpeakerIcon();
+        if (speakerEnabled) {
+            VoiceService.getInstance().speak('hello', 'en');
+        }
+    });
+    function updateSpeakerIcon() {
+        if (speakerEnabled) {
+            toggleSpeakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+        }
+        else {
+            toggleSpeakerBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+        }
+    }
+    // Initialize icon state on load
+    updateSpeakerIcon();
+    //
+    // document.body.addEventListener('click', () => {
+    //     VoiceService.getInstance().speak('hello', 'en', 0);
+    // }, {once: true});
     document.getElementById('increaseFont').addEventListener('click', () => changeFontSize(1));
     document.getElementById('decreaseFont').addEventListener('click', () => changeFontSize(-1));
     document.getElementById('newGameBtn').addEventListener('click', loadSelectedTest);
@@ -249,10 +238,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.body.removeChild(overlay);
                 originalTestSelect.value = this.value;
                 loadSelectedTest();
-                const lecture = new SpeechSynthesisUtterance('hello');
-                lecture.volume = 0;
-                speechSynthesis.speak(lecture);
-                hasEnabledVoice = true;
+                VoiceService.getInstance().speak('hello', 'en', 0);
             });
         }
         else {
