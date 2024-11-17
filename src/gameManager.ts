@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function () {
         localStorage.setItem('speakerEnabled', speakerEnabled.toString());
         updateSpeakerIcon();
         if (speakerEnabled) {
-            VoiceService.getInstance().speak('Hello', 'en');
+            VoiceService.getInstance().speak('Hello', 'en', 0);
         }
     });
 
@@ -244,10 +244,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initialize icon state on load
     updateSpeakerIcon();
 
-    //
-    // document.body.addEventListener('click', () => {
-    //     VoiceService.getInstance().speak('hello', 'en', 0);
-    // }, {once: true});
 
     document.getElementById('increaseFont').addEventListener('click', () => changeFontSize(1));
     document.getElementById('decreaseFont').addEventListener('click', () => changeFontSize(-1));

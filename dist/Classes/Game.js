@@ -125,9 +125,9 @@ export class Game {
         wordDiv.draggable = true;
         wordDiv.addEventListener('dragstart', (event) => this.handleDragStart(event, language));
         wordDiv.addEventListener('dragend', this.handleDragEnd);
-        wordDiv.addEventListener('touchstart', (event) => this.handleTouchStart(event, language), { passive: true });
+        wordDiv.addEventListener('touchstart', (event) => this.handleTouchStart(event, language));
         document.addEventListener('touchcancel', this.handleTouchCancel, { passive: false });
-        wordDiv.addEventListener('touchmove', this.handleTouchMove, { passive: true });
+        wordDiv.addEventListener('touchmove', this.handleTouchMove);
         wordDiv.addEventListener('touchend', this.handleTouchEnd);
         wordDiv.addEventListener('mouseenter', () => this.handleMouseEnter(wordDiv, language));
         wordDiv.addEventListener('mouseleave', () => clearTimeout(this.speakTimeout));
