@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function () {
         localStorage.setItem('speakerEnabled', speakerEnabled.toString());
         updateSpeakerIcon();
         if (speakerEnabled) {
-            VoiceService.getInstance().speak('hello', 'en');
+            VoiceService.getInstance().speak('Hello', 'en');
         }
     });
 
