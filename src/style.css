@@ -37,7 +37,11 @@ body {
 
 .dragging {
     box-shadow: 0 0 10px 5px rgba(0, 123, 255, 0.5);
-    border: 2px dashed #007bff;
+    border: 2px dashed #666;
+}
+
+.dragging {
+    user-select: none;
 }
 
 @keyframes blink-correct {
