@@ -119,7 +119,7 @@ export class VoiceService {
             if (selectedVoice) {
                 const voice = speechSynthesis.getVoices().find(voice => voice.name === selectedVoice);
                 if (voice) {
-                    utterance.voice = voice;
+                    // utterance.voice = voice;
                     utterance.lang = voice.lang; // Let the voice dictate the language
                 }
             } else {
