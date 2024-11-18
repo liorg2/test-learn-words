@@ -185,6 +185,10 @@ export class Game {
         const touch = event.touches[0];
         this.draggedElement.style.left = `${touch.clientX - (this.draggedElement.offsetWidth / 2)}px`;
         this.draggedElement.style.top = `${touch.clientY - (this.draggedElement.offsetHeight / 2)}px`;
+        const target = event.target;
+        if (target.classList.contains('translation')) {
+            target.classList.add('highlight');
+        }
     }
     handleTouchEnd(event) {
         event.preventDefault();
