@@ -24,7 +24,8 @@ export class VoiceService {
     initializeVoiceSelect() {
         this.voiceSelect.addEventListener('change', this.handleVoiceChange.bind(this));
     }
-    loadVoices(language) {
+
+    getVoices(language) {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.VoicePerLanguage.has(language)) {
                 log('loadVoices already loaded ' + language);
@@ -55,7 +56,6 @@ export class VoiceService {
             return this.VoicePerLanguage.get(language);
         });
     }
-
     selectVoice(language) {
         const savedVoiceName = localStorage.getItem('selectedVoice_' + language);
         if (savedVoiceName) {
@@ -85,7 +85,7 @@ export class VoiceService {
             log('speak disabled'); // by default true if not set
             return;
         }
-        this.loadVoices(language).then(() => {
+        this.getVoices(language).then(() => {
             var _a;
             if (!this.hasEnabledVoice) {
                 const lecture = new SpeechSynthesisUtterance('hello Lior');

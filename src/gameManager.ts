@@ -71,7 +71,7 @@ function loadSelectedTest() {
     });
     setTimeout(() => {
         const selectedOption = testSelect.options[testSelect.selectedIndex];
-        VoiceService.getInstance().loadVoices(selectedOption.dataset.lang!).then((voices: SpeechSynthesisVoice[]) => {
+        VoiceService.getInstance().getVoices(selectedOption.dataset.lang!).then((voices: SpeechSynthesisVoice[]) => {
             fillVoicesOptions(selectedOption.dataset.lang!, voices);
         });
         

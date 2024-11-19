@@ -56,7 +56,7 @@ function loadSelectedTest() {
     });
     setTimeout(() => {
         const selectedOption = testSelect.options[testSelect.selectedIndex];
-        VoiceService.getInstance().loadVoices(selectedOption.dataset.lang).then((voices) => {
+        VoiceService.getInstance().getVoices(selectedOption.dataset.lang).then((voices) => {
             fillVoicesOptions(selectedOption.dataset.lang, voices);
         });
         loadWords().then(() => {
@@ -66,7 +66,6 @@ function loadSelectedTest() {
         updateUrlParam('gameType', gameTypeSelect.selectedIndex.toString());
     }, 500);
 }
-
 function fillVoicesOptions(language, voices) {
     const defaultOption = document.createElement('option');
     defaultOption.textContent = `קול ברירת מחדל (${language})`;
