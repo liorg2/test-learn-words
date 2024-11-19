@@ -165,7 +165,7 @@ export class Game {
         document.body.appendChild(this.draggedElement);
         this.draggedElement.style.position = 'fixed';
         this.draggedElement.style.zIndex = '1000';
-        this.draggedElement.style.border = '2px dashed red'; // Optional: add a dashed border
+        // this.draggedElement.style.border = '2px dashed red'; // Optional: add a dashed border
         this.draggedElement.style.opacity = '0.5'; // Optional: make the clone semi-transparent
         this.handleTouchMove(event); // Update position immediately
         this.draggedElementOriginal.classList.add('dragging'); // Indicate original element is being dragged
