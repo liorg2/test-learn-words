@@ -295,6 +295,7 @@ export class Game {
         });
         this.draggedElement.classList.add('dragging');
 
+        debugger
         VoiceService.getInstance().speak(this.draggedWord, language);
     }
 

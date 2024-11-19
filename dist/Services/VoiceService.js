@@ -8,12 +8,46 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { log } from '../utilities.js';
+
+const highQualityVoices = [
+    {
+        name: "Samantha",
+        language: "en-US",
+        gender: "female",
+        quality: "high",
+        voiceURI: "com.apple.speech.synthesis.voice.samantha",
+        browser: "Safari"
+    },
+    {
+        name: "Thomas",
+        language: "fr-FR",
+        gender: "male",
+        quality: "high",
+        voiceURI: "com.apple.speech.synthesis.voice.thomas",
+        browser: "Safari"
+    },
+    {
+        name: "Flixier British English",
+        language: "en-GB",
+        gender: "male",
+        quality: "high",
+        voiceURI: "Flixier-British-English",
+        browser: "Flixier"
+    },
+    {
+        name: "Flixier French",
+        language: "fr-FR",
+        gender: "female",
+        quality: "high",
+        voiceURI: "Flixier-French",
+        browser: "Flixier"
+    },
+];
 export class VoiceService {
     constructor() {
         this.hasEnabledVoice = false;
         this.VoicePerLanguage = new Map();
         this.voiceSelect = document.getElementById('voiceSelect');
-        this.initializeVoiceSelect();
     }
     static getInstance() {
         if (!VoiceService.instance) {
@@ -21,25 +55,28 @@ export class VoiceService {
         }
         return VoiceService.instance;
     }
-    initializeVoiceSelect() {
-        this.voiceSelect.addEventListener('change', this.handleVoiceChange.bind(this));
-    }
     getVoices(language) {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.VoicePerLanguage.has(language)) {
-                log('loadVoices already loaded ' + language);
+                log('getVoices already loaded ' + language);
                 return;
             }
-            log('loadVoices ' + language);
-            this.voiceSelect.innerHTML = '';
+            log('getVoices ' + language);
             let attempts = 0;
             const maxAttempts = 50;
             const checkVoices = () => {
                 return new Promise((resolve) => {
                     const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith(`${language}-`));
-                    this.VoicePerLanguage.set(language, voices);
-                    console.table(voices);
-                    if (voices.length > 0 || attempts >= maxAttempts) {
+                    const filteredVoices = voices.filter(voice => highQualityVoices.some(hqv => {
+                        return hqv.voiceURI === voice.voiceURI || hqv.name === voice.name || ["Google", "Microsoft"].some(v => voice.name.includes(v) || voice.voiceURI.includes(v));
+                    }));
+                    if (filteredVoices.length > 0) {
+                        this.VoicePerLanguage.set(language, filteredVoices);
+                    } else {
+                        this.VoicePerLanguage.set(language, voices); // Fallback to default browser voices if no match
+                    }
+                    console.table(this.VoicePerLanguage.get(language));
+                    if (this.VoicePerLanguage.get(language).length > 0 || attempts >= maxAttempts) {
                         log('checkVoices voices: ' + voices.length);
                         // Add default browser voice option
                         resolve();
@@ -54,29 +91,6 @@ export class VoiceService {
             yield checkVoices();
             return this.VoicePerLanguage.get(language);
         });
-    }
-    selectVoice(language) {
-        const savedVoiceName = localStorage.getItem('selectedVoice_' + language);
-        if (savedVoiceName) {
-            log('selectVoice savedVoiceName: ' + savedVoiceName);
-            for (let i = 0; i < this.voiceSelect.options.length; i++) {
-                if (this.voiceSelect.options[i].value === savedVoiceName) {
-                    log('savedVoiceName found selectVoice option.index: ' + i);
-                    this.voiceSelect.selectedIndex = i;
-                    break;
-                }
-            }
-        }
-        else {
-            // If no saved voice, select the default browser voice (first option)
-            this.voiceSelect.selectedIndex = 0;
-        }
-    }
-    handleVoiceChange(event) {
-        const select = event.target;
-        const selectedVoice = select.value;
-        const language = this.voiceSelect.options[this.voiceSelect.selectedIndex].value;
-        localStorage.setItem('selectedVoice_' + language, selectedVoice);
     }
     speak(text, language, volume = 1) {
         const speakerEnabled = localStorage.getItem('speakerEnabled');
@@ -95,7 +109,7 @@ export class VoiceService {
             }
             //   this.speakTimeout = setTimeout(() => {
             const utterance = new SpeechSynthesisUtterance(text);
-            const selectedVoice = this.voiceSelect.value;
+            const selectedVoice = this.voiceSelect.value; // todo move th ui from here
             const langVoices = this.VoicePerLanguage.get(language) || [];
             if (selectedVoice) {
                 const voice = langVoices.find(voice => voice.name === selectedVoice);
@@ -106,7 +120,10 @@ export class VoiceService {
             }
             else {
                 // If no voice selected, use default and set language to ensure correct pronunciation
-                const voice = langVoices.find(v => v.default);
+                let voice = langVoices.find(v => v.default);
+                if (!voice) {
+                    voice = langVoices[0];
+                }
                 utterance.voice = langVoices.find(v => v.default);
                 utterance.lang = voice.lang;
             }

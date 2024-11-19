@@ -69,12 +69,11 @@ function loadSelectedTest() {
         game: testSelect.value,
         type: gameTypeSelect.value
     });
-    setTimeout(() => {
-        const selectedOption = testSelect.options[testSelect.selectedIndex];
-        VoiceService.getInstance().getVoices(selectedOption.dataset.lang!).then((voices: SpeechSynthesisVoice[]) => {
-            fillVoicesOptions(selectedOption.dataset.lang!, voices);
-        });
-        
+
+    const selectedOption = testSelect.options[testSelect.selectedIndex];
+    VoiceService.getInstance().getVoices(selectedOption.dataset.lang!).then((voices: SpeechSynthesisVoice[]) => {
+        fillVoicesOptions(selectedOption.dataset.lang!, voices);
+
         loadWords().then(() => {
             buildGame(selectedOption.dataset.lang!);
         });
@@ -82,25 +81,60 @@ function loadSelectedTest() {
 
         updateUrlParam('test', testSelect.selectedIndex.toString());
         updateUrlParam('gameType', gameTypeSelect.selectedIndex.toString());
-    }, 500);
 
+    });
 }
 
 function fillVoicesOptions(language: string, voices: SpeechSynthesisVoice[]) {
+    const voiceSelect = document.getElementById('voiceSelect') as HTMLSelectElement;
+    voiceSelect.innerHTML = '';
     const defaultOption = document.createElement('option');
     defaultOption.textContent = `קול ברירת מחדל (${language})`;
     defaultOption.value = '';
-    this.voiceSelect.appendChild(defaultOption);
+    voiceSelect.appendChild(defaultOption);
 
     // Add other available voices
     voices.forEach(voice => {
         const option = document.createElement('option');
         option.textContent = `${voice.name} (${voice.lang})`;
         option.value = voice.name;
-        this.voiceSelect.appendChild(option);
+        voiceSelect.appendChild(option);
     });
 
-    this.selectVoice(language);
+    selectVoice(language);
+    initializeVoiceSelect();
+}
+
+function selectVoice(language: string) {
+    const voiceSelect = document.getElementById('voiceSelect') as HTMLSelectElement;
+    const savedVoiceName = localStorage.getItem('selectedVoice_' + language);
+    if (savedVoiceName) {
+        log('selectVoice savedVoiceName: ' + savedVoiceName);
+        for (let i = 0; i < this.voiceSelect.options.length; i++) {
+            if (voiceSelect.options[i].value === savedVoiceName) {
+                log('savedVoiceName found selectVoice option.index: ' + i);
+                voiceSelect.selectedIndex = i;
+                break;
+            }
+        }
+    } else {
+        // If no saved voice, select the default browser voice (first option)
+        voiceSelect.selectedIndex = 0;
+    }
+}
+
+function initializeVoiceSelect() {
+    const voiceSelect = document.getElementById('voiceSelect') as HTMLSelectElement;
+    voiceSelect.addEventListener('change', handleVoiceChange);
+}
+
+function handleVoiceChange(event: Event) {
+    const voiceSelect = document.getElementById('voiceSelect') as HTMLSelectElement;
+    const selectedVoice = voiceSelect.value;
+    const language = voiceSelect.options[voiceSelect.selectedIndex].value;
+    localStorage.setItem('selectedVoice_' + language, selectedVoice);
+
+
 }
 
 // function saveSelectedVoice(this: HTMLSelectElement) {
@@ -298,7 +332,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.body.removeChild(overlay);
                 originalTestSelect.value = this.value;
                 loadSelectedTest();
-                VoiceService.getInstance().speak('hello', 'en', 0);
+                VoiceService.getInstance().speak('Welcome!', 'en', 1);
 
             });
         } else {
