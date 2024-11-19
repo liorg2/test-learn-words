@@ -231,7 +231,6 @@ export class Game {
             wordDiv.classList.remove('dragging');
         });
         this.draggedElement.classList.add('dragging');
-        debugger;
         VoiceService.getInstance().speak(this.draggedWord, language);
     }
     handleDragEnd(event) {
