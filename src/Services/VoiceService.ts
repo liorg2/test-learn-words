@@ -64,6 +64,7 @@ export class VoiceService {
             log('getVoices already loaded ' + language);
             return this.VoicePerLanguage.get(language);
         }
+        
 
         log('getVoices ' + language);
         
