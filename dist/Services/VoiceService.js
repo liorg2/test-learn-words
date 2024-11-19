@@ -24,7 +24,6 @@ export class VoiceService {
     initializeVoiceSelect() {
         this.voiceSelect.addEventListener('change', this.handleVoiceChange.bind(this));
     }
-
     getVoices(language) {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.VoicePerLanguage.has(language)) {
