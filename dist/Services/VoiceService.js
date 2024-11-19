@@ -11,6 +11,7 @@ import { log } from '../utilities.js';
 export class VoiceService {
     constructor() {
         this.hasEnabledVoice = false;
+        this.VoicePerLanguage = new Map();
         this.voiceSelect = document.getElementById('voiceSelect');
         this.initializeVoiceSelect();
     }
@@ -25,34 +26,22 @@ export class VoiceService {
     }
     loadVoices(language) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (this.VoicePerLanguage.has(language)) {
+                log('loadVoices already loaded ' + language);
+                return;
+            }
             log('loadVoices ' + language);
             this.voiceSelect.innerHTML = '';
             let attempts = 0;
             const maxAttempts = 50;
             const checkVoices = () => {
                 return new Promise((resolve) => {
-                    const voices = speechSynthesis.getVoices().filter(v => {
-                        const valid = v.lang.startsWith(`${language}-`);
-                        if (!valid) {
-                            // log('checkVoices voice: ' + v.name + ' ' + v.lang + ' ' + valid);
-                        }
-                        return valid;
-                    });
+                    const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith(`${language}-`));
+                    this.VoicePerLanguage.set(language, voices);
+                    console.table(voices);
                     if (voices.length > 0 || attempts >= maxAttempts) {
                         log('checkVoices voices: ' + voices.length);
                         // Add default browser voice option
-                        const defaultOption = document.createElement('option');
-                        defaultOption.textContent = `קול ברירת מחדל (${language})`;
-                        defaultOption.value = '';
-                        this.voiceSelect.appendChild(defaultOption);
-                        // Add other available voices
-                        voices.forEach(voice => {
-                            const option = document.createElement('option');
-                            option.textContent = `${voice.name} (${voice.lang})`;
-                            option.value = voice.name;
-                            this.voiceSelect.appendChild(option);
-                        });
-                        this.loadVoiceSettings(language);
                         resolve();
                     }
                     else {
@@ -63,15 +52,17 @@ export class VoiceService {
                 });
             };
             yield checkVoices();
+            return this.VoicePerLanguage.get(language);
         });
     }
-    loadVoiceSettings(language) {
+
+    selectVoice(language) {
         const savedVoiceName = localStorage.getItem('selectedVoice_' + language);
         if (savedVoiceName) {
-            log('loadVoiceSettings savedVoiceName: ' + savedVoiceName);
+            log('selectVoice savedVoiceName: ' + savedVoiceName);
             for (let i = 0; i < this.voiceSelect.options.length; i++) {
                 if (this.voiceSelect.options[i].value === savedVoiceName) {
-                    log('savedVoiceName found loadVoiceSettings option.index: ' + i);
+                    log('savedVoiceName found selectVoice option.index: ' + i);
                     this.voiceSelect.selectedIndex = i;
                     break;
                 }
@@ -94,33 +85,38 @@ export class VoiceService {
             log('speak disabled'); // by default true if not set
             return;
         }
-        if (!this.hasEnabledVoice) {
-            const lecture = new SpeechSynthesisUtterance('hello Lior');
-            lecture.volume = 0;
-            window.speechSynthesis.cancel();
-            speechSynthesis.speak(lecture);
-            this.hasEnabledVoice = true;
-        }
-        this.speakTimeout = setTimeout(() => {
+        this.loadVoices(language).then(() => {
             var _a;
+            if (!this.hasEnabledVoice) {
+                const lecture = new SpeechSynthesisUtterance('hello Lior');
+                lecture.volume = 0;
+                window.speechSynthesis.cancel();
+                speechSynthesis.speak(lecture);
+                this.hasEnabledVoice = true;
+            }
+            //   this.speakTimeout = setTimeout(() => {
             const utterance = new SpeechSynthesisUtterance(text);
             const selectedVoice = this.voiceSelect.value;
+            const langVoices = this.VoicePerLanguage.get(language) || [];
             if (selectedVoice) {
-                const voice = speechSynthesis.getVoices().find(voice => voice.name === selectedVoice);
+                const voice = langVoices.find(voice => voice.name === selectedVoice);
                 if (voice) {
-                    // utterance.voice = voice;
+                    utterance.voice = voice;
                     utterance.lang = voice.lang; // Let the voice dictate the language
                 }
             }
             else {
                 // If no voice selected, use default and set language to ensure correct pronunciation
-                utterance.lang = language;
+                const voice = langVoices.find(v => v.default);
+                utterance.voice = langVoices.find(v => v.default);
+                utterance.lang = voice.lang;
             }
             utterance.volume = volume;
-            window.speechSynthesis.cancel(); // must be called before speaking
+            this.cancelSpeak(); // must be called before speaking
             log('speak: ' + utterance.lang + ' ' + (((_a = utterance.voice) === null || _a === void 0 ? void 0 : _a.name) || 'default') + ' ' + text);
             window.speechSynthesis.speak(utterance);
-        }, 500);
+            //  }, 500);
+        });
     }
     cancelSpeak() {
         clearTimeout(this.speakTimeout);

@@ -56,13 +56,30 @@ function loadSelectedTest() {
     });
     setTimeout(() => {
         const selectedOption = testSelect.options[testSelect.selectedIndex];
-        loadVoices(selectedOption.dataset.lang);
+        VoiceService.getInstance().loadVoices(selectedOption.dataset.lang).then((voices) => {
+            fillVoicesOptions(selectedOption.dataset.lang, voices);
+        });
         loadWords().then(() => {
             buildGame(selectedOption.dataset.lang);
         });
         updateUrlParam('test', testSelect.selectedIndex.toString());
         updateUrlParam('gameType', gameTypeSelect.selectedIndex.toString());
     }, 500);
+}
+
+function fillVoicesOptions(language, voices) {
+    const defaultOption = document.createElement('option');
+    defaultOption.textContent = `קול ברירת מחדל (${language})`;
+    defaultOption.value = '';
+    this.voiceSelect.appendChild(defaultOption);
+    // Add other available voices
+    voices.forEach(voice => {
+        const option = document.createElement('option');
+        option.textContent = `${voice.name} (${voice.lang})`;
+        option.value = voice.name;
+        this.voiceSelect.appendChild(option);
+    });
+    this.selectVoice(language);
 }
 // function saveSelectedVoice(this: HTMLSelectElement) {
 //     log('saveSelectedVoice ' + this.value);
@@ -79,11 +96,6 @@ function loadSelectedTest() {
 //     //     speechSynthesis.speak(testVoiceMessage);
 //     // }, 500);
 // }
-function loadVoices(language) {
-    VoiceService.getInstance().loadVoices(language).then(() => {
-        log('loadVoices');
-    });
-}
 // function loadVoiceSettings(language: string) {
 //     log('loadVoiceSettings');
 //     const savedVoiceName = localStorage.getItem('selectedVoice_' + language);
