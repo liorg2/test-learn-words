@@ -62,7 +62,7 @@ export class VoiceService {
 
         if (this.VoicePerLanguage.has(language)) {
             log('getVoices already loaded ' + language);
-            return;
+            return this.VoicePerLanguage.get(language);
         }
 
         log('getVoices ' + language);
@@ -74,9 +74,11 @@ export class VoiceService {
             return new Promise<void>((resolve) => {
                 const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith(`${language}-`));
 
-                const filteredVoices = voices.filter(voice => highQualityVoices.some(hqv => {
-                    return hqv.voiceURI === voice.voiceURI || hqv.name === voice.name || ["Google", "Microsoft"].some(v => voice.name.includes(v) || voice.voiceURI.includes(v));
-                }));
+                const filteredVoices = voices.filter(voice => {
+                    return highQualityVoices.some(hqv => {
+                        return hqv.voiceURI === voice.voiceURI || hqv.name === voice.name || ["Google", "Microsoft"].some(v => voice.name.includes(v) || voice.voiceURI.includes(v));
+                    });
+                });
                 if (filteredVoices.length > 0) {
                     this.VoicePerLanguage.set(language, filteredVoices);
                 } else {

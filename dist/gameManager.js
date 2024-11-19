@@ -81,7 +81,6 @@ function fillVoicesOptions(language, voices) {
     selectVoice(language);
     initializeVoiceSelect();
 }
-
 function selectVoice(language) {
     const voiceSelect = document.getElementById('voiceSelect');
     const savedVoiceName = localStorage.getItem('selectedVoice_' + language);
@@ -99,12 +98,10 @@ function selectVoice(language) {
         voiceSelect.selectedIndex = 0;
     }
 }
-
 function initializeVoiceSelect() {
     const voiceSelect = document.getElementById('voiceSelect');
     voiceSelect.addEventListener('change', handleVoiceChange);
 }
-
 function handleVoiceChange(event) {
     const voiceSelect = document.getElementById('voiceSelect');
     const selectedVoice = voiceSelect.value;

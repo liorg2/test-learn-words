@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { log } from '../utilities.js';
-
 const highQualityVoices = [
     {
         name: "Samantha",
@@ -59,7 +58,7 @@ export class VoiceService {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.VoicePerLanguage.has(language)) {
                 log('getVoices already loaded ' + language);
-                return;
+                return this.VoicePerLanguage.get(language);
             }
             log('getVoices ' + language);
             let attempts = 0;
@@ -67,9 +66,11 @@ export class VoiceService {
             const checkVoices = () => {
                 return new Promise((resolve) => {
                     const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith(`${language}-`));
-                    const filteredVoices = voices.filter(voice => highQualityVoices.some(hqv => {
-                        return hqv.voiceURI === voice.voiceURI || hqv.name === voice.name || ["Google", "Microsoft"].some(v => voice.name.includes(v) || voice.voiceURI.includes(v));
-                    }));
+                    const filteredVoices = voices.filter(voice => {
+                        return highQualityVoices.some(hqv => {
+                            return hqv.voiceURI === voice.voiceURI || hqv.name === voice.name || ["Google", "Microsoft"].some(v => voice.name.includes(v) || voice.voiceURI.includes(v));
+                        });
+                    });
                     if (filteredVoices.length > 0) {
                         this.VoicePerLanguage.set(language, filteredVoices);
                     } else {
