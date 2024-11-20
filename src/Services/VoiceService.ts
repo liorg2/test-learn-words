@@ -103,7 +103,7 @@ export class VoiceService {
 
 
     public speak(text: string, language: string, volume: number = 1): Promise<void> {
-        debugger
+
         return new Promise((resolve, reject) => {
             const speakerEnabled = localStorage.getItem('speakerEnabled');
 
@@ -123,6 +123,10 @@ export class VoiceService {
                     log('speak end ' + text);
 
                 }
+                utterance.onstart = () => {
+                    log('speak start ' + text);
+                }
+                
                 const selectedVoice = this.voiceSelect.value;// todo move th ui from here
                 const langVoices: SpeechSynthesisVoice[] = this.VoicePerLanguage.get(language) || [];
                 if (selectedVoice) {
@@ -134,7 +138,7 @@ export class VoiceService {
                     }
                 } else {
                     // If no voice selected, use default and set language to ensure correct pronunciation
-                    debugger
+                
                     let voice = langVoices.find(v => v.default)
                     if (!voice) {
                         voice = langVoices[0];

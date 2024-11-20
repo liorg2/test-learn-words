@@ -89,7 +89,6 @@ export class VoiceService {
         });
     }
     speak(text, language, volume = 1) {
-        debugger;
         return new Promise((resolve, reject) => {
             const speakerEnabled = localStorage.getItem('speakerEnabled');
             if (speakerEnabled === 'false') {
@@ -106,6 +105,9 @@ export class VoiceService {
                 utterance.onend = () => {
                     log('speak end ' + text);
                 };
+                utterance.onstart = () => {
+                    log('speak start ' + text);
+                };
                 const selectedVoice = this.voiceSelect.value; // todo move th ui from here
                 const langVoices = this.VoicePerLanguage.get(language) || [];
                 if (selectedVoice) {
@@ -116,7 +118,6 @@ export class VoiceService {
                     }
                 } else {
                     // If no voice selected, use default and set language to ensure correct pronunciation
-                    debugger;
                     let voice = langVoices.find(v => v.default);
                     if (!voice) {
                         voice = langVoices[0];
