@@ -115,6 +115,14 @@ export class VoiceService {
             this.getVoices(language).then(() => {
 
                 const utterance = new SpeechSynthesisUtterance(text);
+                utterance.onerror = (event) => {
+                    log('speak error: ' + event.error + ' ' + text);
+                    reject(event.error);
+                }
+                utterance.onend = () => {
+                    log('speak end ' + text);
+
+                }
                 const selectedVoice = this.voiceSelect.value;// todo move th ui from here
                 const langVoices: SpeechSynthesisVoice[] = this.VoicePerLanguage.get(language) || [];
                 if (selectedVoice) {
