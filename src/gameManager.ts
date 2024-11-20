@@ -285,6 +285,9 @@ document.addEventListener('DOMContentLoaded', function () {
             VoiceService.getInstance().speak('Hello', 'en', 0);
         }
     });
+    if (new URLSearchParams(window.location.search).has('log')) {
+        document.getElementById('log').style.display = 'block';
+    }
 
     function updateSpeakerIcon() {
         if (speakerEnabled) {

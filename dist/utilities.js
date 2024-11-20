@@ -12,10 +12,12 @@ export function updateUrlParam(key, value) {
 }
 export function log(msg) {
     console.log(msg);
-    // const logElement = document.getElementById('log');
-    // const p = document.createElement('p');
-    // p.textContent = msg;
-    // logElement.insertBefore(p, logElement.firstChild);
+    if (new URLSearchParams(window.location.search).has('log')) {
+        const logElement = document.getElementById('log');
+        const p = document.createElement('p');
+        p.textContent = msg;
+        logElement.insertBefore(p, logElement.firstChild);
+    }
 }
 //guid is a class
 export function getGuid() {
