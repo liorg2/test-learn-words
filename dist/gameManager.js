@@ -71,19 +71,22 @@ function fillVoicesOptions(language, voices) {
     defaultOption.textContent = `קול ברירת מחדל (${language})`;
     defaultOption.value = '';
     voiceSelect.appendChild(defaultOption);
-    // Add other available voices
+    const addedVoices = new Set();
     voices.forEach(voice => {
-        const option = document.createElement('option');
-        option.textContent = `${voice.name} (${voice.lang})`;
-        option.value = voice.name;
-        voiceSelect.appendChild(option);
+        if (!addedVoices.has(voice.name)) {
+            const option = document.createElement('option');
+            option.textContent = `${voice.name} (${voice.lang})`;
+            option.value = voice.name;
+            voiceSelect.appendChild(option);
+            addedVoices.add(voice.name);
+        }
     });
     selectVoice(language);
     initializeVoiceSelect();
 }
 function selectVoice(language) {
     const voiceSelect = document.getElementById('voiceSelect');
-    const savedVoiceName = localStorage.getItem('selectedVoice_' + language);
+    const savedVoiceName = localStorage.getItem('selectedVoice__' + language);
     if (savedVoiceName) {
         log('selectVoice savedVoiceName: ' + savedVoiceName);
         for (let i = 0; i < this.voiceSelect.options.length; i++) {
@@ -106,13 +109,13 @@ function handleVoiceChange(event) {
     const voiceSelect = document.getElementById('voiceSelect');
     const selectedVoice = voiceSelect.value;
     const language = voiceSelect.options[voiceSelect.selectedIndex].value;
-    localStorage.setItem('selectedVoice_' + language, selectedVoice);
+    localStorage.setItem('selectedVoice__' + language, selectedVoice);
 }
 // function saveSelectedVoice(this: HTMLSelectElement) {
 //     log('saveSelectedVoice ' + this.value);
 //
 //     log('saveSelectedVoice ' + this.value);
-//     localStorage.setItem(`selectedVoice_${this.dataset.lang}`, this.value);
+//     localStorage.setItem(`selectedVoice__${this.dataset.lang}`, this.value);
 //     voiceService.speak(testWord, this.dataset.lang);
 //    
 //
@@ -125,7 +128,7 @@ function handleVoiceChange(event) {
 // }
 // function loadVoiceSettings(language: string) {
 //     log('loadVoiceSettings');
-//     const savedVoiceName = localStorage.getItem('selectedVoice_' + language);
+//     const savedVoiceName = localStorage.getItem('selectedVoice__' + language);
 //     const voiceSelect = document.getElementById('voiceSelect') as HTMLSelectElement;
 //     if (savedVoiceName) {
 //         log('loadVoiceSettings savedVoiceName: ' + savedVoiceName);
@@ -150,10 +153,10 @@ function changeFontSize(change) {
     sendEvent('changeFontSize', 'game controls', 'change font size', { change: change, size: words[0].style.fontSize });
 }
 function saveFontSizeToLocal(fontSize) {
-    localStorage.setItem('fontSize', fontSize);
+    localStorage.setItem('_fontSize', fontSize);
 }
 function loadFontSize() {
-    const savedFontSize = localStorage.getItem('fontSize');
+    const savedFontSize = localStorage.getItem('_fontSize');
     if (savedFontSize) {
         const wordsElements = document.querySelectorAll('.word, .translation');
         wordsElements.forEach(word => {
@@ -272,8 +275,9 @@ document.addEventListener('DOMContentLoaded', function () {
             testSelectClone.addEventListener('change', function () {
                 document.body.removeChild(overlay);
                 originalTestSelect.value = this.value;
-                loadSelectedTest();
-                VoiceService.getInstance().speak('Welcome!', 'en', 1);
+                VoiceService.getInstance().speak('Hi There!', 'en', 1).then(() => {
+                    loadSelectedTest();
+                });
             });
         }
         else {

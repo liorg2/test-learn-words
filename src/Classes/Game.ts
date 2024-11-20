@@ -204,15 +204,18 @@ export class Game {
         event.preventDefault();
         this.draggedElementOriginal = event.target as HTMLElement;
         this.draggedElement = this.draggedElementOriginal.cloneNode(true) as HTMLElement;
-        document.body.appendChild(this.draggedElement);
-        this.draggedElement.style.position = 'fixed';
-        this.draggedElement.style.zIndex = '1000';
-        // this.draggedElement.style.border = '2px dashed red'; // Optional: add a dashed border
-        this.draggedElement.style.opacity = '0.5'; // Optional: make the clone semi-transparent
-        this.handleTouchMove(event); // Update position immediately
-        this.draggedElementOriginal.classList.add('dragging'); // Indicate original element is being dragged
+        VoiceService.getInstance().speak(this.draggedElement.textContent, language).then(() => {
 
-        VoiceService.getInstance().speak(this.draggedElement.textContent, language);
+            document.body.appendChild(this.draggedElement);
+            this.draggedElement.style.position = 'fixed';
+            this.draggedElement.style.zIndex = '1000';
+            // this.draggedElement.style.border = '2px dashed red'; // Optional: add a dashed border
+            this.draggedElement.style.opacity = '0.5'; // Optional: make the clone semi-transparent
+            this.handleTouchMove(event); // Update position immediately
+            this.draggedElement.classList.add('dragging'); // Indicate original element is being dragged
+        });
+
+
     }
 
     handleTouchCancel(event: TouchEvent) {
@@ -285,18 +288,19 @@ export class Game {
     }
 
     handleDragStart(event: DragEvent, language: string) {
-
         this.draggedElement = event.target as HTMLElement;
         this.draggedWord = this.draggedElement.textContent;
-        log('dragStart ' + this.draggedElement.textContent);
-        event.dataTransfer.setData("text", this.draggedElement.textContent);
-        document.querySelectorAll('.word').forEach(wordDiv => {
-            wordDiv.classList.remove('dragging');
-        });
-        this.draggedElement.classList.add('dragging');
+        VoiceService.getInstance().speak(this.draggedWord, language).then(() => {
 
-        
-        VoiceService.getInstance().speak(this.draggedWord, language);
+            log('dragStart ' + this.draggedElement.textContent);
+            event.dataTransfer.setData("text", this.draggedElement.textContent);
+            document.querySelectorAll('.word').forEach(wordDiv => {
+                wordDiv.classList.remove('dragging');
+            });
+            this.draggedElement.classList.add('dragging');
+        });
+
+
     }
 
     handleDragEnd(event: DragEvent) {
