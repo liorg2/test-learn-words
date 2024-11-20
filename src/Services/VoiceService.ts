@@ -48,6 +48,9 @@ export class VoiceService {
 
     private constructor() {
         this.voiceSelect = document.getElementById('voiceSelect') as HTMLSelectElement;
+        this.getVoices("en").then(() => {
+            log('voices loaded');
+        })
 
     }
 
@@ -72,33 +75,24 @@ export class VoiceService {
         let attempts = 0;
         const maxAttempts = 50;
 
-        const checkVoices = () => {
-            return new Promise<void>((resolve) => {
+        const checkVoices = (): Promise<void> => {
+            return new Promise((resolve) => {
+                setTimeout(() => {
                 const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith(`${language}-`));
-
-                const filteredVoices = voices.filter(voice => {
-                    return highQualityVoices.some(hqv => {
-                        return hqv.voiceURI === voice.voiceURI || hqv.name === voice.name || ["Google", "Microsoft"].some(v => voice.name.includes(v) || voice.voiceURI.includes(v));
-                    });
-                });
-                if (filteredVoices.length > 0) {
-                    this.VoicePerLanguage.set(language, filteredVoices);
+                    if (voices.length === 0 && attempts < maxAttempts) {
+                        attempts++;
+                        log('checkVoices will retry attempts: ' + attempts);
+                        resolve(checkVoices());  // Recursively resolve promise on retry
                 } else {
-                    this.VoicePerLanguage.set(language, voices); // Fallback to default browser voices if no match
-                }
-                console.table(filteredVoices);
-
-                if (this.VoicePerLanguage.get(language).length > 0 || attempts >= maxAttempts) {
+                        const filteredVoices = voices.filter(voice => highQualityVoices.some(hqv =>
+                            hqv.voiceURI === voice.voiceURI || hqv.name === voice.name || ["Google", "Microsoft"].some(v =>
+                                voice.name.includes(v) || voice.voiceURI.includes(v))));
+                        this.VoicePerLanguage.set(language, filteredVoices.length > 0 ? filteredVoices : voices);
+                        console.table(this.VoicePerLanguage.get(language));
                     log('checkVoices voices:  (' + language + ') - ' + filteredVoices.length + " /  total:" + voices.length);
-
-                    // Add default browser voice option
-
                     resolve();
-                } else {
-                    log('checkVoices will retry attempts: ' + attempts);
-                    attempts++;
-                    setTimeout(() => checkVoices(), 50);
                 }
+                }, 50);
             });
         };
 
@@ -167,7 +161,6 @@ export class VoiceService {
     }
 
     private cancelSpeak(): void {
-        clearTimeout(this.speakTimeout);
         speechSynthesis.cancel();
     }
 }

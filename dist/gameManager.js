@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function () {
             testSelectClone.addEventListener('change', function () {
                 document.body.removeChild(overlay);
                 originalTestSelect.value = this.value;
-                VoiceService.getInstance().speak('Hi There!', 'en', 1).then(() => {
+                VoiceService.getInstance().speak('Lets get started!', 'en', 1).then(() => {
                     loadSelectedTest();
                 });
             });

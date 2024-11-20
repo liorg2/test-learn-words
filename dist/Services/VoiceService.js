@@ -47,6 +47,9 @@ export class VoiceService {
         this.hasEnabledVoice = false;
         this.VoicePerLanguage = new Map();
         this.voiceSelect = document.getElementById('voiceSelect');
+        this.getVoices("en").then(() => {
+            log('voices loaded');
+        });
     }
     static getInstance() {
         if (!VoiceService.instance) {
@@ -65,28 +68,20 @@ export class VoiceService {
             const maxAttempts = 50;
             const checkVoices = () => {
                 return new Promise((resolve) => {
-                    const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith(`${language}-`));
-                    const filteredVoices = voices.filter(voice => {
-                        return highQualityVoices.some(hqv => {
-                            return hqv.voiceURI === voice.voiceURI || hqv.name === voice.name || ["Google", "Microsoft"].some(v => voice.name.includes(v) || voice.voiceURI.includes(v));
-                        });
-                    });
-                    if (filteredVoices.length > 0) {
-                        this.VoicePerLanguage.set(language, filteredVoices);
-                    } else {
-                        this.VoicePerLanguage.set(language, voices); // Fallback to default browser voices if no match
-                    }
-                    console.table(filteredVoices);
-                    if (this.VoicePerLanguage.get(language).length > 0 || attempts >= maxAttempts) {
-                        log('checkVoices voices:  (' + language + ') - ' + filteredVoices.length + " /  total:" + voices.length);
-                        // Add default browser voice option
-                        resolve();
-                    }
-                    else {
-                        log('checkVoices will retry attempts: ' + attempts);
-                        attempts++;
-                        setTimeout(() => checkVoices(), 50);
-                    }
+                    setTimeout(() => {
+                        const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith(`${language}-`));
+                        if (voices.length === 0 && attempts < maxAttempts) {
+                            attempts++;
+                            log('checkVoices will retry attempts: ' + attempts);
+                            resolve(checkVoices()); // Recursively resolve promise on retry
+                        } else {
+                            const filteredVoices = voices.filter(voice => highQualityVoices.some(hqv => hqv.voiceURI === voice.voiceURI || hqv.name === voice.name || ["Google", "Microsoft"].some(v => voice.name.includes(v) || voice.voiceURI.includes(v))));
+                            this.VoicePerLanguage.set(language, filteredVoices.length > 0 ? filteredVoices : voices);
+                            console.table(this.VoicePerLanguage.get(language));
+                            log('checkVoices voices:  (' + language + ') - ' + filteredVoices.length + " /  total:" + voices.length);
+                            resolve();
+                        }
+                    }, 50);
                 });
             };
             yield checkVoices();
@@ -141,7 +136,6 @@ export class VoiceService {
         });
     }
     cancelSpeak() {
-        clearTimeout(this.speakTimeout);
         speechSynthesis.cancel();
     }
 }
