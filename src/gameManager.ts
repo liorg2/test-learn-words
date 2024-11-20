@@ -111,7 +111,7 @@ function fillVoicesOptions(language: string, voices: SpeechSynthesisVoice[]) {
 
 
 function selectVoice(language: string) {
-    debugger
+
     const voiceSelect = document.getElementById('voiceSelect') as HTMLSelectElement;
     const savedVoiceName = localStorage.getItem('selectedVoice__' + language);
     if (savedVoiceName) {
@@ -341,9 +341,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.body.removeChild(overlay);
                 originalTestSelect.value = this.value;
 
-                VoiceService.getInstance().speak('Lets get started!', 'en', 1).then(() => {
-                    loadSelectedTest();
-                });
+                setTimeout(() => {
+                    VoiceService.getInstance().speak('Lets get started!', 'en', 1).then(() => {
+                        loadSelectedTest();
+                    });
+                }, 500);
 
 
             });

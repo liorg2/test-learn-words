@@ -101,7 +101,6 @@ function selectVoice(language) {
         voiceSelect.selectedIndex = 0;
     }
 }
-
 function initializeVoiceSelectEvents() {
     const voiceSelect = document.getElementById('voiceSelect');
     voiceSelect.addEventListener('change', handleVoiceChange);
@@ -279,9 +278,11 @@ document.addEventListener('DOMContentLoaded', function () {
             testSelectClone.addEventListener('change', function () {
                 document.body.removeChild(overlay);
                 originalTestSelect.value = this.value;
-                VoiceService.getInstance().speak('Lets get started!', 'en', 1).then(() => {
-                    loadSelectedTest();
-                });
+                setTimeout(() => {
+                    VoiceService.getInstance().speak('Lets get started!', 'en', 1).then(() => {
+                        loadSelectedTest();
+                    });
+                }, 500);
             });
         }
         else {
