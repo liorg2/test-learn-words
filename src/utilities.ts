@@ -13,16 +13,19 @@ export function updateUrlParam(key: string, value: string) {
 }
 
 
-export function log(msg) {
-    console.log(msg);
+export function log(msg: any) {
+    const now = new Date();
+    const timestamp = now.toISOString();
+    console.log(`${timestamp}: ${msg}`);
+
     if (new URLSearchParams(window.location.search).has('log')) {
         const logElement = document.getElementById('log');
         const p = document.createElement('p');
-        p.textContent = msg;
-        logElement.insertBefore(p, logElement.firstChild);
+        p.textContent = `${timestamp}: ${msg}`;
+        logElement.appendChild(p);
     }
-   
 }
+
 
 //guid is a class
 export function getGuid(): string | null {

@@ -106,11 +106,12 @@ function fillVoicesOptions(language: string, voices: SpeechSynthesisVoice[]) {
     });
 
     selectVoice(language);
-    initializeVoiceSelect();
+    initializeVoiceSelectEvents();
 }
 
 
 function selectVoice(language: string) {
+    debugger
     const voiceSelect = document.getElementById('voiceSelect') as HTMLSelectElement;
     const savedVoiceName = localStorage.getItem('selectedVoice__' + language);
     if (savedVoiceName) {
@@ -128,7 +129,7 @@ function selectVoice(language: string) {
     }
 }
 
-function initializeVoiceSelect() {
+function initializeVoiceSelectEvents() {
     const voiceSelect = document.getElementById('voiceSelect') as HTMLSelectElement;
     voiceSelect.addEventListener('change', handleVoiceChange);
 }

@@ -82,7 +82,7 @@ function fillVoicesOptions(language, voices) {
         }
     });
     selectVoice(language);
-    initializeVoiceSelect();
+    initializeVoiceSelectEvents();
 }
 function selectVoice(language) {
     const voiceSelect = document.getElementById('voiceSelect');
@@ -101,7 +101,8 @@ function selectVoice(language) {
         voiceSelect.selectedIndex = 0;
     }
 }
-function initializeVoiceSelect() {
+
+function initializeVoiceSelectEvents() {
     const voiceSelect = document.getElementById('voiceSelect');
     voiceSelect.addEventListener('change', handleVoiceChange);
 }

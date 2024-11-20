@@ -48,9 +48,9 @@ export class VoiceService {
 
     private constructor() {
         this.voiceSelect = document.getElementById('voiceSelect') as HTMLSelectElement;
-        this.getVoices("en").then(() => {
-            log('voices loaded');
-        })
+        // this.getVoices("en").then(() => {
+        //     log('voices loaded');
+        // })
 
     }
 
@@ -78,20 +78,20 @@ export class VoiceService {
         const checkVoices = (): Promise<void> => {
             return new Promise((resolve) => {
                 setTimeout(() => {
-                const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith(`${language}-`));
+                    const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith(`${language}-`));
                     if (voices.length === 0 && attempts < maxAttempts) {
                         attempts++;
                         log('checkVoices will retry attempts: ' + attempts);
                         resolve(checkVoices());  // Recursively resolve promise on retry
-                } else {
+                    } else {
                         const filteredVoices = voices.filter(voice => highQualityVoices.some(hqv =>
                             hqv.voiceURI === voice.voiceURI || hqv.name === voice.name || ["Google", "Microsoft"].some(v =>
                                 voice.name.includes(v) || voice.voiceURI.includes(v))));
                         this.VoicePerLanguage.set(language, filteredVoices.length > 0 ? filteredVoices : voices);
                         console.table(this.VoicePerLanguage.get(language));
-                    log('checkVoices voices:  (' + language + ') - ' + filteredVoices.length + " /  total:" + voices.length);
-                    resolve();
-                }
+                        log('checkVoices voices:  (' + language + ') - ' + filteredVoices.length + " /  total:" + voices.length);
+                        resolve();
+                    }
                 }, 50);
             });
         };
@@ -103,6 +103,7 @@ export class VoiceService {
 
 
     public speak(text: string, language: string, volume: number = 1): Promise<void> {
+        debugger
         return new Promise((resolve, reject) => {
             const speakerEnabled = localStorage.getItem('speakerEnabled');
 
@@ -113,16 +114,6 @@ export class VoiceService {
 
             this.getVoices(language).then(() => {
 
-
-                if (!this.hasEnabledVoice) {
-                    const lecture = new SpeechSynthesisUtterance('hello Lior');
-                    lecture.volume = 0;
-                    window.speechSynthesis.cancel();
-                    speechSynthesis.speak(lecture);
-                    this.hasEnabledVoice = true;
-                }
-
-                //   this.speakTimeout = setTimeout(() => {
                 const utterance = new SpeechSynthesisUtterance(text);
                 const selectedVoice = this.voiceSelect.value;// todo move th ui from here
                 const langVoices: SpeechSynthesisVoice[] = this.VoicePerLanguage.get(language) || [];
@@ -135,27 +126,29 @@ export class VoiceService {
                     }
                 } else {
                     // If no voice selected, use default and set language to ensure correct pronunciation
+                    debugger
                     let voice = langVoices.find(v => v.default)
                     if (!voice) {
                         voice = langVoices[0];
                     }
-                    utterance.voice = langVoices.find(v => v.default);
+                    utterance.voice = voice;
                     utterance.lang = voice.lang;
                 }
 
                 utterance.volume = volume;
 
-                this.cancelSpeak(); // must be called before speaking
+                this.cancelSpeak(); // must be called before speaking otherwise doesnt play..
 
 
                 window.speechSynthesis.speak(utterance);
-                resolve();
                 log('speak: ' + utterance.lang + ' ' + (utterance.voice?.name || 'default') + ' ' + text);
+                resolve();
+
             }).catch(error => {
                 reject(error);
                 log('speak error: ' + error);
             });
-            //  }, 500);
+
         });
 
     }
