@@ -86,10 +86,10 @@ export class VoiceService {
                 } else {
                     this.VoicePerLanguage.set(language, voices); // Fallback to default browser voices if no match
                 }
-                console.table(this.VoicePerLanguage.get(language));
+                console.table(filteredVoices);
 
                 if (this.VoicePerLanguage.get(language).length > 0 || attempts >= maxAttempts) {
-                    log('checkVoices voices: ' + voices.length);
+                    log('checkVoices voices:  (' + language + ') - ' + filteredVoices.length + " /  total:" + voices.length);
 
                     // Add default browser voice option
 
@@ -152,12 +152,14 @@ export class VoiceService {
                 utterance.volume = volume;
 
                 this.cancelSpeak(); // must be called before speaking
-                log('speak: ' + utterance.lang + ' ' + (utterance.voice?.name || 'default') + ' ' + text);
+
 
                 window.speechSynthesis.speak(utterance);
                 resolve();
+                log('speak: ' + utterance.lang + ' ' + (utterance.voice?.name || 'default') + ' ' + text);
             }).catch(error => {
                 reject(error);
+                log('speak error: ' + error);
             });
             //  }, 500);
         });
