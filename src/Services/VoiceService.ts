@@ -97,7 +97,7 @@ export class VoiceService {
                 } else {
                     log('checkVoices will retry attempts: ' + attempts);
                     attempts++;
-                    setTimeout(() => checkVoices().then(resolve), 50);
+                    setTimeout(() => checkVoices(), 50);
                 }
             });
         };
