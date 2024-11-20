@@ -48,9 +48,11 @@ export class VoiceService {
 
     private constructor() {
         this.voiceSelect = document.getElementById('voiceSelect') as HTMLSelectElement;
-        // this.getVoices("en").then(() => {
-        //     log('voices loaded');
-        // })
+        if ('onvoiceschanged' in speechSynthesis) {
+            speechSynthesis.addEventListener('voiceschanged', () => {
+                log('voiceschanged event');
+            });
+        }
 
     }
 
@@ -68,6 +70,14 @@ export class VoiceService {
             log('getVoices already loaded ' + language);
             return this.VoicePerLanguage.get(language);
         }
+        if (speechSynthesis.getVoices().length) {
+            const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith(`${language}-`));
+            const filteredVoices = voices.filter(voice => highQualityVoices.some(hqv =>
+                hqv.voiceURI === voice.voiceURI || hqv.name === voice.name || ["Google", "Microsoft"].some(v =>
+                    voice.name.includes(v) || voice.voiceURI.includes(v))));
+            this.VoicePerLanguage.set(language, filteredVoices.length > 0 ? filteredVoices : voices);
+            return this.VoicePerLanguage.get(language);
+        }
 
 
         log('getVoices ' + language);
@@ -75,28 +85,28 @@ export class VoiceService {
         let attempts = 0;
         const maxAttempts = 50;
 
-        const checkVoices = (): Promise<void> => {
+        const waitForVoices = (): Promise<void> => {
             return new Promise((resolve) => {
                 setTimeout(() => {
                     const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith(`${language}-`));
                     if (voices.length === 0 && attempts < maxAttempts) {
                         attempts++;
-                        log('checkVoices will retry attempts: ' + attempts);
-                        resolve(checkVoices());  // Recursively resolve promise on retry
+                        log('waitForVoices will retry attempts: ' + attempts);
+                        resolve(waitForVoices());  // Recursively resolve promise on retry
                     } else {
                         const filteredVoices = voices.filter(voice => highQualityVoices.some(hqv =>
                             hqv.voiceURI === voice.voiceURI || hqv.name === voice.name || ["Google", "Microsoft"].some(v =>
                                 voice.name.includes(v) || voice.voiceURI.includes(v))));
                         this.VoicePerLanguage.set(language, filteredVoices.length > 0 ? filteredVoices : voices);
                         console.table(this.VoicePerLanguage.get(language));
-                        log('checkVoices voices:  (' + language + ') - ' + filteredVoices.length + " /  total:" + voices.length);
+                        log('waitForVoices voices:  (' + language + ') - ' + filteredVoices.length + " /  total:" + voices.length);
                         resolve();
                     }
                 }, 50);
             });
         };
 
-        await checkVoices();
+        await waitForVoices();
 
         return this.VoicePerLanguage.get(language);
     }
@@ -126,7 +136,7 @@ export class VoiceService {
                 utterance.onstart = () => {
                     log('speak start ' + text);
                 }
-                
+
                 const selectedVoice = this.voiceSelect.value;// todo move th ui from here
                 const langVoices: SpeechSynthesisVoice[] = this.VoicePerLanguage.get(language) || [];
                 if (selectedVoice) {
@@ -138,7 +148,7 @@ export class VoiceService {
                     }
                 } else {
                     // If no voice selected, use default and set language to ensure correct pronunciation
-                
+
                     let voice = langVoices.find(v => v.default)
                     if (!voice) {
                         voice = langVoices[0];

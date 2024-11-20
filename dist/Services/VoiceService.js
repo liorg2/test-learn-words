@@ -47,9 +47,11 @@ export class VoiceService {
         this.hasEnabledVoice = false;
         this.VoicePerLanguage = new Map();
         this.voiceSelect = document.getElementById('voiceSelect');
-        // this.getVoices("en").then(() => {
-        //     log('voices loaded');
-        // })
+        if ('onvoiceschanged' in speechSynthesis) {
+            speechSynthesis.addEventListener('voiceschanged', () => {
+                log('voiceschanged event');
+            });
+        }
     }
     static getInstance() {
         if (!VoiceService.instance) {
@@ -63,28 +65,34 @@ export class VoiceService {
                 log('getVoices already loaded ' + language);
                 return this.VoicePerLanguage.get(language);
             }
+            if (speechSynthesis.getVoices().length > 0) {
+                const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith(`${language}-`));
+                const filteredVoices = voices.filter(voice => highQualityVoices.some(hqv => hqv.voiceURI === voice.voiceURI || hqv.name === voice.name || ["Google", "Microsoft"].some(v => voice.name.includes(v) || voice.voiceURI.includes(v))));
+                this.VoicePerLanguage.set(language, filteredVoices.length > 0 ? filteredVoices : voices);
+                return this.VoicePerLanguage.get(language);
+            }
             log('getVoices ' + language);
             let attempts = 0;
             const maxAttempts = 50;
-            const checkVoices = () => {
+            const waitForVoices = () => {
                 return new Promise((resolve) => {
                     setTimeout(() => {
                         const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith(`${language}-`));
                         if (voices.length === 0 && attempts < maxAttempts) {
                             attempts++;
-                            log('checkVoices will retry attempts: ' + attempts);
-                            resolve(checkVoices()); // Recursively resolve promise on retry
+                            log('waitForVoices will retry attempts: ' + attempts);
+                            resolve(waitForVoices()); // Recursively resolve promise on retry
                         } else {
                             const filteredVoices = voices.filter(voice => highQualityVoices.some(hqv => hqv.voiceURI === voice.voiceURI || hqv.name === voice.name || ["Google", "Microsoft"].some(v => voice.name.includes(v) || voice.voiceURI.includes(v))));
                             this.VoicePerLanguage.set(language, filteredVoices.length > 0 ? filteredVoices : voices);
                             console.table(this.VoicePerLanguage.get(language));
-                            log('checkVoices voices:  (' + language + ') - ' + filteredVoices.length + " /  total:" + voices.length);
+                            log('waitForVoices voices:  (' + language + ') - ' + filteredVoices.length + " /  total:" + voices.length);
                             resolve();
                         }
                     }, 50);
                 });
             };
-            yield checkVoices();
+            yield waitForVoices();
             return this.VoicePerLanguage.get(language);
         });
     }
