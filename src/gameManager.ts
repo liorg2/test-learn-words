@@ -312,15 +312,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Add change event to original select
         originalTestSelect.addEventListener('change', () => {
+            debugger
             VoiceService.getInstance().speak('Lets get started!', 'en', 1).then(() => {
                 loadSelectedTest();
             });
 
         });
         gameTypeSelect.addEventListener('change', () => {
+            debugger
             VoiceService.getInstance().speak('Lets get started!', 'en', 1).then(() => {
                 loadSelectedTest();
             });
+        });
 
         initSelectsByURL()
 
