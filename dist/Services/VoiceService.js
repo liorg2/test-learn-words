@@ -51,6 +51,8 @@ export class VoiceService {
             speechSynthesis.addEventListener('voiceschanged', () => {
                 log('voiceschanged event');
             });
+        } else {
+            log('voiceschanged not supported');
         }
     }
     static getInstance() {
@@ -65,13 +67,14 @@ export class VoiceService {
                 log('getVoices already loaded ' + language);
                 return this.VoicePerLanguage.get(language);
             }
-            if (speechSynthesis.getVoices().length > 0) {
+            if (speechSynthesis.getVoices().length) {
                 const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith(`${language}-`));
                 const filteredVoices = voices.filter(voice => highQualityVoices.some(hqv => hqv.voiceURI === voice.voiceURI || hqv.name === voice.name || ["Google", "Microsoft"].some(v => voice.name.includes(v) || voice.voiceURI.includes(v))));
                 this.VoicePerLanguage.set(language, filteredVoices.length > 0 ? filteredVoices : voices);
+                log('getVoices voices (loaded):  (' + language + ') - ' + filteredVoices.length + " /  total:" + voices.length);
                 return this.VoicePerLanguage.get(language);
             }
-            log('getVoices ' + language);
+            log('getVoices waiting .. ' + language);
             let attempts = 0;
             const maxAttempts = 50;
             const waitForVoices = () => {

@@ -52,6 +52,8 @@ export class VoiceService {
             speechSynthesis.addEventListener('voiceschanged', () => {
                 log('voiceschanged event');
             });
+        } else {
+            log('voiceschanged not supported');
         }
 
     }
@@ -76,11 +78,12 @@ export class VoiceService {
                 hqv.voiceURI === voice.voiceURI || hqv.name === voice.name || ["Google", "Microsoft"].some(v =>
                     voice.name.includes(v) || voice.voiceURI.includes(v))));
             this.VoicePerLanguage.set(language, filteredVoices.length > 0 ? filteredVoices : voices);
+            log('getVoices voices (loaded):  (' + language + ') - ' + filteredVoices.length + " /  total:" + voices.length);
             return this.VoicePerLanguage.get(language);
         }
 
 
-        log('getVoices ' + language);
+        log('getVoices waiting .. ' + language);
 
         let attempts = 0;
         const maxAttempts = 50;
