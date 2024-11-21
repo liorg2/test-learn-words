@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Function to generate a new date (for the version)
+generate_new_date() {
+    echo $(date +%Y-%m-T-%d-%H-%M-%S)
+}
+
+# Path to the HTML file
+target_file="game.html"
+
+# Generate a new date
+new_date=$(generate_new_date)
+
+# Echo the new version
+echo "New date for version: $new_date"
+
+# Regex to find and replace the date in the version pattern app_version-{date}
+sed -i "s/app_version-[0-9-]*T[0-9-]*/app_version-$new_date/" $target_file
+
+# Stage the updated HTML file
+git add $target_file
+
+# Inform the user
+echo "Date in version updated to $new_date in $target_file"
