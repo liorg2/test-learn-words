@@ -4,6 +4,7 @@ import {GameWord} from "../globalTypes.js";
 import {sendEvent} from "../analytics.js";
 import {VoiceService} from '../Services/VoiceService.js';
 
+//test commit
 export class Game {
     instructionsElement: HTMLElement;
     translationContainer: HTMLElement;
