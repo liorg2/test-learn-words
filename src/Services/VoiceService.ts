@@ -189,10 +189,13 @@ export class VoiceService {
 
                 this.cancelSpeak(); // must be called before speaking otherwise doesnt play..
 
+                setTimeout(() => {
+                    speechSynthesis.speak(utterance);
+                    log('speak: ' + utterance.lang + ' ' + (utterance.voice?.name || 'default') + ' ' + text);
+                    resolve();
+                }, 500);
 
-                window.speechSynthesis.speak(utterance);
-                log('speak: ' + utterance.lang + ' ' + (utterance.voice?.name || 'default') + ' ' + text);
-                resolve();
+               
 
             }).catch(error => {
                 reject(error);
