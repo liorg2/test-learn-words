@@ -48,6 +48,7 @@ export class VoiceService {
         this.VoicePerLanguage = new Map();
         this.voiceSelect = document.getElementById('voiceSelect');
         if ('onvoiceschanged' in speechSynthesis) {
+            log('voiceschanged supported');
             speechSynthesis.addEventListener('voiceschanged', () => {
                 log('voiceschanged event');
             });
@@ -67,7 +68,7 @@ export class VoiceService {
                 log('getVoices already loaded ' + language);
                 return this.VoicePerLanguage.get(language);
             }
-            if (speechSynthesis.getVoices().length) {
+            if (speechSynthesis.getVoices().length > 0) {
                 const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith(`${language}-`));
                 const filteredVoices = voices.filter(voice => highQualityVoices.some(hqv => hqv.voiceURI === voice.voiceURI || hqv.name === voice.name || ["Google", "Microsoft"].some(v => voice.name.includes(v) || voice.voiceURI.includes(v))));
                 this.VoicePerLanguage.set(language, filteredVoices.length > 0 ? filteredVoices : voices);
