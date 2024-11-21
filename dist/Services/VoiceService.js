@@ -47,13 +47,33 @@ export class VoiceService {
         this.hasEnabledVoice = false;
         this.VoicePerLanguage = new Map();
         this.voiceSelect = document.getElementById('voiceSelect');
+        // if ('onvoiceschanged' in speechSynthesis) {
+        //     log('voiceschanged supported');
+        //     speechSynthesis.addEventListener('voiceschanged', () => {
+        //         log('voiceschanged event');
+        //     });
+        // } else {
+        //     log('voiceschanged not supported');
+        // }
         if ('onvoiceschanged' in speechSynthesis) {
             log('voiceschanged supported');
-            speechSynthesis.addEventListener('voiceschanged', () => {
-                log('voiceschanged event');
-            });
+            speechSynthesis.onvoiceschanged = () => {
+                log('voiceschanged event triggered');
+                this.logVoices();
+            };
         } else {
             log('voiceschanged not supported');
+            this.logVoices(); // Directly log voices if the event is not supported
+        }
+    }
+
+    logVoices() {
+        const voices = speechSynthesis.getVoices();
+        log(`Available voices: ${voices.length}`);
+        if (voices.length > 0) {
+            log('Voices are loaded');
+        } else {
+            log('No voices are available');
         }
     }
     static getInstance() {
