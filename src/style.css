@@ -34,7 +34,6 @@ body {
     font-weight: 400;
 }
 
-
 .dragging {
     box-shadow: 0 0 10px 5px rgba(0, 123, 255, 0.5);
     border: 2px dashed #666;
@@ -508,7 +507,6 @@ button {
 
 .settings-link {
     padding: 1px;
-    xmargin-left: 10px; /* Space from adjacent controls */
     background-color: transparent; /* Button-like appearance */
     color: #2c3e50;
     border-radius: 50%; /* Circular shape */
@@ -519,6 +517,7 @@ button {
     align-items: center; /* Center icon vertically */
     text-decoration: none;
     transition: background-color 0.3s;
+    cursor: pointer;
 }
 
 .settings-link:hover {

@@ -212,7 +212,15 @@ document.addEventListener('click', function (event) {
         menu.classList.remove('active'); // Hide the menu
     }
 });
-let speakerEnabled = true; // Initially disabled
+let speakerEnabled = false; // Initially disabled
+function updateSpeakerIcon() {
+    const toggleSpeakerBtn = document.getElementById('toggleSpeakerBtn');
+    if (speakerEnabled) {
+        toggleSpeakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+    } else {
+        toggleSpeakerBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+    }
+}
 document.addEventListener('DOMContentLoaded', function () {
     log('DOMContentLoaded innerWidth= ' + window.innerWidth);
     const originalTestSelect = document.getElementById('testSelect');
@@ -232,19 +240,13 @@ document.addEventListener('DOMContentLoaded', function () {
         localStorage.setItem('speakerEnabled', speakerEnabled.toString());
         updateSpeakerIcon();
         if (speakerEnabled) {
-            VoiceService.getInstance().speak('Hello', 'en', 0);
+            VoiceService.getInstance().speak('Hi There', 'en', 1).then(() => {
+                log('speak enabled');
+            });
         }
     });
     if (new URLSearchParams(window.location.search).has('log')) {
         document.getElementById('log').style.display = 'block';
-    }
-    function updateSpeakerIcon() {
-        if (speakerEnabled) {
-            toggleSpeakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
-        }
-        else {
-            toggleSpeakerBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
-        }
     }
     // Initialize icon state on load
     updateSpeakerIcon();
@@ -255,18 +257,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // Populate both dropdowns
     populateTestSelect(originalTestSelect, function () {
         // Add change event to original select
-        originalTestSelect.addEventListener('change', () => {
-            debugger;
-            VoiceService.getInstance().speak('Lets get started!', 'en', 1).then(() => {
-                loadSelectedTest();
-            });
-        });
-        gameTypeSelect.addEventListener('change', () => {
-            debugger;
-            VoiceService.getInstance().speak('Lets get started!', 'en', 1).then(() => {
-                loadSelectedTest();
-            });
-        });
+        originalTestSelect.addEventListener('change', loadSelectedTest);
+        gameTypeSelect.addEventListener('change', loadSelectedTest);
         initSelectsByURL();
         if (window.innerWidth <= 1200) {
             const overlay = document.getElementById("overlay-start");
