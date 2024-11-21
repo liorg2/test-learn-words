@@ -66,7 +66,6 @@ export class VoiceService {
             this.logVoices(); // Directly log voices if the event is not supported
         }
     }
-
     logVoices() {
         const voices = speechSynthesis.getVoices();
         log(`Available voices: ${voices.length}`);
