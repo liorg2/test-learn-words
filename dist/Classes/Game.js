@@ -2,7 +2,6 @@ import { log, shuffleArray } from "../utilities.js";
 import { GameType } from "../enums.js";
 import { sendEvent } from "../analytics.js";
 import { VoiceService } from '../Services/VoiceService.js';
-
 //test commit
 export class Game {
     constructor(words, language) {
