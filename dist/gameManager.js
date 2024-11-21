@@ -255,38 +255,43 @@ document.addEventListener('DOMContentLoaded', function () {
     // Populate both dropdowns
     populateTestSelect(originalTestSelect, function () {
         // Add change event to original select
-        originalTestSelect.addEventListener('change', loadSelectedTest);
-        gameTypeSelect.addEventListener('change', loadSelectedTest);
-        initSelectsByURL();
-        if (window.innerWidth <= 1200) {
-            const overlay = document.getElementById("overlay-start");
-            overlay.style.display = "flex";
-            // Clone the populated select
-            const testSelectClone = originalTestSelect.cloneNode(true);
-            testSelectClone.removeAttribute('id');
-            testSelectClone.id = 'testSelectClone';
-            // Add empty option only to clone
-            let emptyOption = document.createElement('option');
-            emptyOption.value = "";
-            emptyOption.textContent = "בחירת הכתבה";
-            testSelectClone.insertBefore(emptyOption, testSelectClone.firstChild);
-            testSelectClone.selectedIndex = 0;
-            testSelectClone.style.fontSize = '20px';
-            // Create a control panel on the overlay
-            const overlayControl = document.getElementById("overlay-control");
-            overlayControl.appendChild(testSelectClone);
-            testSelectClone.addEventListener('change', function () {
-                document.body.removeChild(overlay);
-                originalTestSelect.value = this.value;
-                setTimeout(() => {
-                    VoiceService.getInstance().speak('Lets get started!', 'en', 1).then(() => {
+        originalTestSelect.addEventListener('change', () => {
+            VoiceService.getInstance().speak('Lets get started!', 'en', 1).then(() => {
+                loadSelectedTest();
+            });
+        });
+        gameTypeSelect.addEventListener('change', () => {
+            VoiceService.getInstance().speak('Lets get started!', 'en', 1).then(() => {
+                loadSelectedTest();
+            });
+            initSelectsByURL();
+            if (window.innerWidth <= 1200) {
+                const overlay = document.getElementById("overlay-start");
+                overlay.style.display = "flex";
+                // Clone the populated select
+                const testSelectClone = originalTestSelect.cloneNode(true);
+                testSelectClone.removeAttribute('id');
+                testSelectClone.id = 'testSelectClone';
+                // Add empty option only to clone
+                let emptyOption = document.createElement('option');
+                emptyOption.value = "";
+                emptyOption.textContent = "בחירת הכתבה";
+                testSelectClone.insertBefore(emptyOption, testSelectClone.firstChild);
+                testSelectClone.selectedIndex = 0;
+                testSelectClone.style.fontSize = '20px';
+                // Create a control panel on the overlay
+                const overlayControl = document.getElementById("overlay-control");
+                overlayControl.appendChild(testSelectClone);
+                testSelectClone.addEventListener('change', function () {
+                    document.body.removeChild(overlay);
+                    originalTestSelect.value = this.value;
+                    VoiceService.getInstance().speak('Lets get started!', 'en', 0).then(() => {
                         loadSelectedTest();
                     });
-                }, 500);
-            });
-        }
-        else {
-            loadSelectedTest();
-        }
+                });
+            } else {
+                loadSelectedTest();
+            }
+        });
     });
 });

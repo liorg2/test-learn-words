@@ -82,7 +82,7 @@ export class VoiceService {
         }
     }
 
-   
+
     public static getInstance(): VoiceService {
         if (!VoiceService.instance) {
             VoiceService.instance = new VoiceService();
@@ -189,13 +189,11 @@ export class VoiceService {
 
                 this.cancelSpeak(); // must be called before speaking otherwise doesnt play..
 
-                setTimeout(() => {
-                    speechSynthesis.speak(utterance);
-                    log('speak: ' + utterance.lang + ' ' + (utterance.voice?.name || 'default') + ' ' + text);
-                    resolve();
-                }, 500);
 
-               
+                speechSynthesis.speak(utterance);
+                log('speak: ' + utterance.lang + ' ' + (utterance.voice?.name || 'default') + ' ' + text);
+                resolve();
+
 
             }).catch(error => {
                 reject(error);

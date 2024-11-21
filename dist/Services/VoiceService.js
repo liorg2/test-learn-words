@@ -127,6 +127,7 @@ export class VoiceService {
                 resolve();
             }
             this.getVoices(language).then(() => {
+                var _a;
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.onerror = (event) => {
                     log('speak error: ' + event.error + ' ' + text);
@@ -157,12 +158,9 @@ export class VoiceService {
                 }
                 utterance.volume = volume;
                 this.cancelSpeak(); // must be called before speaking otherwise doesnt play..
-                setTimeout(() => {
-                    var _a;
-                    speechSynthesis.speak(utterance);
-                    log('speak: ' + utterance.lang + ' ' + (((_a = utterance.voice) === null || _a === void 0 ? void 0 : _a.name) || 'default') + ' ' + text);
-                    resolve();
-                }, 500);
+                speechSynthesis.speak(utterance);
+                log('speak: ' + utterance.lang + ' ' + (((_a = utterance.voice) === null || _a === void 0 ? void 0 : _a.name) || 'default') + ' ' + text);
+                resolve();
             }).catch(error => {
                 reject(error);
                 log('speak error: ' + error);

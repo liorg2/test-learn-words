@@ -311,8 +311,16 @@ document.addEventListener('DOMContentLoaded', function () {
     populateTestSelect(originalTestSelect, function () {
 
         // Add change event to original select
-        originalTestSelect.addEventListener('change', loadSelectedTest);
-        gameTypeSelect.addEventListener('change', loadSelectedTest);
+        originalTestSelect.addEventListener('change', () => {
+            VoiceService.getInstance().speak('Lets get started!', 'en', 1).then(() => {
+                loadSelectedTest();
+            });
+
+        });
+        gameTypeSelect.addEventListener('change', () => {
+            VoiceService.getInstance().speak('Lets get started!', 'en', 1).then(() => {
+                loadSelectedTest();
+            });
 
         initSelectsByURL()
 
@@ -341,11 +349,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.body.removeChild(overlay);
                 originalTestSelect.value = this.value;
 
-                setTimeout(() => {
-                    VoiceService.getInstance().speak('Lets get started!', 'en', 1).then(() => {
-                        loadSelectedTest();
-                    });
-                }, 500);
+
+                VoiceService.getInstance().speak('Lets get started!', 'en', 0).then(() => {
+                    loadSelectedTest();
+                });
 
 
             });
