@@ -548,10 +548,12 @@ button {
     color: white;
     background-color: #000;
     font-size: 11px;
-    padding: 10px;
-    line-height: 5px;
+    xline-height: 5px;
     display: none;
     width: 100%;
     min-height: 500px;
     text-align: left;
+    padding: 0;
+    margin: 0;
+    
 }

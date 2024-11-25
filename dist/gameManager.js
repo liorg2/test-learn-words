@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function () {
     toggleSpeakerBtn.addEventListener('click', function () {
         log('toggleSpeakerBtn clicked speakerEnabled= ' + speakerEnabled);
         speakerEnabled = !speakerEnabled; // Toggle the state
-        localStorage.setItem('speakerEnabled', speakerEnabled.toString());
+        sessionStorage.setItem('speakersEnabled', speakerEnabled.toString());
         updateSpeakerIcon();
         if (speakerEnabled) {
             VoiceService.getInstance().speak('Hi There', 'en', 1).then(() => {
@@ -260,32 +260,42 @@ document.addEventListener('DOMContentLoaded', function () {
         originalTestSelect.addEventListener('change', loadSelectedTest);
         gameTypeSelect.addEventListener('change', loadSelectedTest);
         initSelectsByURL();
-        if (window.innerWidth <= 1200) {
-            const overlay = document.getElementById("overlay-start");
-            overlay.style.display = "flex";
-            // Clone the populated select
-            const testSelectClone = originalTestSelect.cloneNode(true);
-            testSelectClone.removeAttribute('id');
-            testSelectClone.id = 'testSelectClone';
-            // Add empty option only to clone
-            let emptyOption = document.createElement('option');
-            emptyOption.value = "";
-            emptyOption.textContent = "בחירת הכתבה";
-            testSelectClone.insertBefore(emptyOption, testSelectClone.firstChild);
-            testSelectClone.selectedIndex = 0;
-            testSelectClone.style.fontSize = '20px';
-            // Create a control panel on the overlay
-            const overlayControl = document.getElementById("overlay-control");
-            overlayControl.appendChild(testSelectClone);
-            testSelectClone.addEventListener('change', function () {
-                document.body.removeChild(overlay);
-                originalTestSelect.value = this.value;
-                VoiceService.getInstance().speak('Lets get started!', 'en', 0).then(() => {
-                    loadSelectedTest();
-                });
-            });
-        } else {
-            loadSelectedTest();
-        }
+        loadSelectedTest();
+        // if (window.innerWidth <= 1200) {
+        //     const overlay = document.getElementById("overlay-start");
+        //     overlay.style.display = "flex";
+        //
+        //     // Clone the populated select
+        //     const testSelectClone = originalTestSelect.cloneNode(true) as HTMLSelectElement;
+        //     testSelectClone.removeAttribute('id');
+        //     testSelectClone.id = 'testSelectClone';
+        //
+        //     // Add empty option only to clone
+        //     let emptyOption = document.createElement('option');
+        //     emptyOption.value = "";
+        //     emptyOption.textContent = "בחירת הכתבה";
+        //     testSelectClone.insertBefore(emptyOption, testSelectClone.firstChild);
+        //     testSelectClone.selectedIndex = 0;
+        //     testSelectClone.style.fontSize = '20px';
+        //
+        //     // Create a control panel on the overlay
+        //     const overlayControl = document.getElementById("overlay-control");
+        //     overlayControl.appendChild(testSelectClone);
+        //
+        //     testSelectClone.addEventListener('change', function () {
+        //         document.body.removeChild(overlay);
+        //         originalTestSelect.value = this.value;
+        //
+        //
+        //         VoiceService.getInstance().speak('Lets get started!', 'en', 0).then(() => {
+        //             loadSelectedTest();
+        //         });
+        //
+        //
+        //     });
+        // } else {
+        //
+        //     loadSelectedTest();
+        // }
     });
 });

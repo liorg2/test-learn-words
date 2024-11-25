@@ -70,7 +70,7 @@ export class VoiceService {
         const voices = speechSynthesis.getVoices();
         log(`Available voices: ${voices.length}`);
         if (voices.length > 0) {
-            log('Voices are loaded');
+            log('Voices are loaded: ' + voices.map(v => v.name + "-" + v.lang).join(', '));
         } else {
             log('No voices are available');
         }
@@ -88,7 +88,7 @@ export class VoiceService {
                 return this.VoicePerLanguage.get(language);
             }
             if (speechSynthesis.getVoices().length > 0) {
-                const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith(`${language}-`));
+                const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith(`${language}`));
                 const filteredVoices = voices.filter(voice => highQualityVoices.some(hqv => hqv.voiceURI === voice.voiceURI || hqv.name === voice.name || ["Google", "Microsoft"].some(v => voice.name.includes(v) || voice.voiceURI.includes(v))));
                 this.VoicePerLanguage.set(language, filteredVoices.length > 0 ? filteredVoices : voices);
                 log('getVoices voices (loaded):  (' + language + ') - ' + filteredVoices.length + " /  total:" + voices.length);
@@ -100,16 +100,17 @@ export class VoiceService {
             const waitForVoices = () => {
                 return new Promise((resolve) => {
                     setTimeout(() => {
-                        const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith(`${language}-`));
-                        if (voices.length === 0 && attempts < maxAttempts) {
+                        let all = speechSynthesis.getVoices();
+                        const langVoices = all.filter(v => v.lang.startsWith(`${language}`));
+                        if (all.length === 0 && attempts < maxAttempts) {
                             attempts++;
                             log('waitForVoices will retry attempts: ' + attempts);
                             resolve(waitForVoices()); // Recursively resolve promise on retry
                         } else {
-                            const filteredVoices = voices.filter(voice => highQualityVoices.some(hqv => hqv.voiceURI === voice.voiceURI || hqv.name === voice.name || ["Google", "Microsoft"].some(v => voice.name.includes(v) || voice.voiceURI.includes(v))));
-                            this.VoicePerLanguage.set(language, filteredVoices.length > 0 ? filteredVoices : voices);
+                            const filteredVoices = langVoices.filter(voice => highQualityVoices.some(hqv => hqv.voiceURI === voice.voiceURI || hqv.name === voice.name || ["Google", "Microsoft"].some(v => voice.name.includes(v) || voice.voiceURI.includes(v))));
+                            this.VoicePerLanguage.set(language, filteredVoices.length > 0 ? filteredVoices : langVoices);
                             console.table(this.VoicePerLanguage.get(language));
-                            log('waitForVoices voices:  (' + language + ') - ' + filteredVoices.length + " /  total:" + voices.length);
+                            log('waitForVoices langVoices:  (' + language + ') - ' + filteredVoices.length + " /  total:" + langVoices.length);
                             resolve();
                         }
                     }, 50);
@@ -121,7 +122,7 @@ export class VoiceService {
     }
     speak(text, language, volume = 1) {
         return new Promise((resolve, reject) => {
-            const speakerEnabled = localStorage.getItem('speakerEnabled');
+            const speakerEnabled = sessionStorage.getItem('speakersEnabled');
             if (speakerEnabled === 'false') {
                 log('speak disabled'); // by default true if not set
                 resolve();
@@ -150,11 +151,13 @@ export class VoiceService {
                 } else {
                     // If no voice selected, use default and set language to ensure correct pronunciation
                     let voice = langVoices.find(v => v.default);
-                    if (!voice) {
+                    if (!voice && langVoices.length > 0) {
                         voice = langVoices[0];
                     }
-                    utterance.voice = voice;
-                    utterance.lang = voice.lang;
+                    if (voice) {
+                        utterance.voice = voice;
+                        utterance.lang = voice.lang;
+                    }
                 }
                 utterance.volume = volume;
                 this.cancelSpeak(); // must be called before speaking otherwise doesnt play..
