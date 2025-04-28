@@ -3,6 +3,7 @@ import {GameType} from "../enums.js";
 import {GameWord} from "../globalTypes.js";
 import {sendEvent} from "../analytics.js";
 import {VoiceService} from '../Services/VoiceService.js';
+import {SoundService} from '../Services/SoundService.js';
 
 //test commit
 export class Game {
@@ -12,6 +13,7 @@ export class Game {
     words: GameWord[];
     score = 0;
     failures = 0;
+    lives = 10;
     language: string;
 
     hasEnabledVoice = false;
@@ -21,6 +23,7 @@ export class Game {
     draggedElementOriginal: HTMLElement | null = null;
     draggedWord: string | null = null;
 
+    startTime: number;
 
     constructor(words: GameWord[], language: string) {
         this.language = language;
@@ -32,6 +35,13 @@ export class Game {
         this.translationContainer.innerHTML = '';
         document.getElementById('scoreDisplay').textContent = `${this.score}`;
         document.getElementById('numFailures')!.textContent = `${this.failures}`;
+        document.getElementById('livesDisplay')!.textContent = `${this.lives}`;
+
+        // Re-enable game area
+        const gameArea = document.querySelector('.game-area');
+        gameArea.classList.remove('disabled');
+
+        this.startTime = Date.now();
 
         this.bindEventHandlers();
     }
@@ -81,17 +91,32 @@ export class Game {
         document.getElementById('scoreDisplay').textContent = `${this.score}`;
 
         if (this.score === this.words.length) {
-
-            const statusMessage = document.getElementById('statusMessage');
-            statusMessage.textContent = "המשחק הסתיים בהצלחה!"; // Set message text
+            // const statusMessage = document.getElementById('statusMessage');
+            // statusMessage.textContent = "המשחק הסתיים בהצלחה!"; // Set message text
             sendEvent('game over success', 'game controls', 'game over', {score: this.score, failures: this.failures});
-            statusMessage.classList.add('show');
+            // statusMessage.classList.add('show');
+
+            // Show new game buttons
+            const newGameBtn = document.getElementById('newGameBtn');
+            const newGameBtnBottom = document.getElementById('newGameBtnBottom');
+            newGameBtn.style.display = 'inline-block';
+            newGameBtnBottom.style.display = 'block';
+            newGameBtn.classList.add('blink-once');
+            newGameBtnBottom.classList.add('blink-once');
+
+            // No longer disable game area
+            // const gameArea = document.querySelector('.game-area');
+            // gameArea.classList.add('disabled');
+
+            // Play success game over sound instead of regular game over sound
+            SoundService.getInstance().playGameOverSuccessSound();
 
             // Use setTimeout to allow the browser to redraw, then re-add the show class
-            setTimeout(() => {
-                statusMessage.classList.remove('show');
-            }, 4000); // Short delay
+            // setTimeout(() => {
+            //     statusMessage.classList.remove('show');
+            // }, 4000); // Short delay
             this.showConfetti();
+            this.showSummaryCard(true);
         }
     }
 
@@ -99,6 +124,46 @@ export class Game {
         log('updateFailures ' + newVal);
         this.failures = newVal;
         document.getElementById('numFailures')!.textContent = newVal.toString();
+
+        // Update lives
+        this.lives = Math.max(0, 10 - newVal);
+        const livesDisplay = document.getElementById('livesDisplay')!;
+        livesDisplay.textContent = `${this.lives}`;
+
+        // Add visual feedback when lives change
+        livesDisplay.classList.add('blink-once');
+        setTimeout(() => {
+            livesDisplay.classList.remove('blink-once');
+        }, 300);
+
+        // Check for game over when lives reach 0
+        if (this.lives <= 0) {
+            // const statusMessage = document.getElementById('statusMessage');
+            // statusMessage.textContent = "המשחק הסתיים! נסה שוב!"; // Game over message
+            sendEvent('game over failure', 'game controls', 'game over', {score: this.score, failures: this.failures});
+            // statusMessage.classList.add('show');
+
+            // Show new game buttons
+            const newGameBtn = document.getElementById('newGameBtn');
+            const newGameBtnBottom = document.getElementById('newGameBtnBottom');
+            newGameBtn.style.display = 'inline-block';
+            newGameBtnBottom.style.display = 'block';
+            // newGameBtn.classList.add('blink-once');
+            // newGameBtnBottom.classList.add('blink-once');
+
+            // No longer disable game area
+            // const gameArea = document.querySelector('.game-area');
+            // gameArea.classList.add('disabled');
+
+            // Play game over sound
+            SoundService.getInstance().playGameOverSound();
+
+            // Use setTimeout to allow the browser to redraw, then re-add the show class
+            // setTimeout(() => {
+            //     statusMessage.classList.remove('show');
+            // }, 4000); // Short delay
+            this.showSummaryCard(false);
+        }
     }
 
     showConfetti() {
@@ -121,9 +186,8 @@ export class Game {
     }
 
     checkCorrectness(dropTarget: HTMLElement) {
-        const gameTypeSelect = document.getElementById('gameTypeSelect') as HTMLSelectElement;
-
-        const gameType = gameTypeSelect.value;
+        const activeTab = document.querySelector('.game-type-tab.active') as HTMLElement;
+        const gameType = activeTab ? activeTab.getAttribute('data-game-type') : null;
         log(`Checking correctness: Dragged [${this.draggedElement.textContent}], Target [${dropTarget.textContent}], Game Type [${gameType}]`);
 
         if (gameType === GameType.TRANSLATION) {
@@ -154,6 +218,7 @@ export class Game {
         const wordDiv = document.createElement('div');
         wordDiv.className = 'word';
         wordDiv.textContent = word.text;
+        wordDiv.dataset.translation = word.translation;
         wordDiv.draggable = true;
         wordDiv.addEventListener('dragstart', (event) => this.handleDragStart(event, language));
         wordDiv.addEventListener('dragend', this.handleDragEnd);
@@ -186,7 +251,6 @@ export class Game {
 
         if (!this.draggedElement) return;
 
-
         const dropTarget = event.target as HTMLElement;
         if (dropTarget.classList.contains('translation')) {
             dropTarget.classList.remove('highlight');
@@ -195,8 +259,6 @@ export class Game {
         if (dropTarget.classList.contains('translation')) {
             const isCorrect = this.checkCorrectness(dropTarget);
             this.handleAnswer(dropTarget, isCorrect, this.draggedElement);
-
-
         }
         this.resetDraggedElement();
     }
@@ -206,17 +268,13 @@ export class Game {
         this.draggedElementOriginal = event.target as HTMLElement;
         this.draggedElement = this.draggedElementOriginal.cloneNode(true) as HTMLElement;
         VoiceService.getInstance().speak(this.draggedElement.textContent, language).then(() => {
-
             document.body.appendChild(this.draggedElement);
             this.draggedElement.style.position = 'fixed';
             this.draggedElement.style.zIndex = '1000';
-            // this.draggedElement.style.border = '2px dashed red'; // Optional: add a dashed border
-            this.draggedElement.style.opacity = '0.5'; // Optional: make the clone semi-transparent
-            this.handleTouchMove(event); // Update position immediately
-            this.draggedElement.classList.add('dragging'); // Indicate original element is being dragged
+            this.draggedElement.style.opacity = '0.5';
+            this.handleTouchMove(event);
+            this.draggedElement.classList.add('dragging');
         });
-
-
     }
 
     handleTouchCancel(event: TouchEvent) {
@@ -292,7 +350,6 @@ export class Game {
         this.draggedElement = event.target as HTMLElement;
         this.draggedWord = this.draggedElement.textContent;
         VoiceService.getInstance().speak(this.draggedWord, language).then(() => {
-
             log('dragStart ' + this.draggedElement.textContent);
             event.dataTransfer.setData("text", this.draggedElement.textContent);
             document.querySelectorAll('.word').forEach(wordDiv => {
@@ -300,8 +357,6 @@ export class Game {
             });
             this.draggedElement.classList.add('dragging');
         });
-
-
     }
 
     handleDragEnd(event: DragEvent) {
@@ -321,10 +376,19 @@ export class Game {
     }
 
     handleAnswer(targetEl: HTMLElement, isCorrect: boolean, wordElement: HTMLElement) {
-        const gameType = (document.getElementById('gameTypeSelect') as HTMLSelectElement).value as typeof GameType[keyof typeof GameType];
+        const activeTab2 = document.querySelector('.game-type-tab.active') as HTMLElement;
+        const gameType2 = activeTab2 ? (activeTab2.getAttribute('data-game-type') as typeof GameType[keyof typeof GameType]) : null;
         const self = this;
         log('handleAnswer ' + targetEl.textContent + ' ' + wordElement.textContent + ' ' + isCorrect);
         const blinkClass = isCorrect ? 'blink-correct' : 'blink-incorrect';
+
+        // Play sound effect
+        const soundService = SoundService.getInstance();
+        if (isCorrect) {
+            soundService.playCorrectSound();
+        } else {
+            soundService.playIncorrectSound();
+        }
 
         sendEvent('handleAnswer', 'game controls', 'answer', {
             target: targetEl.textContent,
@@ -338,15 +402,15 @@ export class Game {
             targetEl.removeEventListener('animationend', onAnimationEnd);
             if (isCorrect) {
                 wordElement.classList.add('correct');
-                if (gameType === GameType.TRANSLATION) {
-                    targetEl.style.transition = 'opacity 0.5s, transform 0.5s';
+                if (gameType2 === GameType.TRANSLATION) {
+                    targetEl.style.transition = 'opacity 0.3s, transform 0.3s';
                     targetEl.style.opacity = '0';
                     targetEl.style.transform = 'scale(0)';
                     targetEl.addEventListener('transitionend', function onTransitionEnd() {
                         targetEl.style.display = 'none';
                         targetEl.removeEventListener('transitionend', onTransitionEnd);
                     });
-                } else if (gameType === GameType.MISSING_WORD) {
+                } else if (gameType2 === GameType.MISSING_WORD) {
                     self.renderTarget();
                 }
             }
@@ -358,7 +422,7 @@ export class Game {
             wordElement.classList.remove(blinkClass);
             wordElement.removeEventListener('animationend', onAnimationEnd);
             if (isCorrect) {
-                wordElement.style.transition = 'opacity 0.5s, transform 0.5s';
+                wordElement.style.transition = 'opacity 0.3s, transform 0.3s';
                 wordElement.style.opacity = '0';
                 wordElement.style.transform = 'scale(0)';
                 wordElement.addEventListener('transitionend', function onTransitionEnd() {
@@ -376,5 +440,124 @@ export class Game {
         }
     }
 
+    showSummaryCard(success: boolean) {
+        // Hide word and translation containers
+        this.wordContainer.style.display = 'none';
+        this.translationContainer.style.display = 'none';
+        // Hide the separator if present
+        const separator = document.querySelector('.separator') as HTMLElement;
+        if (separator) separator.style.display = 'none';
 
+        // Get or create the summary card
+        let summaryCard = document.getElementById('summaryCard');
+        if (!summaryCard) {
+            summaryCard = document.createElement('div');
+            summaryCard.id = 'summaryCard';
+            summaryCard.className = 'summary-card';
+            // Insert as first child of .game-area
+            const gameArea = document.querySelector('.game-area');
+            if (gameArea) {
+                gameArea.insertBefore(summaryCard, gameArea.firstChild);
+            } else {
+                document.body.appendChild(summaryCard);
+            }
+        }
+        
+        // Clear existing content
+        summaryCard.innerHTML = '';
+        
+        // Create card content
+        const totalTime = Math.round((Date.now() - this.startTime) / 1000);
+        
+        // Add heading
+        const heading = document.createElement('h2');
+        heading.textContent = 'סיכום משחק';
+        summaryCard.appendChild(heading);
+        
+        // Add time info
+        const timeDiv = document.createElement('div');
+        timeDiv.innerHTML = `⏱️ זמן: <b>${totalTime} שניות</b>`;
+        summaryCard.appendChild(timeDiv);
+        
+        // Add errors info
+        const errorsDiv = document.createElement('div');
+        errorsDiv.innerHTML = `❌ שגיאות: <b>${this.failures}</b>`;
+        summaryCard.appendChild(errorsDiv);
+        
+        // Add score info
+        const scoreDiv = document.createElement('div');
+        scoreDiv.innerHTML = `✅ ניקוד: <b>${this.score}</b>`;
+        summaryCard.appendChild(scoreDiv);
+        
+        // Add the new game button
+        const newGameBtnBottom = document.getElementById('newGameBtnBottom');
+        if (newGameBtnBottom) {
+            newGameBtnBottom.style.display = 'block';
+            newGameBtnBottom.classList.add('summary-new-game-btn');
+            
+            // Clear existing event listeners by cloning
+            const newBtn = newGameBtnBottom.cloneNode(true) as HTMLElement;
+            newBtn.id = newGameBtnBottom.id;
+            if (newGameBtnBottom.parentNode) {
+                newGameBtnBottom.parentNode.replaceChild(newBtn, newGameBtnBottom);
+            }
+            
+            // Add to summary card
+            summaryCard.appendChild(newBtn);
+            
+            // Add event listener
+            newBtn.addEventListener('click', () => {
+                Game.hideSummaryCardAndShowContainersStatic();
+                newBtn.style.display = 'none';
+                if (typeof window['loadSelectedTest'] === 'function') {
+                    window['loadSelectedTest']();
+                } else {
+                    window.location.reload();
+                }
+            });
+        }
+        
+        // Show the card
+        summaryCard.style.display = 'block';
+    }
+
+    hideSummaryCardAndShowContainers() {
+        // Show word and translation containers
+        this.wordContainer.style.display = '';
+        this.translationContainer.style.display = '';
+        // Show the separator if present
+        const separator = document.querySelector('.separator') as HTMLElement;
+        if (separator) separator.style.display = '';
+        // Hide summary card
+        const summaryCard = document.getElementById('summaryCard');
+        if (summaryCard) summaryCard.style.display = 'none';
+        // Move newGameBtnBottom back after game area if needed
+        const newGameBtnBottom = document.getElementById('newGameBtnBottom');
+        const gameArea = document.querySelector('.game-area');
+        if (newGameBtnBottom && gameArea && !gameArea.nextSibling?.isSameNode(newGameBtnBottom)) {
+            newGameBtnBottom.classList.remove('summary-new-game-btn');
+            gameArea.parentNode.insertBefore(newGameBtnBottom, gameArea.nextSibling);
+        }
+    }
+
+    static hideSummaryCardAndShowContainersStatic() {
+        // Show word and translation containers
+        const wordContainer = document.getElementById('wordContainer');
+        const translationContainer = document.getElementById('targetContainer');
+        if (wordContainer) wordContainer.style.display = '';
+        if (translationContainer) translationContainer.style.display = '';
+        // Show the separator if present
+        const separator = document.querySelector('.separator') as HTMLElement;
+        if (separator) separator.style.display = '';
+        // Hide summary card
+        const summaryCard = document.getElementById('summaryCard');
+        if (summaryCard) summaryCard.style.display = 'none';
+        // Move newGameBtnBottom back after game area if needed
+        const newGameBtnBottom = document.getElementById('newGameBtnBottom');
+        const gameArea = document.querySelector('.game-area');
+        if (newGameBtnBottom && gameArea && !gameArea.nextSibling?.isSameNode(newGameBtnBottom)) {
+            newGameBtnBottom.classList.remove('summary-new-game-btn');
+            gameArea.parentNode.insertBefore(newGameBtnBottom, gameArea.nextSibling);
+        }
+    }
 }

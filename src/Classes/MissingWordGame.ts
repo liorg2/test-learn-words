@@ -18,7 +18,9 @@ export class MissingWordGame extends Game {
         const randomSentence = this.getRandomWordAndModifiedSentence();
 
         const targetDiv = document.createElement('div');
-        targetDiv.textContent = randomSentence.modifiedSentence;
+        // targetDiv.textContent = randomSentence.modifiedSentence + '<br/>' + randomSentence.translation;
+        //targetDiv.innerHTML = randomSentence.translation + '<br/><br/>' + randomSentence.modifiedSentence;
+        targetDiv.innerHTML = `<strong>${randomSentence.translation}</strong><br/><br/>${randomSentence.modifiedSentence}`;
         targetDiv.className = 'translation ltr';
         targetDiv.addEventListener('dragover', this.handleDragOver);
         targetDiv.addEventListener('dragleave', this.handleDragLeave);
@@ -50,13 +52,16 @@ export class MissingWordGame extends Game {
         // Select a random sentence from the chosen word object
         const randomSentenceIndex = Math.floor(Math.random() * selectedWord.sentences.length);
         const selectedSentence = selectedWord.sentences[randomSentenceIndex].from;
+          const translation = selectedWord.sentences[randomSentenceIndex].to;
 
         // Replace the word in the sentence with underscores
         // Ensure only whole words are replaced
-        const modifiedSentence = selectedSentence.replace(new RegExp(`(?<!\\w)${selectedWord.text}(?!\\w)`, 'gi'), "________");
+       // const modifiedSentence = selectedSentence.replace(new RegExp(`(?<!\\w)${selectedWord.text}(?!\\w)`, 'gi'), "________");
+        
+        const modifiedSentence = selectedSentence.replace(new RegExp(`(?<!\\w)${selectedWord.text}(s|[.,!?])?(?!\\w)`, 'gi'), "________");
 
         log('getRandomWordAndModifiedSentence ' + selectedWord.text + ' ' + modifiedSentence + ' ' + selectedSentence);
-        return {selectedWord: selectedWord.text, modifiedSentence, selectedSentence};
+          return {selectedWord: selectedWord.text, modifiedSentence, selectedSentence, translation};
     }
 
     renderTarget() {

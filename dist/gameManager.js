@@ -1,5 +1,6 @@
 import { sendEvent } from './analytics.js';
 import { getGuid, log, updateUrlParam } from "./utilities.js";
+import { Game } from "./Classes/Game.js";
 import { VoiceService } from './Services/VoiceService.js';
 import { GameFactory } from "./Classes/GameFactory.js";
 ///////////////////// end ga
@@ -17,12 +18,28 @@ function populateTestSelect(selectElement, callback) {
     document.body.appendChild(script);
     script.onload = () => {
         if (window['tests_list']) {
+            // Group by lang
+            const groups = {};
             window['tests_list'].forEach((item) => {
-                const option = document.createElement('option');
-                option.value = `words/${guid}/${item.scriptUrl}`;
-                option.textContent = item.name;
-                option.dataset.lang = item.lang;
-                selectElement.appendChild(option);
+                if (!groups[item.lang])
+                    groups[item.lang] = [];
+                groups[item.lang].push(item);
+            });
+            // Clear previous options
+            selectElement.innerHTML = '';
+            // Language display names
+            const langNames = { en: 'אנגלית', fr: 'צרפתית', sp: 'ספרדית', it: 'איטלקית', he: 'עברית' };
+            Object.keys(groups).forEach(lang => {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = langNames[lang] || lang;
+                groups[lang].forEach((item) => {
+                    const option = document.createElement('option');
+                    option.value = `words/${guid}/${item.scriptUrl}`;
+                    option.textContent = item.name;
+                    option.dataset.lang = item.lang;
+                    optgroup.appendChild(option);
+                });
+                selectElement.appendChild(optgroup);
             });
             callback();
         }
@@ -42,17 +59,38 @@ function initSelectsByURL() {
         const testSelect = document.getElementById('testSelect');
         testSelect.selectedIndex = parseInt(testSelectValue, 10);
     }
+    const tabs = document.querySelectorAll('.game-type-tab');
+    let foundActiveTab = false;
     if (gameTypeSelectValue !== null) {
-        const gameTypeSelect = document.getElementById('gameTypeSelect');
-        gameTypeSelect.selectedIndex = parseInt(gameTypeSelectValue, 10);
+        tabs.forEach(tab => {
+            if (tab.getAttribute('data-game-type') === gameTypeSelectValue) {
+                tab.classList.add('active');
+                foundActiveTab = true;
+            }
+            else {
+                tab.classList.remove('active');
+            }
+        });
+    }
+    // If no tab is active (either no URL param or invalid value), activate the first tab
+    if (!foundActiveTab) {
+        tabs[0].classList.add('active');
     }
 }
 function loadSelectedTest() {
     const testSelect = document.getElementById('testSelect');
-    const gameTypeSelect = document.getElementById('gameTypeSelect');
+    const activeTab = document.querySelector('.game-type-tab.active');
+    const gameType = activeTab.getAttribute('data-game-type');
+    // Hide new game buttons
+    const newGameBtn = document.getElementById('newGameBtn');
+    const newGameBtnBottom = document.getElementById('newGameBtnBottom');
+    newGameBtn.style.display = 'none';
+    newGameBtnBottom.style.display = 'none';
+    newGameBtn.classList.remove('blink-once');
+    newGameBtnBottom.classList.remove('blink-once');
     sendEvent('loadSelectedTest', 'game controls', 'start new game', {
         game: testSelect.value,
-        type: gameTypeSelect.value
+        type: gameType
     });
     const selectedOption = testSelect.options[testSelect.selectedIndex];
     VoiceService.getInstance().getVoices(selectedOption.dataset.lang).then((voices) => {
@@ -61,7 +99,7 @@ function loadSelectedTest() {
             buildGame(selectedOption.dataset.lang);
         });
         updateUrlParam('test', testSelect.selectedIndex.toString());
-        updateUrlParam('gameType', gameTypeSelect.selectedIndex.toString());
+        updateUrlParam('gameType', gameType);
     });
 }
 function fillVoicesOptions(language, voices) {
@@ -96,7 +134,8 @@ function selectVoice(language) {
                 break;
             }
         }
-    } else {
+    }
+    else {
         // If no saved voice, select the default browser voice (first option)
         voiceSelect.selectedIndex = 0;
     }
@@ -192,7 +231,13 @@ function buildGame(language) {
     log(`buildGame ${language}`);
     if (!words || !Array.isArray(words))
         return;
-    const gameType = document.getElementById('gameTypeSelect').value;
+    let activeTab = document.querySelector('.game-type-tab.active');
+    if (!activeTab) {
+        const firstTab = document.querySelector('.game-type-tab');
+        firstTab.classList.add('active');
+        activeTab = firstTab;
+    }
+    const gameType = activeTab.getAttribute('data-game-type');
     game = GameFactory.createGame(gameType, words, language);
     game.render();
     loadFontSize();
@@ -213,18 +258,36 @@ document.addEventListener('click', function (event) {
     }
 });
 let speakerEnabled = false; // Initially disabled
+sessionStorage.setItem('speakersEnabled', speakerEnabled.toString()); // reset speaker state
 function updateSpeakerIcon() {
     const toggleSpeakerBtn = document.getElementById('toggleSpeakerBtn');
     if (speakerEnabled) {
         toggleSpeakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
-    } else {
+        toggleSpeakerBtn.classList.remove('blink-once');
+    }
+    else {
         toggleSpeakerBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+        toggleSpeakerBtn.classList.add('blink-once');
     }
 }
 document.addEventListener('DOMContentLoaded', function () {
     log('DOMContentLoaded innerWidth= ' + window.innerWidth);
     const originalTestSelect = document.getElementById('testSelect');
-    const gameTypeSelect = document.getElementById('gameTypeSelect');
+    const gameTypeTabs = document.querySelectorAll('.game-type-tab');
+    // Add click handlers for game type tabs
+    gameTypeTabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+            gameTypeTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            // Hide summary card and show containers
+            if (game && typeof game.hideSummaryCardAndShowContainers === 'function') {
+                game.hideSummaryCardAndShowContainers();
+            }
+            loadSelectedTest();
+        });
+    });
+    // Load speaker state from session storage with default of false
+    updateSpeakerIcon();
     document.getElementById('toggleMenuBtn').addEventListener('click', function () {
         const menu = document.getElementById('menu');
         const btnRect = this.getBoundingClientRect(); // Get button's position and dimensions
@@ -248,54 +311,54 @@ document.addEventListener('DOMContentLoaded', function () {
     if (new URLSearchParams(window.location.search).has('log')) {
         document.getElementById('log').style.display = 'block';
     }
-    // Initialize icon state on load
-    updateSpeakerIcon();
     document.getElementById('increaseFont').addEventListener('click', () => changeFontSize(1));
     document.getElementById('decreaseFont').addEventListener('click', () => changeFontSize(-1));
-    document.getElementById('newGameBtn').addEventListener('click', loadSelectedTest);
+    document.getElementById('newGameBtn').addEventListener('click', function () {
+        if (typeof Game !== 'undefined' && typeof Game.hideSummaryCardAndShowContainersStatic === 'function') {
+            Game.hideSummaryCardAndShowContainersStatic();
+        }
+        loadSelectedTest();
+    });
+    document.getElementById('newGameBtnBottom').addEventListener('click', loadSelectedTest);
     document.getElementById('closeSettings').addEventListener('click', closeSettings);
     // Populate both dropdowns
     populateTestSelect(originalTestSelect, function () {
         // Add change event to original select
-        originalTestSelect.addEventListener('change', loadSelectedTest);
-        gameTypeSelect.addEventListener('change', loadSelectedTest);
+        originalTestSelect.addEventListener('change', function () {
+            // Hide summary card and show containers
+            if (game && typeof game.hideSummaryCardAndShowContainers === 'function') {
+                game.hideSummaryCardAndShowContainers();
+            }
+            loadSelectedTest();
+        });
         initSelectsByURL();
-        loadSelectedTest();
-        // if (window.innerWidth <= 1200) {
-        //     const overlay = document.getElementById("overlay-start");
-        //     overlay.style.display = "flex";
-        //
-        //     // Clone the populated select
-        //     const testSelectClone = originalTestSelect.cloneNode(true) as HTMLSelectElement;
-        //     testSelectClone.removeAttribute('id');
-        //     testSelectClone.id = 'testSelectClone';
-        //
-        //     // Add empty option only to clone
-        //     let emptyOption = document.createElement('option');
-        //     emptyOption.value = "";
-        //     emptyOption.textContent = "בחירת הכתבה";
-        //     testSelectClone.insertBefore(emptyOption, testSelectClone.firstChild);
-        //     testSelectClone.selectedIndex = 0;
-        //     testSelectClone.style.fontSize = '20px';
-        //
-        //     // Create a control panel on the overlay
-        //     const overlayControl = document.getElementById("overlay-control");
-        //     overlayControl.appendChild(testSelectClone);
-        //
-        //     testSelectClone.addEventListener('change', function () {
-        //         document.body.removeChild(overlay);
-        //         originalTestSelect.value = this.value;
-        //
-        //
-        //         VoiceService.getInstance().speak('Lets get started!', 'en', 0).then(() => {
-        //             loadSelectedTest();
-        //         });
-        //
-        //
-        //     });
-        // } else {
-        //
-        //     loadSelectedTest();
-        // }
+        if (window.innerWidth <= 1200) {
+            const overlay = document.getElementById("overlay-start");
+            overlay.style.display = "flex";
+            // Clone the populated select
+            const testSelectClone = originalTestSelect.cloneNode(true);
+            testSelectClone.removeAttribute('id');
+            testSelectClone.id = 'testSelectClone';
+            // Add empty option only to clone
+            let emptyOption = document.createElement('option');
+            emptyOption.value = "";
+            emptyOption.textContent = "בחירת הכתבה";
+            testSelectClone.insertBefore(emptyOption, testSelectClone.firstChild);
+            testSelectClone.selectedIndex = 0;
+            testSelectClone.style.fontSize = '20px';
+            // Create a control panel on the overlay
+            const overlayControl = document.getElementById("overlay-control");
+            overlayControl.appendChild(testSelectClone);
+            testSelectClone.addEventListener('change', function () {
+                document.body.removeChild(overlay);
+                originalTestSelect.value = this.value;
+                VoiceService.getInstance().speak('Lets get started!', 'en', 0).then(() => {
+                    loadSelectedTest();
+                });
+            });
+        }
+        else {
+            loadSelectedTest();
+        }
     });
 });

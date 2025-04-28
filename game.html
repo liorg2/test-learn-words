@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>התאמת מילים</title>
-    <link rel="stylesheet" href="./src/style.css?v=app_version-2024-11-T-25-11-40-35">
+    <link rel="stylesheet" href="./src/style.css?v=app_version-2025-04-T-28-20-20-22">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
 
@@ -30,16 +30,6 @@
         <select id="testSelect"></select>
     </div>
 
-    <div class="form-field">
-        <label for="gameTypeSelect">משחק:</label>
-        <select id="gameTypeSelect">
-            <option value="translation">תרגום</option>
-            <option value="partOfSpeech">חלק משפט</option>
-            <!--            <option value="missingWord">השלמת משפטים</option>-->
-        </select>
-    </div>
-
-
     <button id="newGameBtn">חדש</button>
     <a href="javascript:;" id="toggleSpeakerBtn" class="settings-link" title=" הדלקה\ כיבוי של קול"> <i
             class="fas fa-volume-up"></i> </a>
@@ -48,22 +38,32 @@
 </div>
 
 <div class="statistics">
-    <div class="instructions">בחר משחק מהרשימה למעלה.</div>
-    <p>נקודות: <span id="scoreDisplay">0</span></p>
-    <p>שגיאות: <span id="numFailures">0</span></p>
+   
+    <div>ניקוד: <span id="scoreDisplay">0</span></div>
+    <div>שגיאות: <span id="numFailures">0</span></div>
+    <div>חיים: <span id="livesDisplay">10</span></div>
+</div>
+
+<div class="game-type-tabs">
+    <button class="game-type-tab active" data-game-type="translation"><i class="fa fa-language"></i> תרגום</button>
+    <button class="game-type-tab" data-game-type="partOfSpeech"><i class="fa fa-align-left"></i> חלק משפט</button>
+    <button class="game-type-tab" data-game-type="missingWord"><i class="fa fa-ellipsis-h"></i>מילה חסרה</button>
+    <button class="game-type-tab" data-game-type="wordSearch"><i class="fa fa-search"></i> תפזורת</button>
 </div>
 
 <div class="status-message" id="statusMessage"></div>
 
 <div class="game-area">
+    <div class="instructions" ></div>
     <div class="word-container" id="wordContainer"></div>
     <div class="separator"></div>
     <div class="target-container" id="targetContainer"></div>
 </div>
 
+<button id="newGameBtnBottom">משחק חדש</button>
 
 <!--
-app_version-2024-11-T-25-11-40-35
+app_version-2025-04-T-28-20-20-22
 -->
 <div class="control-panel-bottom" id="menu">
     <div class="control-popup-content">
@@ -78,8 +78,8 @@ app_version-2024-11-T-25-11-40-35
         <div class="dropdown-group">
             <label for="font-sizes">שנה גודל כתב:</label>
             <div class="buttons-group" id="font-sizes">
-                <button id="decreaseFont">A-</button>
-                <button id="increaseFont">A+</button>
+                <button id="decreaseFont"><i class="fas fa-minus"  ></i></button>
+                <button id="increaseFont"><i class="fas fa-plus"  ></i></button>
             </div>
         </div>
     </div>
@@ -87,10 +87,10 @@ app_version-2024-11-T-25-11-40-35
 
 
 <div id="log">
-    <p>version: app_version-2024-11-T-25-11-40-35</p>
+    <p>version: app_version-2025-04-T-28-20-20-22</p>
 </div>
 
-<script type="module" src="./dist/gameManager.js?v=app_version-2024-11-T-25-11-40-35"></script>
+<script type="module" src="./dist/gameManager.js?v=app_version-2025-04-T-28-20-20-22"></script>
 
 </body>
 </html>

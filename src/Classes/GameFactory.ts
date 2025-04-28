@@ -3,6 +3,7 @@ import {GameType} from "../enums.js";
 import {TranslationGame} from "./TranslationGame.js";
 import {PartOfSpeechGame} from "./PartOfSpeechGame.js";
 import {MissingWordGame} from "./MissingWordGame.js";
+import {WordSearchGame} from "./WordSearchGame.js";
 import {GameWord} from "../globalTypes";
 
 export class GameFactory {
@@ -14,6 +15,8 @@ export class GameFactory {
                 return new PartOfSpeechGame(words,language);
             case GameType.MISSING_WORD:
                 return new MissingWordGame(words,language);
+            case GameType.WORD_SEARCH:
+                return new WordSearchGame(words,language);
             default:
                 throw new Error('Invalid game type');
         }
