@@ -180,10 +180,10 @@ export class Game {
         wordDiv.draggable = true;
         wordDiv.addEventListener('dragstart', (event) => this.handleDragStart(event, language));
         wordDiv.addEventListener('dragend', this.handleDragEnd);
-        wordDiv.addEventListener('touchstart', (event) => this.handleTouchStart(event, language), { passive: false });
+        wordDiv.addEventListener('touchstart', (event) => this.handleTouchStart(event, language));
         document.addEventListener('touchcancel', this.handleTouchCancel, { passive: false });
-        wordDiv.addEventListener('touchmove', this.handleTouchMove, { passive: false });
-        wordDiv.addEventListener('touchend', this.handleTouchEnd, { passive: false });
+        wordDiv.addEventListener('touchmove', this.handleTouchMove);
+        wordDiv.addEventListener('touchend', this.handleTouchEnd);
         wordDiv.addEventListener('mouseenter', () => this.handleMouseEnter(wordDiv, language));
         wordDiv.addEventListener('mouseleave', () => clearTimeout(this.speakTimeout));
         return wordDiv;
@@ -221,13 +221,8 @@ export class Game {
             document.body.appendChild(this.draggedElement);
             this.draggedElement.style.position = 'fixed';
             this.draggedElement.style.zIndex = '1000';
-            this.draggedElement.style.opacity = '0.7';
-            // iOS Safari fix - set initial position
-            const touch = event.touches[0];
-            const x = touch.clientX - (this.draggedElement.offsetWidth / 2);
-            const y = touch.clientY - (this.draggedElement.offsetHeight / 2);
-            this.draggedElement.style.left = `${x}px`;
-            this.draggedElement.style.top = `${y}px`;
+            this.draggedElement.style.opacity = '0.5';
+            this.handleTouchMove(event);
             this.draggedElement.classList.add('dragging');
         });
     }
@@ -242,52 +237,37 @@ export class Game {
     handleTouchMove(event) {
         if (!this.draggedElement)
             return;
-        event.preventDefault();
-        // Get the touch coordinates
         const touch = event.touches[0];
-        // Calculate position
-        const x = touch.clientX - (this.draggedElement.offsetWidth / 2);
-        const y = touch.clientY - (this.draggedElement.offsetHeight / 2);
-        // Set position with direct assignment for better iOS performance
-        this.draggedElement.style.left = `${x}px`;
-        this.draggedElement.style.top = `${y}px`;
-        // iOS specific - use elementFromPoint for more accurate target detection
-        const elementAtPoint = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (elementAtPoint && elementAtPoint.classList && elementAtPoint.classList.contains('translation')) {
-            elementAtPoint.classList.add('highlight');
+        this.draggedElement.style.left = `${touch.clientX - (this.draggedElement.offsetWidth / 2)}px`;
+        this.draggedElement.style.top = `${touch.clientY - (this.draggedElement.offsetHeight / 2)}px`;
+        const target = event.target;
+        if (target.classList.contains('translation')) {
+            target.classList.add('highlight');
         }
     }
     handleTouchEnd(event) {
         event.preventDefault();
         if (!this.draggedElement)
             return;
-        // Temporarily hide the dragged element to get the element beneath
         this.draggedElement.style.display = 'none';
-        // Get touch position - for iOS we need to be more careful with coordinates
         const touch = event.changedTouches[0];
-        const clientX = touch.clientX;
-        const clientY = touch.clientY;
-        // Get element at position
-        let dropTarget = document.elementFromPoint(clientX, clientY);
+        let dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
         // Re-display the dragged element
         this.draggedElement.style.display = 'block';
-        // Navigate up the DOM tree to find the drop target 
+        // Navigate up the DOM tree to find the drop target with 'translation' class if not directly hit
         while (dropTarget && dropTarget.classList && !dropTarget.classList.contains('translation') && dropTarget.parentNode) {
             dropTarget = dropTarget.parentNode;
         }
-        // Remove any highlight from translation elements
-        document.querySelectorAll('.translation.highlight').forEach(el => {
-            el.classList.remove('highlight');
-        });
-        if (!dropTarget || !dropTarget.classList || !dropTarget.classList.contains('translation')) {
-            log('handleTouchEnd no valid dropTarget');
+        if (!dropTarget) {
+            log('handleTouchEnd no dropTarget');
             document.body.removeChild(this.draggedElement); // Remove the cloned element
             this.resetDraggedElement(); // Reset styles and cleanup
             return;
         }
-        // We have a valid translation target
-        const isCorrect = this.checkCorrectness(dropTarget);
-        this.handleAnswer(dropTarget, isCorrect, this.draggedElementOriginal);
+        if (dropTarget && dropTarget.classList && dropTarget.classList.contains('translation')) {
+            const isCorrect = this.checkCorrectness(dropTarget);
+            this.handleAnswer(dropTarget, isCorrect, this.draggedElementOriginal);
+        }
         document.body.removeChild(this.draggedElement); // Remove the cloned element
         this.resetDraggedElement(); // Reset styles and cleanup
     }

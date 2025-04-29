@@ -111,6 +111,7 @@ words = [
       "partOfSpeech": "verb",
       "sentences": [
         {"from": "I need to pay the electricity bill today.", "to": "אני צריך לשלם את חשבון החשמל היום."},
+        {"from": "She paid for the meal.", "to": "היא שילמה עבור הארוחה."},
         {"from": "He forgot to pay the parking fee.", "to": "הוא שכח לשלם את דמי החניה."}
       ]
     },

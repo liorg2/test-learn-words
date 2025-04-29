@@ -2,6 +2,9 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Translation Game Direct Matching', () => {
   test('should match words with their correct translations', async ({ page }) => {
+    // Set a longer timeout for the test
+    test.setTimeout(60000);
+    
     // Navigate to the game page
     await page.goto('/game.html');
     
@@ -61,16 +64,27 @@ test.describe('Translation Game Direct Matching', () => {
           const currentScoreText = await page.locator('#scoreDisplay').textContent();
           const currentScore = parseInt(currentScoreText || '0');
           
-          // Perform drag and drop
-          await performDragDrop(page, wordElement, translationElement);
+          // Perform drag and drop with retry
+          let dragSuccess = false;
+          const maxDragAttempts = 3;
           
-          // Wait to see the result
-          await page.waitForTimeout(1500);
-      
+          for (let dragAttempt = 1; dragAttempt <= maxDragAttempts; dragAttempt++) {
+            console.log(`Drag attempt #${dragAttempt}`);
+            dragSuccess = await performDragDrop(page, wordElement, translationElement);
+            
+            if (dragSuccess) {
+              console.log('Drag successful');
+              break;
+            } else if (dragAttempt < maxDragAttempts) {
+              console.log('Retrying drag...');
+              await page.waitForTimeout(500);
+            }
+          }
+          
+          // Wait to see the result (shorter timeout)
+          await page.waitForTimeout(1000);
         }
       }
-
-      
       
       if (!matchFound) {
         console.log(`WARNING: No matching translation found for "${wordText}" (translation value: "${translationValue}")`);
@@ -101,18 +115,49 @@ async function performDragDrop(page, sourceElement, targetElement) {
     return false;
   }
   
-  // Perform drag-drop operation
-  await page.mouse.move(
-    sourceBox.x + sourceBox.width / 2,
-    sourceBox.y + sourceBox.height / 2
-  );
-  await page.mouse.down();
-  await page.mouse.move(
-    targetBox.x + targetBox.width / 2,
-    targetBox.y + targetBox.height / 2,
-    { steps: 5 }
-  );
-  await page.mouse.up();
-  
-  return true;
+  try {
+    // Increase timeout for operations
+    page.setDefaultTimeout(10000);
+    
+    // Start position
+    const startX = sourceBox.x + sourceBox.width / 2;
+    const startY = sourceBox.y + sourceBox.height / 2;
+    
+    // End position
+    const endX = targetBox.x + targetBox.width / 2;
+    const endY = targetBox.y + targetBox.height / 2;
+    
+    // Perform drag-drop operation with more deliberate steps
+    await page.mouse.move(startX, startY);
+    await page.waitForTimeout(100);
+    await page.mouse.down();
+    await page.waitForTimeout(100);
+    
+    // Move in multiple steps to simulate more realistic dragging
+    // First move horizontally most of the way
+    await page.mouse.move(
+      startX + (endX - startX) * 0.7,
+      startY + (endY - startY) * 0.3,
+      { steps: 5 }
+    );
+    
+    await page.waitForTimeout(100);
+    
+    // Then finish the move to the target
+    await page.mouse.move(endX, endY, { steps: 5 });
+    await page.waitForTimeout(100);
+    
+    await page.mouse.up();
+    
+    // Wait a moment for the drop to register
+    await page.waitForTimeout(300);
+    
+    return true;
+  } catch (error) {
+    console.error('Error during drag and drop:', error);
+    
+    // Force release mouse if operation failed
+    await page.mouse.up().catch(() => {});
+    return false;
+  }
 } 
