@@ -58,8 +58,14 @@ body {
     user-select: none;
     /* iOS performance improvements */
     -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
     -webkit-perspective: 1000;
+    perspective: 1000;
     -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+    will-change: transform;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
 }
 
 /* iOS specific touch handling */
@@ -68,17 +74,52 @@ body {
         -webkit-touch-callout: none;
         -webkit-tap-highlight-color: transparent;
         touch-action: none;
+        will-change: transform; /* Optimize for hardware acceleration */
+        -webkit-font-smoothing: antialiased;
+    }
+    
+    /* Faster animations for mobile */
+    .blink-correct {
+        animation-duration: 0.1s; 
+    }
+    
+    .blink-incorrect {
+        animation-duration: 0.1s;
     }
 }
 
 @media (max-width: 768px) {
     .word {
         touch-action: none; /* Prevent browser handling of touch events */
+        transform: translateZ(0); /* Force GPU acceleration */
+        -webkit-transform: translateZ(0);
     }
     
     .dragging {
-        transform: scale(1.1);
-        -webkit-transform: scale(1.1);
+        transform: scale(1.05) translateZ(0);
+        -webkit-transform: scale(1.05) translateZ(0);
+        transition: none; /* Remove transitions for dragging */
+    }
+    
+    /* Reduce animation frames for better performance */
+    .blink-correct {
+        animation: blink-correct 0.1s step-end 3;
+    }
+    
+    .blink-incorrect {
+        animation: blink-incorrect 0.1s step-end 2;
+    }
+    
+    /* Faster transition animation */
+    .word, .translation {
+        transition: opacity 0.2s, transform 0.2s;
+    }
+    
+    /* Make highlight effect cheaper */
+    .highlight {
+        box-shadow: 0 0 0 3px #4CAF50;
+        transform: scale(1.05) translateZ(0);
+        background-color: #e3f2fd;
     }
 }
 
@@ -159,6 +200,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    min-height: 60vh; /* Ensure game area takes at least 60% of viewport height */
 }
 
 .game-area.disabled {
@@ -201,14 +243,14 @@ body {
     background-color: #E1ECF4;
     cursor: pointer;
     user-select: none;
-    font-size: 1.3rem;
+    font-size: 17px;
     letter-spacing: 1px;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
     padding: 5px 10px;
     background-color: rgb(240, 240, 240);
     border-radius: 20px;
-    border: 1px solid rgb(204, 204, 204);
-    transition: 0.3s;
+    border: 1px solid #ccc;
+    transition: all 0.2s ease;
 }
 
 .word {
@@ -216,10 +258,10 @@ body {
 }
 
 @media (max-width: 1200px) {
-
     .word,
     .translation {
-        font-size: 1.1rem;
+        font-size: 17px;
+        padding: 4px 8px;
     }
 }
 
@@ -1156,3 +1198,249 @@ body {
         font-size: 0.9rem;
     }
 }
+
+/* Mobile optimization class for falling words */
+.mobile-optimized {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Falling Words Game styles */
+.falling-words-container {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+    min-height: 400px;
+    max-height: calc(100vh - 250px);
+    margin: 10px 0 0 0 !important; /* Reduced top margin, no bottom margin */
+    backdrop-filter: blur(2px);
+    flex-grow: 1; /* Allow container to grow to fill available space */
+    width: 100%;
+    display: block;
+}
+
+.falling-word {
+    position: absolute;
+    background-color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    font-size: 17px;
+    user-select: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    z-index: 5;
+    border: 1px solid #ddd;
+    will-change: transform, top, opacity;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-perspective: 1000;
+    perspective: 1000;
+    min-width: 40px;
+    min-height: 36px;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.falling-word:hover {
+    transform: scale(1.05) translateZ(0);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+}
+
+.falling-word.selected {
+    background-color: #e3f2fd;
+    border: 2px solid #4285f4;
+    box-shadow: 0 0 8px rgba(66, 133, 244, 0.5);
+    transform: scale(1.05) translateZ(0);
+}
+
+.falling-word.matched {
+    background-color: #e6f7e6;
+    border: 2px solid #4caf50;
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+    z-index: 15;
+}
+
+.start-game-btn {
+    background-color: #4285f4;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 12px 24px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.start-game-btn:hover, .start-game-btn:active {
+    background-color: #3367d6;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 768px) {
+    .falling-words-container {
+        min-height: 350px;
+        height: 350px !important;
+    }
+    
+    .falling-word {
+        padding: 6px 12px;
+        font-size: 16px;
+        min-width: 40px;
+        min-height: 36px;
+    }
+    
+    .start-game-btn {
+        padding: 10px 20px;
+        font-size: 16px;
+    }
+    
+    .falling-word.selected {
+        transform: scale(1.1) translateZ(0);
+    }
+}
+
+@media (max-width: 480px) {
+    .falling-words-container {
+        min-height: 300px;
+        height: 300px !important;
+    }
+    
+    .falling-word {
+        padding: 5px 10px;
+        font-size: 15px;
+        min-width: 36px;
+        min-height: 32px;
+        border-width: 1px;
+    }
+}
+
+@media (max-height: 700px) {
+    .falling-words-container {
+        min-height: 350px;
+        margin: 5px 0 0 0 !important;
+    }
+}
+
+@media (max-height: 600px) {
+    .falling-words-container {
+        min-height: 300px;
+    }
+}
+
+/* End Falling Words Game styles */
+
+/* Speed slider styles */
+.speed-slider-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 10px auto;
+    padding: 8px 16px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    direction: rtl;
+    width: fit-content;
+    z-index: 10;
+}
+
+.speed-slider-label {
+    font-weight: bold;
+    color: #333;
+    font-size: 16px;
+}
+
+.speed-slider {
+    width: 150px;
+    height: 10px;
+    appearance: none;
+    background: #e0e0e0;
+    outline: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.speed-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #2196f3;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.speed-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #2196f3;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.speed-slider:hover {
+    background: #d0d0d0;
+}
+
+.speed-slider-value {
+    font-weight: bold;
+    color: #2196f3;
+    min-width: 30px;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .speed-slider-container {
+        padding: 6px 12px;
+    }
+    
+    .speed-slider-label {
+        font-size: 14px;
+    }
+    
+    .speed-slider {
+        width: 120px;
+    }
+}
+
+@media (max-width: 480px) {
+    .speed-slider-container {
+        padding: 4px 8px;
+    }
+    
+    .speed-slider-label {
+        font-size: 12px;
+    }
+    
+    .speed-slider {
+        width: 100px;
+    }
+    
+    .speed-slider-value {
+        min-width: 20px;
+    }
+}
+
+/* End Falling Words Game styles */

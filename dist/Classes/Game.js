@@ -19,6 +19,8 @@ export class Game {
         this.wordElements = [];
         this.translationElements = [];
         this.completedPages = new Set();
+        // Add a property to keep track of total pages
+        this.totalPagesCount = 0;
         this.language = language;
         this.words = words;
         this.instructionsElement = document.querySelector('.instructions');
@@ -72,6 +74,11 @@ export class Game {
         this.renderWordContainer();
         this.renderTarget();
         this.renderPaginationControls();
+        // Calculate and store initial total pages based on word count
+        this.totalPagesCount = Math.ceil(this.words.length / this.itemsPerPage);
+        log(`Initial total pages count set to ${this.totalPagesCount}`);
+        // Force a complete pagination UI update to show all pages
+        this.updatePaginationUI();
     }
     renderWordContainer() {
         // Store all word elements
@@ -162,9 +169,19 @@ export class Game {
         this.translationElements = organizedTranslations.flat();
     }
     updatePage(pageNum) {
+        // Calculate total pages for boundary checking - use stored total pages to ensure consistency
+        const contentBasedPages = Math.ceil(Math.max(this.wordElements.length, this.translationElements.length, this.words.length) / this.itemsPerPage);
+        // Always use the higher value to prevent losing pages
+        this.totalPagesCount = Math.max(this.totalPagesCount, contentBasedPages);
+        log(`updatePage(${pageNum}): stored total pages ${this.totalPagesCount}, content-based pages ${contentBasedPages}, items per page ${this.itemsPerPage}`);
+        // Ensure pageNum is within valid range - but use totalPagesCount for boundary
+        if (pageNum >= this.totalPagesCount) {
+            log(`Page ${pageNum} is out of range (total pages: ${this.totalPagesCount}), reverting to page 0`);
+            this.currentPage = 0;
+            pageNum = 0;
+        }
         // If first time loading, organize words and translations
-        if (this.translationElements.length > 0 && pageNum === 0 &&
-            !this.wordContainer.hasAttribute('data-organized')) {
+        if (this.translationElements.length > 0 && !this.wordContainer.hasAttribute('data-organized')) {
             this.organizeWordsByPage();
             this.wordContainer.setAttribute('data-organized', 'true');
         }
@@ -186,12 +203,13 @@ export class Game {
         pageTranslations.forEach(translationDiv => {
             this.translationContainer.appendChild(translationDiv);
         });
-        // Update pagination UI
+        // Update pagination UI to ensure all buttons are visible - be sure to preserve total page count
         this.updatePaginationUI();
         // Only check completion for pages with explicit completion status
         if (this.completedPages.has(pageNum)) {
             this.checkPageCompletion(pageNum);
         }
+        log(`Page ${pageNum} loaded with ${pageWords.length} words and ${pageTranslations.length} translations. Total pages: ${this.totalPagesCount}`);
     }
     renderPaginationControls() {
         // Create pagination container if it doesn't exist
@@ -222,34 +240,34 @@ export class Game {
         const pageSizeSelector = paginationContainer.querySelector('.page-size-selector');
         // Clear existing pagination
         paginationContainer.innerHTML = '';
-        // Calculate total pages
-        const totalWords = this.wordElements.length;
-        const totalPages = Math.ceil(totalWords / this.itemsPerPage);
+        // Calculate current pages based on current content
+        const contentBasedPages = Math.ceil(Math.max(this.wordElements.length, this.translationElements.length) / this.itemsPerPage);
+        // Use the greater of stored total pages or content-based pages to ensure we never lose pages
+        this.totalPagesCount = Math.max(this.totalPagesCount, contentBasedPages);
+        // Ensure at least 1 page is shown
+        const minPages = Math.max(1, this.totalPagesCount);
         // Create buttons container to separate buttons from page size selector
         const buttonsContainer = document.createElement('div');
         buttonsContainer.className = 'pagination-buttons';
         paginationContainer.appendChild(buttonsContainer);
-        // Create page buttons if more than one page
-        if (totalPages > 1) {
-            // Create page buttons
-            for (let i = 0; i < totalPages; i++) {
-                const pageBtn = document.createElement('button');
-                pageBtn.className = 'page-btn';
-                pageBtn.textContent = (i + 1).toString(); // Always show number
-                if (i === this.currentPage) {
-                    pageBtn.classList.add('active');
-                }
-                // Check if page is completed
-                if (this.completedPages.has(i)) {
-                    pageBtn.classList.add('completed');
-                    // Add checkmark icon but keep the number
-                    const checkIcon = document.createElement('i');
-                    checkIcon.className = 'fas fa-check check-icon';
-                    pageBtn.appendChild(checkIcon);
-                }
-                pageBtn.addEventListener('click', () => this.updatePage(i));
-                buttonsContainer.appendChild(pageBtn);
+        // Create page buttons for ALL available pages
+        for (let i = 0; i < minPages; i++) {
+            const pageBtn = document.createElement('button');
+            pageBtn.className = 'page-btn';
+            pageBtn.textContent = (i + 1).toString(); // Always show number
+            if (i === this.currentPage) {
+                pageBtn.classList.add('active');
             }
+            // Check if page is completed
+            if (this.completedPages.has(i)) {
+                pageBtn.classList.add('completed');
+                // Add checkmark icon but keep the number
+                const checkIcon = document.createElement('i');
+                checkIcon.className = 'fas fa-check check-icon';
+                pageBtn.appendChild(checkIcon);
+            }
+            pageBtn.addEventListener('click', () => this.updatePage(i));
+            buttonsContainer.appendChild(pageBtn);
         }
         // Re-add the page size selector if it existed
         if (pageSizeSelector) {
@@ -259,6 +277,8 @@ export class Game {
             // Create page size selector if it doesn't exist
             this.createPageSizeSelector(paginationContainer);
         }
+        // Log pagination info
+        log(`Updated pagination UI: ${minPages} pages, current page: ${this.currentPage}, total pages stored: ${this.totalPagesCount}`);
     }
     createPageSizeSelector(paginationContainer) {
         // Create page size selector
@@ -410,6 +430,13 @@ export class Game {
     }
     moveToNextUncompletedPage() {
         const totalPages = Math.ceil(this.wordElements.length / this.itemsPerPage);
+        log(`moveToNextUncompletedPage: Current page ${this.currentPage}, Total pages ${totalPages}`);
+        // If the current page is now empty, mark it as completed if it's not already
+        if (this.isPageEmpty(this.currentPage) && !this.completedPages.has(this.currentPage)) {
+            log(`Current page ${this.currentPage} is empty, marking as completed`);
+            this.completedPages.add(this.currentPage);
+            this.updatePaginationUI();
+        }
         // Find the next uncompleted page
         let nextPage = this.currentPage + 1;
         while (nextPage < totalPages && this.completedPages.has(nextPage)) {
@@ -417,6 +444,7 @@ export class Game {
         }
         // If we found an uncompleted page, go to it
         if (nextPage < totalPages) {
+            log(`Moving to next uncompleted page: ${nextPage}`);
             this.updatePage(nextPage);
         }
         else {
@@ -427,9 +455,22 @@ export class Game {
             }
             // If we found an uncompleted page before the current one, go to it
             if (nextPage < this.currentPage && !this.completedPages.has(nextPage)) {
+                log(`Moving to previous uncompleted page: ${nextPage}`);
                 this.updatePage(nextPage);
             }
-            // Otherwise, stay on current page (all pages are completed)
+            else {
+                // All pages are completed, but stay on current page and update UI
+                log(`All pages completed, staying on current page: ${this.currentPage}`);
+                // If the current page is empty, try to move to the first page
+                if (this.isPageEmpty(this.currentPage)) {
+                    log(`Current page is empty, moving to page 0`);
+                    this.updatePage(0);
+                }
+                else {
+                    // Ensure pagination is still visible
+                    this.updatePaginationUI();
+                }
+            }
         }
     }
     updateInstructions() {
@@ -597,26 +638,27 @@ export class Game {
         event.preventDefault();
         this.draggedElementOriginal = event.target;
         this.draggedElement = this.draggedElementOriginal.cloneNode(true);
-        VoiceService.getInstance().speak(this.draggedElement.textContent, language).then(() => {
-            document.body.appendChild(this.draggedElement);
-            this.draggedElement.style.position = 'fixed';
-            this.draggedElement.style.zIndex = '1000';
-            this.draggedElement.style.opacity = '0.7';
-            // iOS Safari fix - set initial position
-            const touch = event.touches[0];
-            const x = touch.clientX - (this.draggedElement.offsetWidth / 2);
-            const y = touch.clientY - (this.draggedElement.offsetHeight / 2);
-            this.draggedElement.style.left = `${x}px`;
-            this.draggedElement.style.top = `${y}px`;
-            this.draggedElement.classList.add('dragging');
-        });
+        // Add to body immediately with initial position for better performance
+        document.body.appendChild(this.draggedElement);
+        this.draggedElement.style.position = 'fixed';
+        this.draggedElement.style.zIndex = '1000';
+        this.draggedElement.style.opacity = '0.7';
+        this.draggedElement.style.willChange = 'transform, left, top'; // Optimize for GPU acceleration
+        this.draggedElement.classList.add('dragging');
+        // Position immediately for instant feedback
+        const touch = event.touches[0];
+        const x = touch.clientX - (this.draggedElement.offsetWidth / 2);
+        const y = touch.clientY - (this.draggedElement.offsetHeight / 2);
+        this.draggedElement.style.left = `${x}px`;
+        this.draggedElement.style.top = `${y}px`;
+        // Speak after element is visible for better perceived performance
+        VoiceService.getInstance().speak(this.draggedElement.textContent, language);
     }
     handleTouchCancel(event) {
-        log('handleTouchCancel');
         event.preventDefault();
         if (!this.draggedElement)
             return;
-        document.body.removeChild(this.draggedElement); // Remove the cloned element
+        document.body.removeChild(this.draggedElement);
         this.resetDraggedElement();
     }
     handleTouchMove(event) {
@@ -625,51 +667,57 @@ export class Game {
         event.preventDefault();
         // Get the touch coordinates
         const touch = event.touches[0];
-        // Calculate position
+        // Calculate position - use transform for better performance
         const x = touch.clientX - (this.draggedElement.offsetWidth / 2);
         const y = touch.clientY - (this.draggedElement.offsetHeight / 2);
-        // Set position with direct assignment for better iOS performance
-        this.draggedElement.style.left = `${x}px`;
-        this.draggedElement.style.top = `${y}px`;
-        // iOS specific - use elementFromPoint for more accurate target detection
-        const elementAtPoint = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (elementAtPoint && elementAtPoint.classList && elementAtPoint.classList.contains('translation')) {
-            elementAtPoint.classList.add('highlight');
+        // Use transform instead of left/top for better performance
+        this.draggedElement.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+        this.draggedElement.style.left = '0';
+        this.draggedElement.style.top = '0';
+        // Only update highlight every other move for better performance
+        if (event.timeStamp % 2 === 0) {
+            // Find target element - use elementFromPoint for more accurate detection
+            const elementAtPoint = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (elementAtPoint && elementAtPoint.classList && elementAtPoint.classList.contains('translation')) {
+                // Remove highlight from all other elements first
+                document.querySelectorAll('.translation.highlight').forEach(el => {
+                    if (el !== elementAtPoint)
+                        el.classList.remove('highlight');
+                });
+                elementAtPoint.classList.add('highlight');
+            }
         }
     }
     handleTouchEnd(event) {
+        var _a, _b;
         event.preventDefault();
         if (!this.draggedElement)
             return;
-        // Temporarily hide the dragged element to get the element beneath
-        this.draggedElement.style.display = 'none';
-        // Get touch position - for iOS we need to be more careful with coordinates
+        // Get touch position
         const touch = event.changedTouches[0];
-        const clientX = touch.clientX;
-        const clientY = touch.clientY;
-        // Get element at position
-        let dropTarget = document.elementFromPoint(clientX, clientY);
-        // Re-display the dragged element
-        this.draggedElement.style.display = 'block';
-        // Navigate up the DOM tree to find the drop target 
-        while (dropTarget && dropTarget.classList && !dropTarget.classList.contains('translation') && dropTarget.parentNode) {
-            dropTarget = dropTarget.parentNode;
-        }
         // Remove any highlight from translation elements
         document.querySelectorAll('.translation.highlight').forEach(el => {
             el.classList.remove('highlight');
         });
-        if (!dropTarget || !dropTarget.classList || !dropTarget.classList.contains('translation')) {
-            log('handleTouchEnd no valid dropTarget');
-            document.body.removeChild(this.draggedElement); // Remove the cloned element
-            this.resetDraggedElement(); // Reset styles and cleanup
+        // Hide dragged element to get accurate elementFromPoint
+        this.draggedElement.style.display = 'none';
+        // Get element at touch position
+        let dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+        this.draggedElement.style.display = 'block';
+        // Find translation parent if we're on a child element
+        while (dropTarget && !((_a = dropTarget.classList) === null || _a === void 0 ? void 0 : _a.contains('translation')) && dropTarget.parentElement) {
+            dropTarget = dropTarget.parentElement;
+        }
+        if (!((_b = dropTarget === null || dropTarget === void 0 ? void 0 : dropTarget.classList) === null || _b === void 0 ? void 0 : _b.contains('translation'))) {
+            document.body.removeChild(this.draggedElement);
+            this.resetDraggedElement();
             return;
         }
-        // We have a valid translation target
+        // Process correct drop target
         const isCorrect = this.checkCorrectness(dropTarget);
         this.handleAnswer(dropTarget, isCorrect, this.draggedElementOriginal);
-        document.body.removeChild(this.draggedElement); // Remove the cloned element
-        this.resetDraggedElement(); // Reset styles and cleanup
+        document.body.removeChild(this.draggedElement);
+        this.resetDraggedElement();
     }
     resetDraggedElement() {
         log('resetDraggedElement');
@@ -737,12 +785,16 @@ export class Game {
                         targetEl.removeEventListener('transitionend', onTransitionEnd);
                         // Update translation elements array to remove matched item
                         self.translationElements = self.translationElements.filter(element => element !== targetEl);
+                        // IMPORTANT: Preserve total page count before checking completion
+                        const beforeCheckTotalPages = self.totalPagesCount;
                         // Check if current page is now completed after removing this translation
                         self.checkPageCompletion(self.currentPage);
                         // Check if only the current page has become empty
                         if (self.isPageEmpty(self.currentPage)) {
                             // Only mark this specific page as completed
                             self.completedPages.add(self.currentPage);
+                            // Ensure we preserve the total page count
+                            self.totalPagesCount = Math.max(beforeCheckTotalPages, self.totalPagesCount);
                             self.updatePaginationUI();
                             self.moveToNextUncompletedPage();
                         }
@@ -766,12 +818,16 @@ export class Game {
                     wordElement.removeEventListener('transitionend', onTransitionEnd);
                     // Update word elements array to remove matched item
                     self.wordElements = self.wordElements.filter(element => element !== wordElement);
+                    // IMPORTANT: Preserve total page count before checking completion
+                    const beforeCheckTotalPages = self.totalPagesCount;
                     // Check if current page is now completed after removing this word
                     self.checkPageCompletion(self.currentPage);
                     // Check if only the current page has become empty
                     if (self.isPageEmpty(self.currentPage)) {
                         // Only mark this specific page as completed
                         self.completedPages.add(self.currentPage);
+                        // Ensure we preserve the total page count
+                        self.totalPagesCount = Math.max(beforeCheckTotalPages, self.totalPagesCount);
                         self.updatePaginationUI();
                         self.moveToNextUncompletedPage();
                     }
@@ -790,6 +846,11 @@ export class Game {
         // Hide word and translation containers
         this.wordContainer.style.display = 'none';
         this.translationContainer.style.display = 'none';
+        // Hide pagination container
+        const paginationContainer = document.getElementById('paginationContainer');
+        if (paginationContainer) {
+            paginationContainer.style.display = 'none';
+        }
         // Hide the separator if present
         const separator = document.querySelector('.separator');
         if (separator)
@@ -800,7 +861,20 @@ export class Game {
             summaryCard = document.createElement('div');
             summaryCard.id = 'summaryCard';
             summaryCard.className = 'summary-card';
-            // Insert as first child of .game-area
+        }
+        // Position summary card after instructions
+        const instructionsElement = document.querySelector('.instructions');
+        if (instructionsElement && instructionsElement.parentNode) {
+            // Insert after instructions
+            if (instructionsElement.nextSibling) {
+                instructionsElement.parentNode.insertBefore(summaryCard, instructionsElement.nextSibling);
+            }
+            else {
+                instructionsElement.parentNode.appendChild(summaryCard);
+            }
+        }
+        else {
+            // Fallback to game area if instructions not found
             const gameArea = document.querySelector('.game-area');
             if (gameArea) {
                 gameArea.insertBefore(summaryCard, gameArea.firstChild);
@@ -856,6 +930,8 @@ export class Game {
         }
         // Show the card
         summaryCard.style.display = 'block';
+        // Log that summary card is shown
+        log('Summary card displayed, pagination hidden');
     }
     hideSummaryCardAndShowContainers() {
         var _a;
@@ -891,6 +967,10 @@ export class Game {
         const separator = document.querySelector('.separator');
         if (separator)
             separator.style.display = '';
+        // Show pagination container if it exists
+        const paginationContainer = document.getElementById('paginationContainer');
+        if (paginationContainer)
+            paginationContainer.style.display = '';
         // Hide summary card
         const summaryCard = document.getElementById('summaryCard');
         if (summaryCard)
@@ -903,7 +983,7 @@ export class Game {
             gameArea.parentNode.insertBefore(newGameBtnBottom, gameArea.nextSibling);
         }
     }
-    // Also add a method to check if a specific page is empty
+    // Check if a specific page is empty or contains all completed words
     isPageEmpty(pageNum) {
         // If checking the current page, use DOM elements
         if (pageNum === this.currentPage) {
@@ -916,13 +996,21 @@ export class Game {
                 translationEl.style.display !== 'none');
             // Log page empty status for debugging
             log(`isPageEmpty for page ${pageNum}: Words: ${visibleWords.length}, Translations: ${visibleTranslations.length}`);
-            // Page is empty if there are no visible words or translations
-            return visibleWords.length === 0 || visibleTranslations.length === 0;
+            // If there are no visible words or translations on the current page
+            if (visibleWords.length === 0 || visibleTranslations.length === 0) {
+                return true;
+            }
+            return false;
         }
         // For other pages, check the wordElements and translationElements arrays
         else {
             const startIdx = pageNum * this.itemsPerPage;
             const endIdx = startIdx + this.itemsPerPage;
+            // If we're beyond the available words, the page is empty
+            if (startIdx >= this.wordElements.length) {
+                log(`isPageEmpty: Page ${pageNum} is beyond available words range`);
+                return true;
+            }
             const pageWords = this.wordElements.slice(startIdx, Math.min(endIdx, this.wordElements.length))
                 .filter(word => word.style.display !== 'none' &&
                 !word.classList.contains('correct'));

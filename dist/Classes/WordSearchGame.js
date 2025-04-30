@@ -16,6 +16,15 @@ export class WordSearchGame extends Game {
     updateInstructions() {
         this.setInstructions('מצא את המילים המוסתרות בתשבץ. לחץ על האות הראשונה וגרור עד לאות האחרונה.');
     }
+    render() {
+        // Call parent's render method but override pagination behavior
+        super.render();
+        // Hide pagination container completely
+        const paginationContainer = document.getElementById('paginationContainer');
+        if (paginationContainer) {
+            paginationContainer.style.display = 'none';
+        }
+    }
     renderTarget() {
         this.translationContainer.innerHTML = '';
         // Create a container for the word search grid
@@ -452,5 +461,42 @@ export class WordSearchGame extends Game {
             this.checkSelectedWord();
             this.resetSelection();
         }
+    }
+    // Override pagination controls to disable them for WordSearch
+    renderPaginationControls() {
+        // Do nothing - no pagination for word search
+        const paginationContainer = document.getElementById('paginationContainer');
+        if (paginationContainer) {
+            paginationContainer.style.display = 'none';
+        }
+    }
+    // Override update page to prevent pagination in word search
+    updatePage(pageNum) {
+        // No pagination needed for word search
+    }
+    // Override is page empty check
+    isPageEmpty(pageNum) {
+        return false;
+    }
+    // Override check page completion
+    checkPageCompletion(pageNum) {
+        // No pagination in word search
+    }
+    // Override move to next page
+    moveToNextUncompletedPage() {
+        // No pagination in word search
+    }
+    // Override check all pages completed
+    checkAllPagesCompleted() {
+        // Instead check if all words are found
+        const allWordsFound = this.placedWords.every(word => word.found);
+        if (allWordsFound) {
+            this.updateScore(this.words.length);
+        }
+    }
+    // Override organizeWordsByPage to prevent matching words and translations
+    organizeWordsByPage() {
+        // For WordSearch, we don't organize words - we just keep them randomly arranged
+        // This override prevents the parent class's organization logic
     }
 }

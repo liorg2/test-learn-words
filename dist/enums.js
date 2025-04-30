@@ -4,4 +4,5 @@ export var GameType;
     GameType["PART_OF_SPEECH"] = "partOfSpeech";
     GameType["MISSING_WORD"] = "missingWord";
     GameType["WORD_SEARCH"] = "wordSearch";
+    GameType["FALLING_WORDS"] = "fallingWords";
 })(GameType || (GameType = {}));

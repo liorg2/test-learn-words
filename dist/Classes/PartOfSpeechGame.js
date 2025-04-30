@@ -39,4 +39,29 @@ export class PartOfSpeechGame extends Game {
             this.updatePage(0);
         }
     }
+    // Disable the word organization that tries to match translations with words
+    organizeWordsByPage() {
+        // Skip the parent class implementation which tries to match words with translations
+        // Instead, just divide the already-shuffled words and translations into pages
+        const totalPages = Math.ceil(this.wordElements.length / this.itemsPerPage);
+        const organizedWords = Array(totalPages).fill(null).map(() => []);
+        const organizedTranslations = Array(totalPages).fill(null).map(() => []);
+        // Distribute words to pages (already shuffled)
+        for (let i = 0; i < this.wordElements.length; i++) {
+            const pageIndex = Math.floor(i / this.itemsPerPage);
+            if (pageIndex < totalPages) {
+                organizedWords[pageIndex].push(this.wordElements[i]);
+            }
+        }
+        // Distribute translations to pages (already shuffled)
+        for (let i = 0; i < this.translationElements.length; i++) {
+            const pageIndex = Math.floor(i / this.itemsPerPage);
+            if (pageIndex < totalPages) {
+                organizedTranslations[pageIndex].push(this.translationElements[i]);
+            }
+        }
+        // Update the arrays with pages maintained but not matched
+        this.wordElements = organizedWords.flat();
+        this.translationElements = organizedTranslations.flat();
+    }
 }

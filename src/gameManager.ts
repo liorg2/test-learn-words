@@ -113,6 +113,25 @@ function loadSelectedTest() {
         fillVoicesOptions(selectedOption.dataset.lang!, voices);
 
         loadWords().then(() => {
+            // Reset UI elements before building the game
+            // Show/hide pagination based on game type
+            const paginationContainer = document.getElementById('paginationContainer');
+            if (paginationContainer) {
+                if (gameType === 'fallingWords' || gameType === 'wordSearch') {
+                    paginationContainer.style.display = 'none';
+                } else {
+                    paginationContainer.style.display = '';
+                    paginationContainer.innerHTML = ''; // Clear previous pagination
+                }
+            }
+            
+            // Reset containers to default visibility
+            const wordContainer = document.getElementById('wordContainer');
+            const targetContainer = document.getElementById('targetContainer');
+            if (wordContainer) wordContainer.style.display = '';
+            if (targetContainer) targetContainer.style.display = '';
+            
+            // Build the game after UI reset
             buildGame(selectedOption.dataset.lang!);
         });
 
@@ -214,14 +233,36 @@ function handleVoiceChange(event: Event) {
 
 function changeFontSize(change: number) {
     const words = document.querySelectorAll<HTMLElement>('.word, .translation');
+    if (words.length === 0) return; // No words to resize
+    
+    // Get current size from the first word
+    const currentSize = parseInt(window.getComputedStyle(words[0], null).getPropertyValue('font-size'), 10);
+    const newSize = currentSize + change;
+    const newSizeWithUnit = `${newSize}px`;
+    
+    // Update individual elements
     words.forEach(word => {
-        const currentSize = parseInt(window.getComputedStyle(word, null).getPropertyValue('font-size'), 10);
-        const newSize = currentSize + change;
-        word.style.fontSize = `${newSize}px`;
+        word.style.fontSize = newSizeWithUnit;
     });
+    
+    // Update or create the style element for consistent sizing
+    let fontSizeStyle = document.getElementById('dynamic-font-size');
+    if (!fontSizeStyle) {
+        fontSizeStyle = document.createElement('style');
+        fontSizeStyle.id = 'dynamic-font-size';
+        document.head.appendChild(fontSizeStyle);
+    }
+    
+    // Update the style to apply to all .word and .translation elements, including future ones
+    fontSizeStyle.textContent = `
+        .word, .translation {
+            font-size: ${newSizeWithUnit} !important;
+        }
+    `;
+    
     // Save the new font size to local storage
-    saveFontSizeToLocal(`${words[0].style.fontSize}`);
-    sendEvent('changeFontSize', 'game controls', 'change font size', {change: change, size: words[0].style.fontSize});
+    saveFontSizeToLocal(newSizeWithUnit);
+    sendEvent('changeFontSize', 'game controls', 'change font size', {change: change, size: newSizeWithUnit});
 }
 
 function saveFontSizeToLocal(fontSize: string) {
@@ -231,10 +272,26 @@ function saveFontSizeToLocal(fontSize: string) {
 function loadFontSize() {
     const savedFontSize = localStorage.getItem('_fontSize');
     if (savedFontSize) {
+        // Apply to all current elements
         const wordsElements = document.querySelectorAll<HTMLElement>('.word, .translation');
         wordsElements.forEach(word => {
             word.style.fontSize = savedFontSize;
         });
+        
+        // Also create a style tag to ensure consistency across all pages
+        let fontSizeStyle = document.getElementById('dynamic-font-size');
+        if (!fontSizeStyle) {
+            fontSizeStyle = document.createElement('style');
+            fontSizeStyle.id = 'dynamic-font-size';
+            document.head.appendChild(fontSizeStyle);
+        }
+        
+        // Update the style to apply to all .word and .translation elements, including future ones
+        fontSizeStyle.textContent = `
+            .word, .translation {
+                font-size: ${savedFontSize} !important;
+            }
+        `;
     }
 }
 
@@ -325,17 +382,48 @@ document.addEventListener('DOMContentLoaded', function () {
     // Add click handlers for game type tabs
     gameTypeTabs.forEach(tab => {
         tab.addEventListener('click', function() {
+            const previousActiveTab = document.querySelector('.game-type-tab.active') as HTMLElement;
+            const previousGameType = previousActiveTab ? previousActiveTab.getAttribute('data-game-type') : null;
+            
+            // Remove active class from all tabs
             gameTypeTabs.forEach(t => t.classList.remove('active'));
+            
+            // Add active class to clicked tab
             this.classList.add('active');
+            
+            // Get new game type
+            const newGameType = this.getAttribute('data-game-type');
+            
             // Hide summary card and show containers
             if (game && typeof game.hideSummaryCardAndShowContainers === 'function') {
                 game.hideSummaryCardAndShowContainers();
             }
             
-            // Reset pagination for game type change
+            // Handle pagination visibility based on game type
             const paginationContainer = document.getElementById('paginationContainer');
             if (paginationContainer) {
-                paginationContainer.innerHTML = '';
+                if (newGameType === 'fallingWords' || newGameType === 'wordSearch') {
+                    paginationContainer.style.display = 'none';
+                } else {
+                    paginationContainer.style.display = '';
+                    paginationContainer.innerHTML = ''; // Clear pagination
+                }
+            }
+            
+            // If switching to/from special games, handle their containers
+            if (newGameType === 'fallingWords' || previousGameType === 'fallingWords') {
+                const fallingWordsContainer = document.querySelector('.falling-words-container');
+                if (fallingWordsContainer) {
+                    fallingWordsContainer.remove();
+                }
+            }
+            
+            // Handle word search grid if switching to/from word search
+            if (newGameType === 'wordSearch' || previousGameType === 'wordSearch') {
+                const wordSearchGrid = document.querySelector('.word-search-grid');
+                if (wordSearchGrid) {
+                    wordSearchGrid.remove();
+                }
             }
             
             loadSelectedTest();
@@ -378,9 +466,47 @@ document.addEventListener('DOMContentLoaded', function () {
         if (typeof Game !== 'undefined' && typeof Game.hideSummaryCardAndShowContainersStatic === 'function') {
             Game.hideSummaryCardAndShowContainersStatic();
         }
+        
+        // Handle container visibility based on current game type
+        const activeTab = document.querySelector('.game-type-tab.active') as HTMLElement;
+        const gameType = activeTab ? activeTab.getAttribute('data-game-type') : null;
+        
+        // Manage pagination visibility based on game type
+        const paginationContainer = document.getElementById('paginationContainer');
+        if (paginationContainer) {
+            if (gameType === 'fallingWords' || gameType === 'wordSearch') {
+                paginationContainer.style.display = 'none';
+            } else {
+                paginationContainer.style.display = '';
+                paginationContainer.innerHTML = ''; // Clear pagination
+            }
+        }
+        
         loadSelectedTest();
     });
-    document.getElementById('newGameBtnBottom').addEventListener('click', loadSelectedTest);
+    
+    document.getElementById('newGameBtnBottom').addEventListener('click', function() {
+        if (typeof Game !== 'undefined' && typeof Game.hideSummaryCardAndShowContainersStatic === 'function') {
+            Game.hideSummaryCardAndShowContainersStatic();
+        }
+        
+        // Handle container visibility based on current game type
+        const activeTab = document.querySelector('.game-type-tab.active') as HTMLElement;
+        const gameType = activeTab ? activeTab.getAttribute('data-game-type') : null;
+        
+        // Manage pagination visibility based on game type
+        const paginationContainer = document.getElementById('paginationContainer');
+        if (paginationContainer) {
+            if (gameType === 'fallingWords' || gameType === 'wordSearch') {
+                paginationContainer.style.display = 'none';
+            } else {
+                paginationContainer.style.display = '';
+                paginationContainer.innerHTML = ''; // Clear pagination
+            }
+        }
+        
+        loadSelectedTest();
+    });
     document.getElementById('closeSettings').addEventListener('click', closeSettings);
 
     // Populate both dropdowns
@@ -403,41 +529,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         initSelectsByURL()
 
-        if (window.innerWidth <= 1200) {
-            const overlay = document.getElementById("overlay-start");
-            overlay.style.display = "flex";
-
-            // Clone the populated select
-            const testSelectClone = originalTestSelect.cloneNode(true) as HTMLSelectElement;
-            testSelectClone.removeAttribute('id');
-            testSelectClone.id = 'testSelectClone';
-
-            // Add empty option only to clone
-            let emptyOption = document.createElement('option');
-            emptyOption.value = "";
-            emptyOption.textContent = "בחירת הכתבה";
-            testSelectClone.insertBefore(emptyOption, testSelectClone.firstChild);
-            testSelectClone.selectedIndex = 0;
-            testSelectClone.style.fontSize = '20px';
-
-            // Create a control panel on the overlay
-            const overlayControl = document.getElementById("overlay-control");
-            overlayControl.appendChild(testSelectClone);
-
-            testSelectClone.addEventListener('change', function () {
-                document.body.removeChild(overlay);
-                originalTestSelect.value = this.value;
-
-
-                VoiceService.getInstance().speak('Lets get started!', 'en', 0).then(() => {
-                    loadSelectedTest();
-                });
-
-
-            });
-        } else {
-            loadSelectedTest();
-        }
+        // Remove mobile popup - load directly even on mobile
+        loadSelectedTest();
     });
 
 
