@@ -45,7 +45,7 @@ export class SoundService {
                     // Set volume to 0 for initial play
                     audio.volume = 0;
                     yield audio.play();
-                    yield audio.pause();
+                    audio.pause();
                     audio.currentTime = 0;
                     audio.volume = 1;
                 }

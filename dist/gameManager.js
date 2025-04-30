@@ -283,6 +283,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (game && typeof game.hideSummaryCardAndShowContainers === 'function') {
                 game.hideSummaryCardAndShowContainers();
             }
+            // Reset pagination for game type change
+            const paginationContainer = document.getElementById('paginationContainer');
+            if (paginationContainer) {
+                paginationContainer.innerHTML = '';
+            }
             loadSelectedTest();
         });
     });
@@ -328,6 +333,11 @@ document.addEventListener('DOMContentLoaded', function () {
             // Hide summary card and show containers
             if (game && typeof game.hideSummaryCardAndShowContainers === 'function') {
                 game.hideSummaryCardAndShowContainers();
+            }
+            // Reset pagination for test change
+            const paginationContainer = document.getElementById('paginationContainer');
+            if (paginationContainer) {
+                paginationContainer.innerHTML = '';
             }
             loadSelectedTest();
         });

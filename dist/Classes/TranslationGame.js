@@ -8,10 +8,15 @@ export class TranslationGame extends Game {
     }
     loadTranslations() {
         this.translationContainer.innerHTML = ''; // Clear previous content
+        this.translationElements = []; // Reset translations array
+        // Sort translations for better organization
         const sortedTranslations = this.sortTranslations([...this.words]);
+        // Create all translation divs
         sortedTranslations.forEach(word => {
             const translationDiv = this.renderTranslationDiv(word);
-            this.translationContainer.appendChild(translationDiv);
+            // Store the word text as a data attribute for matching
+            translationDiv.dataset.matchesWord = word.text;
+            this.translationElements.push(translationDiv);
         });
     }
     sortTranslations(words) {
@@ -28,5 +33,9 @@ export class TranslationGame extends Game {
     }
     renderTarget() {
         this.loadTranslations();
+        // Show first page after loading translations
+        if (this.translationElements.length > 0) {
+            this.updatePage(0);
+        }
     }
 }

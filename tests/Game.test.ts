@@ -37,7 +37,8 @@ jest.mock('../src/Services/SoundService.js', () => {
   const mockInstance = {
     playCorrectSound: jest.fn(),
     playIncorrectSound: jest.fn(),
-    playGameOverSound: jest.fn()
+    playGameOverSound: jest.fn(),
+    playGameOverSuccessSound: jest.fn()
   };
   
   // Return the module with getInstance

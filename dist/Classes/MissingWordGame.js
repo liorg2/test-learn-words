@@ -5,23 +5,23 @@ export class MissingWordGame extends Game {
         super(words, language);
     }
     updateInstructions() {
-        this.setInstructions('יש לגרור את המילה החסרה במשפט.');
+        this.setInstructions('יש לגרור את המילה המתאימה למקום החסר.');
     }
     loadSentences() {
+        // Reset the translation elements
+        this.translationElements = [];
         this.translationContainer.innerHTML = ''; // Clear previous content
-        const sentenceContainer = this.translationContainer;
-        sentenceContainer.innerHTML = ''; // Clear previous content
         const randomSentence = this.getRandomWordAndModifiedSentence();
+        if (!randomSentence)
+            return;
         const targetDiv = document.createElement('div');
-        // targetDiv.textContent = randomSentence.modifiedSentence + '<br/>' + randomSentence.translation;
-        //targetDiv.innerHTML = randomSentence.translation + '<br/><br/>' + randomSentence.modifiedSentence;
         targetDiv.innerHTML = `<strong class="missing-word-hebrew">${randomSentence.translation}</strong><br/><br/>${randomSentence.modifiedSentence}`;
         targetDiv.className = 'translation ltr';
         targetDiv.addEventListener('dragover', this.handleDragOver);
         targetDiv.addEventListener('dragleave', this.handleDragLeave);
         targetDiv.addEventListener('drop', this.handleDrop);
         targetDiv.dataset.selectedWord = randomSentence.selectedWord;
-        sentenceContainer.appendChild(targetDiv);
+        this.translationElements.push(targetDiv);
     }
     getRandomWordAndModifiedSentence() {
         // Select a random word object
@@ -43,13 +43,46 @@ export class MissingWordGame extends Game {
         const selectedSentence = selectedWord.sentences[randomSentenceIndex].from;
         const translation = selectedWord.sentences[randomSentenceIndex].to;
         // Replace the word in the sentence with underscores
-        // Ensure only whole words are replaced
-        // const modifiedSentence = selectedSentence.replace(new RegExp(`(?<!\\w)${selectedWord.text}(?!\\w)`, 'gi'), "________");
         const modifiedSentence = selectedSentence.replace(new RegExp(`(?<!\\w)${selectedWord.text}(s|[.,!?])?(?!\\w)`, 'gi'), "________");
         log('getRandomWordAndModifiedSentence ' + selectedWord.text + ' ' + modifiedSentence + ' ' + selectedSentence);
         return { selectedWord: selectedWord.text, modifiedSentence, selectedSentence, translation };
     }
     renderTarget() {
         this.loadSentences();
+        // Show first page
+        if (this.translationElements.length > 0) {
+            this.updatePage(0);
+        }
+    }
+    // Override the Game class's method to handle target updates properly
+    checkPageCompletion(pageNum) {
+        // First run the parent implementation
+        super.checkPageCompletion(pageNum);
+        // For Missing Word Game, if it's a new random sentence after a correct answer,
+        // we also need to check if there are any matching words for this sentence
+        if (this.currentPage === pageNum) {
+            // Get the current sentence
+            const sentenceElement = this.translationContainer.querySelector('.translation');
+            if (sentenceElement && sentenceElement.dataset.selectedWord) {
+                // Get the selected word
+                const selectedWord = sentenceElement.dataset.selectedWord;
+                // Check if there's a matching visible word
+                const hasMatchingWord = Array.from(this.wordContainer.querySelectorAll('.word'))
+                    .some(wordEl => {
+                    const element = wordEl;
+                    return element.textContent === selectedWord &&
+                        !element.classList.contains('correct') &&
+                        element.style.display !== 'none';
+                });
+                // If there's no matching word for this sentence, generate a new one
+                if (!hasMatchingWord) {
+                    this.loadSentences();
+                    // Show the same page again
+                    this.updatePage(this.currentPage);
+                    // Re-check completion
+                    setTimeout(() => this.checkPageCompletion(this.currentPage), 100);
+                }
+            }
+        }
     }
 }

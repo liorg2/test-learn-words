@@ -24,6 +24,13 @@ export class Game {
     draggedWord: string | null = null;
 
     startTime: number;
+    
+    // Pagination variables
+    currentPage = 0;
+    itemsPerPage = 3;
+    wordElements: HTMLElement[] = [];
+    translationElements: HTMLElement[] = [];
+    completedPages: Set<number> = new Set();
 
     constructor(words: GameWord[], language: string) {
         this.language = language;
@@ -36,6 +43,18 @@ export class Game {
         document.getElementById('scoreDisplay').textContent = `${this.score}`;
         document.getElementById('numFailures')!.textContent = `${this.failures}`;
         document.getElementById('livesDisplay')!.textContent = `${this.lives}`;
+        
+        // Explicitly create a new empty Set to avoid any reference issues
+        this.completedPages = new Set<number>();
+        
+        // Load itemsPerPage from localStorage if available
+        const savedItemsPerPage = localStorage.getItem('itemsPerPage');
+        if (savedItemsPerPage) {
+            this.itemsPerPage = parseInt(savedItemsPerPage);
+        } else {
+            // Set default to 10 if no saved preference
+            this.itemsPerPage = 10;
+        }
 
         // Re-enable game area
         const gameArea = document.querySelector('.game-area');
@@ -59,17 +78,455 @@ export class Game {
     }
 
     render() {
+        // Reset pagination state
+        this.currentPage = 0;
+        // Ensure completedPages is a fresh empty set
+        this.completedPages = new Set<number>();
+        this.wordElements = [];
+        this.translationElements = [];
+        
+        // Clear any organization attribute
+        if (this.wordContainer) {
+            this.wordContainer.removeAttribute('data-organized');
+        }
+        
         this.updateInstructions();
         this.renderWordContainer();
         this.renderTarget();
+        this.renderPaginationControls();
     }
 
     renderWordContainer() {
+        // Store all word elements
+        this.wordElements = [];
+        
         const shuffledWords = shuffleArray([...this.words]);
         shuffledWords.forEach(word => {
             const wordDiv = this.createWordDiv(word, this.language);
+            this.wordElements.push(wordDiv);
+        });
+        
+        // Display current page
+        this.updatePage(0);
+    }
+
+    // Group words with their matching translations on the same page
+    organizeWordsByPage() {
+        const totalPages = Math.ceil(this.wordElements.length / this.itemsPerPage);
+        const translationElements = [...this.translationElements];
+        const wordElements = [...this.wordElements];
+        const organizedTranslations: HTMLElement[][] = Array(totalPages).fill(null).map(() => []);
+        const organizedWords: HTMLElement[][] = Array(totalPages).fill(null).map(() => []);
+        
+        // First organize words into pages
+        for (let i = 0; i < wordElements.length; i++) {
+            const pageIndex = Math.floor(i / this.itemsPerPage);
+            if (pageIndex < totalPages) {
+                organizedWords[pageIndex].push(wordElements[i]);
+            }
+        }
+        
+        // Get active game type
+        const activeTab = document.querySelector('.game-type-tab.active') as HTMLElement;
+        const gameType = activeTab ? activeTab.getAttribute('data-game-type') : null;
+        
+        // For each word, find its matching translation and put it on the same page
+        for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
+            const wordsOnPage = organizedWords[pageIndex];
+            
+            for (let wordEl of wordsOnPage) {
+                const wordText = wordEl.textContent;
+                const word = this.words.find(w => w.text === wordText);
+                
+                if (word) {
+                    // Find the matching translation element based on game type
+                    let matchingTranslation = null;
+                    
+                    if (gameType === 'translation') {
+                        // For translation game, match by translation text or matchesWord attribute
+                        matchingTranslation = translationElements.find(tEl => 
+                            tEl.textContent === word.translation || 
+                            tEl.dataset.matchesWord === wordText
+                        );
+                    } else if (gameType === 'partOfSpeech') {
+                        // For part of speech game, match by partOfSpeech or matchesWords attribute
+                        matchingTranslation = translationElements.find(tEl => {
+                            if (tEl.textContent === word.partOfSpeech) return true;
+                            
+                            // Check if word is in the comma-separated list of matching words
+                            const matchesWords = tEl.dataset.matchesWords?.split(',') || [];
+                            return matchesWords.includes(wordText);
+                        });
+                    } else if (gameType === 'missingWord') {
+                        // For missing word game, match by data-selected-word attribute
+                        matchingTranslation = translationElements.find(tEl => 
+                            tEl.dataset.selectedWord === wordText
+                        );
+                    }
+                    
+                    if (matchingTranslation) {
+                        // Remove it from the available translations array
+                        const index = translationElements.indexOf(matchingTranslation);
+                        if (index !== -1) {
+                            translationElements.splice(index, 1);
+                        }
+                        // Add to this page's translations
+                        organizedTranslations[pageIndex].push(matchingTranslation);
+                    }
+                }
+            }
+        }
+        
+        // Add remaining translations to pages that have space
+        let currentPage = 0;
+        for (const translation of translationElements) {
+            while (currentPage < totalPages && 
+                   organizedTranslations[currentPage].length >= this.itemsPerPage) {
+                currentPage++;
+            }
+            
+            if (currentPage < totalPages) {
+                organizedTranslations[currentPage].push(translation);
+            } else {
+                // Add to last page if no space elsewhere
+                organizedTranslations[totalPages - 1].push(translation);
+            }
+        }
+        
+        // Update the element arrays
+        this.wordElements = organizedWords.flat();
+        this.translationElements = organizedTranslations.flat();
+    }
+
+    updatePage(pageNum: number) {
+        // If first time loading, organize words and translations
+        if (this.translationElements.length > 0 && pageNum === 0 && 
+            !this.wordContainer.hasAttribute('data-organized')) {
+            this.organizeWordsByPage();
+            this.wordContainer.setAttribute('data-organized', 'true');
+        }
+        
+        // Clear containers
+        this.wordContainer.innerHTML = '';
+        this.translationContainer.innerHTML = '';
+        
+        // Set current page
+        this.currentPage = pageNum;
+        
+        // Calculate bounds
+        const startIdx = pageNum * this.itemsPerPage;
+        const endIdx = startIdx + this.itemsPerPage;
+        
+        // Display words for this page
+        const pageWords = this.wordElements.slice(startIdx, Math.min(endIdx, this.wordElements.length));
+        pageWords.forEach(wordDiv => {
             this.wordContainer.appendChild(wordDiv);
         });
+        
+        // Display translations for this page
+        const pageTranslations = this.translationElements.slice(startIdx, Math.min(endIdx, this.translationElements.length));
+        pageTranslations.forEach(translationDiv => {
+            this.translationContainer.appendChild(translationDiv);
+        });
+        
+        // Update pagination UI
+        this.updatePaginationUI();
+        
+        // Only check completion for pages with explicit completion status
+        if (this.completedPages.has(pageNum)) {
+            this.checkPageCompletion(pageNum);
+        }
+    }
+
+    renderPaginationControls() {
+        // Create pagination container if it doesn't exist
+        let paginationContainer = document.getElementById('paginationContainer');
+        
+        if (!paginationContainer) {
+            paginationContainer = document.createElement('div');
+            paginationContainer.id = 'paginationContainer';
+            paginationContainer.className = 'pagination-controls';
+            
+            // Insert BEFORE wordContainer (above the words)
+            const gameArea = document.querySelector('.game-area');
+            if (gameArea && this.wordContainer.parentNode) {
+                gameArea.insertBefore(paginationContainer, this.wordContainer);
+            }
+        }
+        
+        // Update pagination UI (which will create/update page size selector)
+        this.updatePaginationUI();
+        
+        // Remove any existing page size container at the bottom
+        const oldPageSizeContainer = document.getElementById('pageSizeContainer');
+        if (oldPageSizeContainer && oldPageSizeContainer.parentNode) {
+            oldPageSizeContainer.parentNode.removeChild(oldPageSizeContainer);
+        }
+    }
+    
+    updatePaginationUI() {
+        const paginationContainer = document.getElementById('paginationContainer');
+        if (!paginationContainer) return;
+        
+        // Preserve the page size selector if it exists
+        const pageSizeSelector = paginationContainer.querySelector('.page-size-selector');
+        
+        // Clear existing pagination
+        paginationContainer.innerHTML = '';
+        
+        // Calculate total pages
+        const totalWords = this.wordElements.length;
+        const totalPages = Math.ceil(totalWords / this.itemsPerPage);
+        
+        // Create buttons container to separate buttons from page size selector
+        const buttonsContainer = document.createElement('div');
+        buttonsContainer.className = 'pagination-buttons';
+        paginationContainer.appendChild(buttonsContainer);
+        
+        // Create page buttons if more than one page
+        if (totalPages > 1) {
+            // Create page buttons
+            for (let i = 0; i < totalPages; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.className = 'page-btn';
+                pageBtn.textContent = (i + 1).toString(); // Always show number
+                
+                if (i === this.currentPage) {
+                    pageBtn.classList.add('active');
+                }
+                
+                // Check if page is completed
+                if (this.completedPages.has(i)) {
+                    pageBtn.classList.add('completed');
+                    // Add checkmark icon but keep the number
+                    const checkIcon = document.createElement('i');
+                    checkIcon.className = 'fas fa-check check-icon';
+                    pageBtn.appendChild(checkIcon);
+                }
+                
+                pageBtn.addEventListener('click', () => this.updatePage(i));
+                buttonsContainer.appendChild(pageBtn);
+            }
+        }
+        
+        // Re-add the page size selector if it existed
+        if (pageSizeSelector) {
+            paginationContainer.appendChild(pageSizeSelector);
+        } else {
+            // Create page size selector if it doesn't exist
+            this.createPageSizeSelector(paginationContainer);
+        }
+    }
+    
+    createPageSizeSelector(paginationContainer: HTMLElement) {
+        // Create page size selector
+        const pageSizeContainer = document.createElement('div');
+        pageSizeContainer.className = 'page-size-selector';
+        
+        // Create label
+        const label = document.createElement('label');
+        label.textContent = 'פריטים: ';
+        label.htmlFor = 'pageSizeSelect';
+        pageSizeContainer.appendChild(label);
+        
+        // Create select
+        const select = document.createElement('select');
+        select.id = 'pageSizeSelect';
+        
+        // Add options - removed 3, keeping 5, 10, 15, 20
+        [5, 10, 15, 20].forEach(size => {
+            const option = document.createElement('option');
+            option.value = size.toString();
+            option.textContent = size.toString();
+            if (size === this.itemsPerPage) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        });
+        
+        // Add change event listener
+        select.addEventListener('change', () => {
+            const newSize = parseInt(select.value);
+            
+            // Only show confirmation if the game has started (score > 0 or failures > 0)
+            if (this.score > 0 || this.failures > 0) {
+                // Show custom confirmation dialog
+                this.showCustomConfirmDialog(
+                    "שינוי מספר הפריטים בדף", 
+                    "שינוי מספר הפריטים בדף יתחיל את המשחק מחדש. האם להמשיך?",
+                    () => {
+                        // User confirmed, restart game
+                        // Save to local storage
+                        localStorage.setItem('itemsPerPage', newSize.toString());
+                        // Update itemsPerPage
+                        this.itemsPerPage = newSize;
+                        // Reload current game with clean state
+                        if (typeof window['loadSelectedTest'] === 'function') {
+                            window['loadSelectedTest']();
+                        } else {
+                            window.location.reload();
+                        }
+                    },
+                    () => {
+                        // User canceled, reset select value
+                        select.value = this.itemsPerPage.toString();
+                    }
+                );
+            } else {
+                // No progress yet, just update normally
+                // Save to local storage
+                localStorage.setItem('itemsPerPage', newSize.toString());
+                // Update itemsPerPage
+                this.itemsPerPage = newSize;
+                // Reload current game
+                this.updatePage(0);
+            }
+        });
+        
+        pageSizeContainer.appendChild(select);
+        paginationContainer.appendChild(pageSizeContainer);
+    }
+    
+    showCustomConfirmDialog(title: string, message: string, onConfirm: () => void, onCancel: () => void) {
+        // Create and append overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'confirm-overlay';
+        document.body.appendChild(overlay);
+        
+        // Create dialog container
+        const dialog = document.createElement('div');
+        dialog.className = 'confirm-dialog';
+        overlay.appendChild(dialog);
+        
+        // Add title
+        const titleElement = document.createElement('h3');
+        titleElement.className = 'confirm-title';
+        titleElement.textContent = title;
+        dialog.appendChild(titleElement);
+        
+        // Add message
+        const messageElement = document.createElement('p');
+        messageElement.className = 'confirm-message';
+        messageElement.textContent = message;
+        dialog.appendChild(messageElement);
+        
+        // Add buttons container
+        const buttonsContainer = document.createElement('div');
+        buttonsContainer.className = 'confirm-buttons';
+        dialog.appendChild(buttonsContainer);
+        
+        // Add confirm button
+        const confirmButton = document.createElement('button');
+        confirmButton.className = 'confirm-button confirm-yes';
+        confirmButton.textContent = 'אישור';
+        confirmButton.addEventListener('click', () => {
+            document.body.removeChild(overlay);
+            onConfirm();
+        });
+        buttonsContainer.appendChild(confirmButton);
+        
+        // Add cancel button
+        const cancelButton = document.createElement('button');
+        cancelButton.className = 'confirm-button confirm-no';
+        cancelButton.textContent = 'ביטול';
+        cancelButton.addEventListener('click', () => {
+            document.body.removeChild(overlay);
+            onCancel();
+        });
+        buttonsContainer.appendChild(cancelButton);
+        
+        // Auto-focus on cancel button as it's the safer option
+        setTimeout(() => cancelButton.focus(), 0);
+    }
+    
+    checkPageCompletion(pageNum: number) {
+        // Skip if page is already marked as completed
+        if (this.completedPages.has(pageNum)) {
+            return;
+        }
+        
+        const startIdx = pageNum * this.itemsPerPage;
+        const endIdx = startIdx + this.itemsPerPage;
+        
+        // Get words for this page
+        const pageWords = this.wordElements.slice(startIdx, Math.min(endIdx, this.wordElements.length));
+        
+        // Only consider a page completed if it has words and all are completed
+        if (pageWords.length === 0) {
+            return; // Don't mark empty pages as completed at initialization
+        }
+        
+        const allCompleted = pageWords.every(word => 
+            word.classList.contains('correct') || 
+            word.style.display === 'none'
+        );
+        
+        // Only mark as completed if all words are explicitly completed
+        if (allCompleted && pageWords.length > 0) {
+            this.completedPages.add(pageNum);
+            this.updatePaginationUI();
+            
+            // Check if we should automatically advance to the next uncompleted page
+            if (pageNum === this.currentPage) {
+                this.moveToNextUncompletedPage();
+            }
+            
+            // Check if all pages are completed
+            this.checkAllPagesCompleted();
+        }
+    }
+
+    checkAllPagesCompleted() {
+        // Calculate total pages
+        const totalWords = this.wordElements.length;
+        const totalPages = Math.ceil(totalWords / this.itemsPerPage);
+        
+        // Check if all pages are completed
+        const allCompleted = this.completedPages.size === totalPages && totalPages > 0;
+        
+        // Check if all words on all pages are marked as correct or hidden
+        const allWordsCompleted = this.wordElements.every(word => 
+            word.classList.contains('correct') || 
+            word.style.display === 'none'
+        );
+        
+        // Log completion status
+        log(`Check all pages completed: Pages ${this.completedPages.size}/${totalPages}, Words: ${this.score}/${this.words.length}, All words completed: ${allWordsCompleted}`);
+        
+        // If all pages are completed or all words are completed, but game over hasn't been triggered yet
+        if ((allCompleted || allWordsCompleted) && this.score < this.words.length) {
+            log('All pages completed but score doesn\'t match words length. Triggering game over.');
+            
+            // Force the score to match total words to trigger game over
+            this.updateScore(this.words.length);
+        }
+    }
+
+    moveToNextUncompletedPage() {
+        const totalPages = Math.ceil(this.wordElements.length / this.itemsPerPage);
+        
+        // Find the next uncompleted page
+        let nextPage = this.currentPage + 1;
+        while (nextPage < totalPages && this.completedPages.has(nextPage)) {
+            nextPage++;
+        }
+        
+        // If we found an uncompleted page, go to it
+        if (nextPage < totalPages) {
+            this.updatePage(nextPage);
+        } else {
+            // Check if there are any uncompleted pages before the current one
+            nextPage = 0;
+            while (nextPage < this.currentPage && this.completedPages.has(nextPage)) {
+                nextPage++;
+            }
+            
+            // If we found an uncompleted page before the current one, go to it
+            if (nextPage < this.currentPage && !this.completedPages.has(nextPage)) {
+                this.updatePage(nextPage);
+            }
+            // Otherwise, stay on current page (all pages are completed)
+        }
     }
 
     updateInstructions() {
@@ -432,6 +889,20 @@ export class Game {
                     targetEl.addEventListener('transitionend', function onTransitionEnd() {
                         targetEl.style.display = 'none';
                         targetEl.removeEventListener('transitionend', onTransitionEnd);
+                        
+                        // Update translation elements array to remove matched item
+                        self.translationElements = self.translationElements.filter(element => element !== targetEl);
+                        
+                        // Check if current page is now completed after removing this translation
+                        self.checkPageCompletion(self.currentPage);
+                        
+                        // Check if only the current page has become empty
+                        if (self.isPageEmpty(self.currentPage)) {
+                            // Only mark this specific page as completed
+                            self.completedPages.add(self.currentPage);
+                            self.updatePaginationUI();
+                            self.moveToNextUncompletedPage();
+                        }
                     });
                 } else if (gameType2 === GameType.MISSING_WORD) {
                     self.renderTarget();
@@ -451,6 +922,20 @@ export class Game {
                 wordElement.addEventListener('transitionend', function onTransitionEnd() {
                     wordElement.style.display = 'none';
                     wordElement.removeEventListener('transitionend', onTransitionEnd);
+                    
+                    // Update word elements array to remove matched item
+                    self.wordElements = self.wordElements.filter(element => element !== wordElement);
+                    
+                    // Check if current page is now completed after removing this word
+                    self.checkPageCompletion(self.currentPage);
+                    
+                    // Check if only the current page has become empty
+                    if (self.isPageEmpty(self.currentPage)) {
+                        // Only mark this specific page as completed
+                        self.completedPages.add(self.currentPage);
+                        self.updatePaginationUI();
+                        self.moveToNextUncompletedPage();
+                    }
                 });
             }
         });
@@ -581,6 +1066,50 @@ export class Game {
         if (newGameBtnBottom && gameArea && !gameArea.nextSibling?.isSameNode(newGameBtnBottom)) {
             newGameBtnBottom.classList.remove('summary-new-game-btn');
             gameArea.parentNode.insertBefore(newGameBtnBottom, gameArea.nextSibling);
+        }
+    }
+
+    // Also add a method to check if a specific page is empty
+    isPageEmpty(pageNum: number) {
+        // If checking the current page, use DOM elements
+        if (pageNum === this.currentPage) {
+            const visibleWords = Array.from(document.querySelectorAll('#wordContainer > .word'))
+                .filter((wordEl: HTMLElement) => 
+                    wordEl.offsetParent !== null && // Check if element is visible in DOM
+                    wordEl.style.display !== 'none' && 
+                    !wordEl.classList.contains('correct')
+                );
+                
+            const visibleTranslations = Array.from(document.querySelectorAll('#targetContainer > .translation'))
+                .filter((translationEl: HTMLElement) => 
+                    translationEl.offsetParent !== null &&
+                    translationEl.style.display !== 'none'
+                );
+                
+            // Log page empty status for debugging
+            log(`isPageEmpty for page ${pageNum}: Words: ${visibleWords.length}, Translations: ${visibleTranslations.length}`);
+            
+            // Page is empty if there are no visible words or translations
+            return visibleWords.length === 0 || visibleTranslations.length === 0;
+        }
+        // For other pages, check the wordElements and translationElements arrays
+        else {
+            const startIdx = pageNum * this.itemsPerPage;
+            const endIdx = startIdx + this.itemsPerPage;
+            
+            const pageWords = this.wordElements.slice(startIdx, Math.min(endIdx, this.wordElements.length))
+                .filter(word => 
+                    word.style.display !== 'none' && 
+                    !word.classList.contains('correct')
+                );
+                
+            const pageTranslations = this.translationElements.slice(startIdx, Math.min(endIdx, this.translationElements.length))
+                .filter(translation => translation.style.display !== 'none');
+            
+            // Log page empty status for debugging
+            log(`isPageEmpty for page ${pageNum}: Words: ${pageWords.length}, Translations: ${pageTranslations.length}`);
+            
+            return pageWords.length === 0 || pageTranslations.length === 0;
         }
     }
 }
