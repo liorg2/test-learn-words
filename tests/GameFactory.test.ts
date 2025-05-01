@@ -4,6 +4,7 @@ import { TranslationGame } from '../src/Classes/TranslationGame';
 import { PartOfSpeechGame } from '../src/Classes/PartOfSpeechGame';
 import { MissingWordGame } from '../src/Classes/MissingWordGame';
 import { WordSearchGame } from '../src/Classes/WordSearchGame';
+import { FallingWordsGame } from '../src/Classes/FallingWordsGame';
 import { GameWord } from '../src/globalTypes';
 import { Game } from '../src/Classes/Game';
 
@@ -49,6 +50,14 @@ jest.mock('../src/Classes/WordSearchGame', () => ({
   }))
 }));
 
+jest.mock('../src/Classes/FallingWordsGame', () => ({
+  FallingWordsGame: jest.fn().mockImplementation((words, language) => ({
+    words,
+    language,
+    render: jest.fn()
+  }))
+}));
+
 describe('GameFactory', () => {
   const mockWords: GameWord[] = [
     { text: 'hello', translation: 'שלום', partOfSpeech: 'noun' },
@@ -79,6 +88,11 @@ describe('GameFactory', () => {
   test('should create a WordSearchGame when gameType is wordSearch', () => {
     GameFactory.createGame(GameType.WORD_SEARCH, mockWords, mockLanguage);
     expect(WordSearchGame).toHaveBeenCalledWith(mockWords, mockLanguage);
+  });
+
+  test('should create a FallingWordsGame when gameType is fallingWords', () => {
+    GameFactory.createGame(GameType.FALLING_WORDS, mockWords, mockLanguage);
+    expect(FallingWordsGame).toHaveBeenCalledWith(mockWords, mockLanguage);
   });
 
   test('should default to TranslationGame when gameType is not recognized', () => {

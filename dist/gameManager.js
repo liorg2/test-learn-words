@@ -456,4 +456,93 @@ document.addEventListener('DOMContentLoaded', function () {
         // Remove mobile popup - load directly even on mobile
         loadSelectedTest();
     });
+    // Add hamburger menu for mobile
+    setupMobileMenu();
 });
+function setupMobileMenu() {
+    // Create hamburger menu button
+    const hamburgerButton = document.createElement('button');
+    hamburgerButton.className = 'hamburger-menu';
+    hamburgerButton.innerHTML = '<i class="fas fa-bars"></i>';
+    // Insert hamburger button into the game area for proper positioning
+    const gameArea = document.querySelector('.game-area');
+    if (gameArea) {
+        gameArea.appendChild(hamburgerButton);
+    }
+    else {
+        document.body.appendChild(hamburgerButton);
+    }
+    // Create mobile tabs container
+    const mobileTabsContainer = document.createElement('div');
+    mobileTabsContainer.className = 'mobile-tabs-container';
+    // Create close button
+    const closeButton = document.createElement('button');
+    closeButton.className = 'mobile-tabs-close';
+    closeButton.innerHTML = '<i class="fas fa-times"></i>';
+    mobileTabsContainer.appendChild(closeButton);
+    // Create content container
+    const tabsContent = document.createElement('div');
+    tabsContent.className = 'mobile-tabs-content';
+    mobileTabsContainer.appendChild(tabsContent);
+    // Add to DOM
+    document.body.appendChild(mobileTabsContainer);
+    // Copy tabs to mobile menu
+    function updateMobileTabs() {
+        tabsContent.innerHTML = '';
+        const desktopTabs = document.querySelectorAll('.game-type-tab');
+        desktopTabs.forEach(tab => {
+            var _a;
+            const gameType = tab.getAttribute('data-game-type');
+            const tabText = tab.textContent;
+            const tabIcon = ((_a = tab.querySelector('i')) === null || _a === void 0 ? void 0 : _a.className) || '';
+            const mobileTab = document.createElement('button');
+            mobileTab.className = 'mobile-tab-button';
+            if (tab.classList.contains('active')) {
+                mobileTab.classList.add('active');
+            }
+            mobileTab.setAttribute('data-game-type', gameType);
+            mobileTab.innerHTML = tabIcon ? `<i class="${tabIcon}"></i> ${tabText}` : tabText;
+            mobileTab.addEventListener('click', () => {
+                // Update active state in both desktop and mobile
+                desktopTabs.forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.mobile-tab-button').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                mobileTab.classList.add('active');
+                // Hide mobile menu
+                mobileTabsContainer.style.display = 'none';
+                // Load the selected game
+                loadSelectedTest();
+            });
+            tabsContent.appendChild(mobileTab);
+        });
+    }
+    // Event listeners
+    hamburgerButton.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent the document click from immediately closing it
+        updateMobileTabs();
+        mobileTabsContainer.style.display = 'flex';
+    });
+    closeButton.addEventListener('click', () => {
+        mobileTabsContainer.style.display = 'none';
+    });
+    // Close menu when clicking anywhere on the document
+    document.addEventListener('click', (e) => {
+        // Don't close if clicking inside the mobile tabs content
+        if (e.target && mobileTabsContainer.style.display === 'flex' &&
+            !tabsContent.contains(e.target) &&
+            !hamburgerButton.contains(e.target)) {
+            mobileTabsContainer.style.display = 'none';
+        }
+    });
+    // Update mobile tabs when desktop tabs change
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                updateMobileTabs();
+            }
+        });
+    });
+    document.querySelectorAll('.game-type-tab').forEach(tab => {
+        observer.observe(tab, { attributes: true });
+    });
+}

@@ -12,7 +12,7 @@ export class FallingWordsGame extends Game {
         this.gameRunning = false;
         this.firstWordSelected = null;
         this.wordPairs = [];
-        this.fallSpeed = 40; // pixels per second
+        this.fallSpeed = 30; // pixels per second
         this.maxActivePairs = 5; // Fixed at 5 pairs as per requirements
         this.spawnedPairsCount = 0;
         this.matchedPairsCount = 0;
@@ -47,7 +47,7 @@ export class FallingWordsGame extends Game {
         const gameArea = document.querySelector('.game-area');
         const gameAreaRect = gameArea.getBoundingClientRect();
         const viewportHeight = window.innerHeight;
-        const bottomSpace = 20; // Small margin at bottom
+        const bottomSpace = 0; // No margin at bottom
         const containerHeight = viewportHeight - gameAreaRect.top - bottomSpace;
         // Prepare game container
         this.gameContainer.innerHTML = '';
@@ -59,7 +59,7 @@ export class FallingWordsGame extends Game {
         this.gameContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'; // Transparent background
         this.gameContainer.style.border = '1px solid #ccc';
         this.gameContainer.style.borderRadius = '5px';
-        this.gameContainer.style.margin = '20px 0 0 0'; // Remove bottom margin
+        this.gameContainer.style.margin = '10px 0 0 0'; // Less top margin, no bottom margin
         // Create start button
         const startButton = document.createElement('button');
         startButton.textContent = 'התחל משחק';
@@ -205,39 +205,43 @@ export class FallingWordsGame extends Game {
         // Get the next word pair
         const pair = this.wordPairs[this.spawnedPairsCount];
         this.spawnedPairsCount++;
-        // Determine horizontal positions - space them out horizontally but not too far
+        // Determine horizontal positions - space them out horizontally 
         const containerWidth = this.gameContainer.clientWidth;
         const wordWidth = Math.max(pair.originalWord.text.length, pair.originalWord.translation.length) * 10 + 40;
         // Create original word element
         const wordElement = this.createFallingWord(pair.originalWord.text);
-        // Create translation element - with slightly offset position
+        // Create translation element
         const translationElement = this.createFallingWord(pair.originalWord.translation);
-        // Ensure words don't spawn too close to each other horizontally
-        const leftSide = containerWidth * 0.1; // 10% from left
-        const rightSide = containerWidth * 0.9 - wordWidth; // 10% from right
-        // Random positions across the full width - ensure they're not vertically aligned
-        let pos1 = leftSide + Math.random() * (containerWidth * 0.4 - wordWidth);
-        let pos2 = containerWidth * 0.5 + Math.random() * (rightSide - containerWidth * 0.5);
-        // Ensure the positions are not too close vertically
-        if (Math.abs(pos1 - pos2) < wordWidth) {
-            // Adjust to ensure minimum horizontal separation
-            if (pos1 < containerWidth / 2) {
-                pos1 = Math.max(leftSide, pos1 - wordWidth / 2);
-                pos2 = Math.min(rightSide, pos2 + wordWidth / 2);
-            }
-            else {
-                pos1 = Math.min(containerWidth / 2 - wordWidth, pos1 + wordWidth / 2);
-                pos2 = Math.max(containerWidth / 2, pos2 - wordWidth / 2);
-            }
-        }
-        // Set positions with different sides of the container
+        // Calculate positions to ensure they're well separated
+        // Using the full width and dividing into 4 sections
+        const section = containerWidth / 4;
+        // Word 1 appears in first or second section
+        const useSection1 = Math.random() > 0.5;
+        const pos1Start = useSection1 ? 0 : section;
+        const pos1 = pos1Start + Math.random() * (section - wordWidth);
+        // Word 2 appears in third or fourth section
+        const useSection3 = Math.random() > 0.5;
+        const pos2Start = useSection3 ? (section * 2) : (section * 3);
+        const pos2 = pos2Start + Math.random() * (section - wordWidth);
+        // Set positions
         wordElement.style.left = `${pos1}px`;
         translationElement.style.left = `${pos2}px`;
-        // Start them at different heights but both visible in the top portion
+        // Stagger their vertical positions significantly
         const containerHeight = this.gameContainer.clientHeight;
-        const topPosition = containerHeight * 0.1; // Position them 10% from the top
-        wordElement.style.top = `${topPosition + Math.random() * 20}px`; // Slight random variation
-        translationElement.style.top = `${topPosition + Math.random() * 20}px`; // Independent variation
+        // First word starts at top, second one starts further down
+        const randomDelay = Math.random() > 0.5;
+        const topPosition1 = 0; // First word starts at top
+        // Choose whether to delay the word or translation
+        if (randomDelay) {
+            wordElement.style.top = `${topPosition1}px`;
+            // Second word starts 20-35% down the container
+            translationElement.style.top = `${Math.random() * 0.15 * containerHeight + 0.2 * containerHeight}px`;
+        }
+        else {
+            translationElement.style.top = `${topPosition1}px`;
+            // First word starts 20-35% down the container
+            wordElement.style.top = `${Math.random() * 0.15 * containerHeight + 0.2 * containerHeight}px`;
+        }
         // Add to game
         this.gameContainer.appendChild(wordElement);
         this.gameContainer.appendChild(translationElement);
