@@ -290,6 +290,8 @@ function buildGame(language) {
         activeTab = firstTab;
     }
     const gameType = activeTab.getAttribute('data-game-type');
+    // Set the game type attribute on the body for CSS selection
+    document.body.setAttribute('data-game-type', gameType);
     game = GameFactory.createGame(gameType, words, language);
     game.render();
     loadFontSize();
@@ -322,10 +324,100 @@ function updateSpeakerIcon() {
         toggleSpeakerBtn.classList.add('blink-once');
     }
 }
+// Setup fullscreen functionality for all games
+function setupFullscreenToggle() {
+    const fullscreenButton = document.getElementById('fullscreenButton');
+    // Ensure button is visible
+    if (fullscreenButton) {
+        fullscreenButton.style.display = 'flex';
+        fullscreenButton.addEventListener('click', () => {
+            toggleGameFullscreen();
+            sendEvent('fullscreenButton', 'game controls', 'toggle fullscreen', {});
+        });
+    }
+    // Check for Escape key to exit fullscreen mode
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.body.classList.contains('game-fullscreen-mode')) {
+            exitGameFullscreen();
+        }
+    });
+}
+function toggleGameFullscreen() {
+    if (document.body.classList.contains('game-fullscreen-mode')) {
+        exitGameFullscreen();
+    }
+    else {
+        enterGameFullscreen();
+    }
+}
+function enterGameFullscreen() {
+    // Add fullscreen class to body
+    document.body.classList.add('game-fullscreen-mode');
+    // Make sure to update the button state even if it's hidden
+    const fullscreenButton = document.getElementById('fullscreenButton');
+    if (fullscreenButton) {
+        fullscreenButton.innerHTML = '<i class="fas fa-compress"></i>';
+    }
+    // Hide all page elements except game area
+    const elementsToHide = [
+        document.querySelector('.control-panel'),
+        document.querySelector('.statistics'),
+        document.querySelector('.game-type-tabs'),
+        document.getElementById('newGameBtnBottom'),
+        document.getElementById('helpButton')
+    ];
+    elementsToHide.forEach(element => {
+        if (element) {
+            element.setAttribute('data-fullscreen-hidden', 'true');
+            element.style.display = 'none';
+        }
+    });
+    // Create exit button 
+    if (!document.getElementById('exitFullscreenButton')) {
+        const exitButton = document.createElement('button');
+        exitButton.id = 'exitFullscreenButton';
+        exitButton.className = 'exit-fullscreen-button';
+        exitButton.innerHTML = '<i class="fas fa-times"></i>';
+        exitButton.addEventListener('click', exitGameFullscreen);
+        document.body.appendChild(exitButton);
+    }
+}
+function exitGameFullscreen() {
+    // Remove fullscreen class from body
+    document.body.classList.remove('game-fullscreen-mode');
+    // Restore fullscreen button icon
+    const fullscreenButton = document.getElementById('fullscreenButton');
+    if (fullscreenButton) {
+        fullscreenButton.innerHTML = '<i class="fas fa-expand"></i>';
+    }
+    // Restore all hidden elements
+    const hiddenElements = document.querySelectorAll('[data-fullscreen-hidden="true"]');
+    hiddenElements.forEach(element => {
+        element.removeAttribute('data-fullscreen-hidden');
+        element.style.display = '';
+    });
+    // Remove exit button
+    const exitButton = document.getElementById('exitFullscreenButton');
+    if (exitButton) {
+        exitButton.parentNode.removeChild(exitButton);
+    }
+}
 document.addEventListener('DOMContentLoaded', function () {
     log('DOMContentLoaded innerWidth= ' + window.innerWidth);
     const originalTestSelect = document.getElementById('testSelect');
     const gameTypeTabs = document.querySelectorAll('.game-type-tab');
+    // Set initial game type from active tab
+    const activeTab = document.querySelector('.game-type-tab.active');
+    if (activeTab) {
+        const initialGameType = activeTab.getAttribute('data-game-type');
+        document.body.setAttribute('data-game-type', initialGameType);
+    }
+    // Initialize mobile fullscreen mode
+    setupFullscreenMode();
+    // Initialize help button and instructions popover for mobile
+    setupMobileInstructions();
+    // Initialize fullscreen toggle functionality
+    setupFullscreenToggle();
     // Add click handlers for game type tabs
     gameTypeTabs.forEach(tab => {
         tab.addEventListener('click', function () {
@@ -337,6 +429,8 @@ document.addEventListener('DOMContentLoaded', function () {
             this.classList.add('active');
             // Get new game type
             const newGameType = this.getAttribute('data-game-type');
+            // Set the game type attribute on the body for CSS selection
+            document.body.setAttribute('data-game-type', newGameType);
             // Hide summary card and show containers
             if (game && typeof game.hideSummaryCardAndShowContainers === 'function') {
                 game.hideSummaryCardAndShowContainers();
@@ -460,18 +554,8 @@ document.addEventListener('DOMContentLoaded', function () {
     setupMobileMenu();
 });
 function setupMobileMenu() {
-    // Create hamburger menu button
-    const hamburgerButton = document.createElement('button');
-    hamburgerButton.className = 'hamburger-menu';
-    hamburgerButton.innerHTML = '<i class="fas fa-bars"></i>';
-    // Insert hamburger button into the game area for proper positioning
-    const gameArea = document.querySelector('.game-area');
-    if (gameArea) {
-        gameArea.appendChild(hamburgerButton);
-    }
-    else {
-        document.body.appendChild(hamburgerButton);
-    }
+    // Get game switcher button that's already in the control panel
+    const gameSwitcherButton = document.getElementById('gameSwitcher');
     // Create mobile tabs container
     const mobileTabsContainer = document.createElement('div');
     mobileTabsContainer.className = 'mobile-tabs-container';
@@ -517,7 +601,7 @@ function setupMobileMenu() {
         });
     }
     // Event listeners
-    hamburgerButton.addEventListener('click', (e) => {
+    gameSwitcherButton.addEventListener('click', (e) => {
         e.stopPropagation(); // Prevent the document click from immediately closing it
         updateMobileTabs();
         mobileTabsContainer.style.display = 'flex';
@@ -530,7 +614,7 @@ function setupMobileMenu() {
         // Don't close if clicking inside the mobile tabs content
         if (e.target && mobileTabsContainer.style.display === 'flex' &&
             !tabsContent.contains(e.target) &&
-            !hamburgerButton.contains(e.target)) {
+            !gameSwitcherButton.contains(e.target)) {
             mobileTabsContainer.style.display = 'none';
         }
     });
@@ -545,4 +629,84 @@ function setupMobileMenu() {
     document.querySelectorAll('.game-type-tab').forEach(tab => {
         observer.observe(tab, { attributes: true });
     });
+}
+// Setup mobile instructions popover
+function setupMobileInstructions() {
+    const helpButton = document.getElementById('helpButton');
+    const instructionsOverlay = document.getElementById('instructionsOverlay');
+    const instructionsPopover = document.getElementById('instructionsPopover');
+    const instructionsCloseButton = document.getElementById('instructionsCloseButton');
+    const instructionsContent = document.getElementById('instructionsContent');
+    // When help button is clicked, show the instructions popover
+    helpButton.addEventListener('click', function () {
+        // Copy content from instructions div to the popover
+        const instructionsDiv = document.querySelector('.instructions');
+        if (instructionsDiv) {
+            instructionsContent.innerHTML = instructionsDiv.innerHTML;
+        }
+        else {
+            instructionsContent.innerHTML = '<p>לא נמצאו הוראות למשחק זה.</p>';
+        }
+        // Show overlay and popover
+        instructionsOverlay.classList.add('active');
+        instructionsPopover.classList.add('active');
+        sendEvent('helpButton', 'game controls', 'show instructions', {});
+    });
+    // Close button and overlay click handler
+    instructionsCloseButton.addEventListener('click', closeInstructionsPopover);
+    instructionsOverlay.addEventListener('click', closeInstructionsPopover);
+    function closeInstructionsPopover() {
+        instructionsOverlay.classList.remove('active');
+        instructionsPopover.classList.remove('active');
+    }
+}
+function setupFullscreenMode() {
+    const toggleControlsBtn = document.getElementById('toggleControlsBtn');
+    const controlPanel = document.querySelector('.control-panel');
+    // Check if we're on mobile and enable fullscreen mode automatically
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+        document.body.classList.add('fullscreen-mode');
+    }
+    // Toggle controls visibility
+    toggleControlsBtn.addEventListener('click', () => {
+        if (controlPanel.classList.contains('visible')) {
+            controlPanel.classList.remove('visible');
+        }
+        else {
+            controlPanel.classList.add('visible');
+        }
+    });
+    // Hide controls when clicking elsewhere
+    document.addEventListener('click', (e) => {
+        if (document.body.classList.contains('fullscreen-mode') &&
+            !toggleControlsBtn.contains(e.target) &&
+            !controlPanel.contains(e.target) &&
+            controlPanel.classList.contains('visible')) {
+            controlPanel.classList.remove('visible');
+        }
+    });
+    // Update fullscreen mode on resize
+    window.addEventListener('resize', () => {
+        const shouldBeFullscreen = window.innerWidth <= 768;
+        if (shouldBeFullscreen && !document.body.classList.contains('fullscreen-mode')) {
+            document.body.classList.add('fullscreen-mode');
+        }
+        else if (!shouldBeFullscreen && document.body.classList.contains('fullscreen-mode')) {
+            document.body.classList.remove('fullscreen-mode');
+            controlPanel.classList.remove('visible');
+        }
+    });
+    // Show controls on initial touch (for better UX)
+    let initialTouchOccurred = false;
+    document.addEventListener('touchstart', () => {
+        if (!initialTouchOccurred && document.body.classList.contains('fullscreen-mode')) {
+            initialTouchOccurred = true;
+            controlPanel.classList.add('visible');
+            // Auto-hide after a few seconds
+            setTimeout(() => {
+                controlPanel.classList.remove('visible');
+            }, 3000);
+        }
+    }, { once: true });
 }

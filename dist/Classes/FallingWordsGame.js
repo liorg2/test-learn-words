@@ -7,12 +7,12 @@ export class FallingWordsGame extends Game {
         this.fallingWords = [];
         this.animationFrameId = null;
         this.lastTimestamp = 0;
-        this.spawnInterval = 400; // Reduced from 2000ms to 400ms for faster spawning
+        this.spawnInterval = 800; // Increased from 400ms to 800ms for slower spawning
         this.lastSpawnTime = 0;
         this.gameRunning = false;
         this.firstWordSelected = null;
         this.wordPairs = [];
-        this.fallSpeed = 30; // pixels per second
+        this.fallSpeed = 15; // Reduced from 30 to 15 pixels per second for slower falling
         this.maxActivePairs = 5; // Fixed at 5 pairs as per requirements
         this.spawnedPairsCount = 0;
         this.matchedPairsCount = 0;
@@ -33,6 +33,11 @@ export class FallingWordsGame extends Game {
         const paginationContainer = document.getElementById('paginationContainer');
         if (paginationContainer) {
             paginationContainer.style.display = 'none';
+        }
+        // Hide separator
+        const separator = document.querySelector('.separator');
+        if (separator) {
+            separator.style.display = 'none';
         }
         // Create game container if not already in DOM
         if (!document.body.contains(this.gameContainer)) {
@@ -93,9 +98,9 @@ export class FallingWordsGame extends Game {
         // Create the slider
         this.speedSlider = document.createElement('input');
         this.speedSlider.type = 'range';
-        this.speedSlider.min = '20'; // Minimum speed (slower)
-        this.speedSlider.max = '100'; // Maximum speed (faster)
-        this.speedSlider.value = '40'; // Default value
+        this.speedSlider.min = '5'; // Lower minimum speed (much slower)
+        this.speedSlider.max = '50'; // Lower maximum speed (slower overall)
+        this.speedSlider.value = '15'; // Default slower value
         this.speedSlider.id = 'speedSlider';
         this.speedSlider.className = 'speed-slider';
         // Create value display
@@ -135,11 +140,7 @@ export class FallingWordsGame extends Game {
         // Get current speed from slider if it exists
         if (this.speedSlider) {
             this.fallSpeed = parseInt(this.speedSlider.value);
-            // Show the slider during gameplay
-            const sliderContainer = document.querySelector('.speed-slider-container');
-            if (sliderContainer) {
-                sliderContainer.style.display = 'flex';
-            }
+            // No need to explicitly set display:flex since CSS will handle this
         }
         // Shuffle the words to get random pairs for each game session
         const shuffledWords = shuffleArray([...this.words]);
@@ -205,42 +206,41 @@ export class FallingWordsGame extends Game {
         // Get the next word pair
         const pair = this.wordPairs[this.spawnedPairsCount];
         this.spawnedPairsCount++;
-        // Determine horizontal positions - space them out horizontally 
+        // Determine horizontal positions - improved distribution across entire width
         const containerWidth = this.gameContainer.clientWidth;
         const wordWidth = Math.max(pair.originalWord.text.length, pair.originalWord.translation.length) * 10 + 40;
-        // Create original word element
-        const wordElement = this.createFallingWord(pair.originalWord.text);
-        // Create translation element
-        const translationElement = this.createFallingWord(pair.originalWord.translation);
-        // Calculate positions to ensure they're well separated
-        // Using the full width and dividing into 4 sections
-        const section = containerWidth / 4;
-        // Word 1 appears in first or second section
-        const useSection1 = Math.random() > 0.5;
-        const pos1Start = useSection1 ? 0 : section;
-        const pos1 = pos1Start + Math.random() * (section - wordWidth);
-        // Word 2 appears in third or fourth section
-        const useSection3 = Math.random() > 0.5;
-        const pos2Start = useSection3 ? (section * 2) : (section * 3);
-        const pos2 = pos2Start + Math.random() * (section - wordWidth);
+        // Create original word element (with original color)
+        const wordElement = this.createFallingWord(pair.originalWord.text, false);
+        // Create translation element (with translation color)
+        const translationElement = this.createFallingWord(pair.originalWord.translation, true);
+        // Calculate random positions across the entire width of container
+        // Ensure enough padding from edges
+        const padding = 20;
+        const usableWidth = containerWidth - 2 * padding - wordWidth;
+        // Choose random positions, ensuring they don't overlap
+        let pos1 = padding + Math.random() * usableWidth;
+        let pos2 = padding + Math.random() * usableWidth;
+        // Make sure words are not too close to each other (at least 100px apart)
+        const minDistance = Math.min(100, usableWidth / 3);
+        while (Math.abs(pos1 - pos2) < minDistance) {
+            pos2 = padding + Math.random() * usableWidth;
+        }
         // Set positions
         wordElement.style.left = `${pos1}px`;
         translationElement.style.left = `${pos2}px`;
         // Stagger their vertical positions significantly
         const containerHeight = this.gameContainer.clientHeight;
         // First word starts at top, second one starts further down
-        const randomDelay = Math.random() > 0.5;
-        const topPosition1 = 0; // First word starts at top
-        // Choose whether to delay the word or translation
-        if (randomDelay) {
+        const topPosition1 = -20; // Start slightly above the container for smoother entry
+        const topPosition2 = topPosition1 - (Math.random() * 150 + 100); // Second word starts 100-250px higher
+        // Choose randomly which element starts at which position
+        if (Math.random() > 0.5) {
             wordElement.style.top = `${topPosition1}px`;
-            // Second word starts 20-35% down the container
-            translationElement.style.top = `${Math.random() * 0.15 * containerHeight + 0.2 * containerHeight}px`;
+            translationElement.style.top = `${topPosition2}px`;
         }
         else {
             translationElement.style.top = `${topPosition1}px`;
-            // First word starts 20-35% down the container
-            wordElement.style.top = `${Math.random() * 0.15 * containerHeight + 0.2 * containerHeight}px`;
+            wordElement.style.top = `${topPosition2}px`;
         }
         // Add to game
         this.gameContainer.appendChild(wordElement);
@@ -253,15 +253,16 @@ export class FallingWordsGame extends Game {
         wordElement.dataset.matchesText = pair.originalWord.translation;
         translationElement.dataset.matchesText = pair.originalWord.text;
     }
-    createFallingWord(text) {
+    createFallingWord(text, isTranslation) {
         const wordElement = document.createElement('div');
-        wordElement.className = 'falling-word mobile-optimized';
+        wordElement.className = isTranslation ?
+            'falling-word translation mobile-optimized' :
+            'falling-word word mobile-optimized';
         wordElement.textContent = text;
         // Position is set by spawnWordPair method
         wordElement.style.position = 'absolute';
         wordElement.style.padding = '10px';
-        wordElement.style.backgroundColor = '#ffffff';
-        wordElement.style.border = '1px solid #ccc';
+        // Colors are now set via CSS classes
         wordElement.style.borderRadius = '5px';
         wordElement.style.cursor = 'pointer';
         wordElement.style.userSelect = 'none';
@@ -358,6 +359,11 @@ export class FallingWordsGame extends Game {
         const sliderContainer = document.querySelector('.speed-slider-container');
         if (sliderContainer) {
             sliderContainer.style.display = 'none';
+        }
+        // Keep separator hidden
+        const separator = document.querySelector('.separator');
+        if (separator) {
+            separator.style.display = 'none';
         }
         // Clear the container and hide it
         this.gameContainer.innerHTML = '';

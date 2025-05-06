@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>התאמת מילים</title>
-    <link rel="stylesheet" href="./src/style.css?v=app_version-2025-05-T-01-12-19-51">
+    <link rel="stylesheet" href="./src/style.css?v=app_version-2025-05-T-06-21-54-13">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
 
@@ -22,6 +22,11 @@
         <div class="overlay-control" id="overlay-control"></div>
     </div>
 
+    <!-- Toggle controls button for fullscreen mode -->
+    <button id="toggleControlsBtn" class="toggle-controls-btn">
+        <i class="fas fa-bars"></i>
+    </button>
+
     <div class="control-panel">
 
         <select id="testSelect"></select>
@@ -30,6 +35,7 @@
         <a href="javascript:;" id="toggleSpeakerBtn" class="settings-link" title=" הדלקה\ כיבוי של קול"> <i
                 class="fas fa-volume-up"></i> </a>
         <a href="javascript:;" id="toggleMenuBtn" class="settings-link" title="הגדרות"><i class="fas fa-cog"></i> </a>
+        <button id="gameSwitcher" class="game-switcher" title="החלפת משחק"><i class="fas fa-gamepad"></i></button>
 
     </div>
 
@@ -59,8 +65,24 @@
 
     <button id="newGameBtnBottom">משחק חדש</button>
 
+    <!-- Help button for mobile -->
+    <button class="help-button" id="helpButton"><i class="fas fa-question"></i></button>
+    
+    <!-- Fullscreen button -->
+    <button class="fullscreen-button" id="fullscreenButton"><i class="fas fa-expand"></i></button>
+    
+    <!-- Instructions popover for mobile -->
+    <div class="instructions-overlay" id="instructionsOverlay"></div>
+    <div class="instructions-popover" id="instructionsPopover">
+        <div class="instructions-popover-header">
+            <h3>הוראות המשחק</h3>
+            <button class="instructions-close-button" id="instructionsCloseButton">&times;</button>
+        </div>
+        <div class="instructions-content" id="instructionsContent"></div>
+    </div>
+
     <!--
-app_version-2025-05-T-01-12-19-51
+app_version-2025-05-T-06-21-54-13
 -->
     <div class="control-panel-bottom" id="menu">
         <div class="control-popup-content">
@@ -84,10 +106,10 @@ app_version-2025-05-T-01-12-19-51
 
 
     <div id="log">
-        <p>version: app_version-2025-05-T-01-12-19-51</p>
+        <p>version: app_version-2025-05-T-06-21-54-13</p>
     </div>
 
-    <script type="module" src="./dist/gameManager.js?v=app_version-2025-05-T-01-12-19-51"></script>
+    <script type="module" src="./dist/gameManager.js?v=app_version-2025-05-T-06-21-54-13"></script>
 
 </body>
 
