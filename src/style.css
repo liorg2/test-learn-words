@@ -121,6 +121,106 @@ body {
         transform: scale(1.05) translateZ(0);
         background-color: #e3f2fd;
     }
+
+    /* Position statistics at top with more readable text - increased height */
+    .statistics {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 45px; /* Increased from 36px to 45px */
+        padding: 0 20px; 
+        z-index: 49;
+        background-color: rgba(240, 240, 240, 0.95);
+        backdrop-filter: blur(5px);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        margin: 0;
+        align-items: center;
+        gap: 10px;
+        justify-content: center;
+    }
+    
+    /* Position pagination directly below statistics (simplified selector) */
+    .pagination-controls {
+        position: fixed !important;
+        top: 45px !important; /* Updated to match new statistics height */
+        left: 0 !important;
+        width: 100% !important;
+        background-color: rgba(240, 240, 240, 0.9) !important;
+        padding: 5px !important;
+        margin: 0 !important;
+        z-index: 48 !important; /* Below statistics */
+        height: 34px !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    /* Update game area padding to account for taller statistics */
+    .game-area {
+        padding-top: 89px !important; /* Statistics (45px) + pagination (34px) + space (10px) */
+        padding-bottom: 0 !important;
+    }
+    
+    /* Make statistics text slightly larger to match taller container */
+    .statistics div {
+        font-size: 0.85rem;
+    }
+    
+    #scoreDisplay, #numFailures, #livesDisplay {
+        font-size: 0.9rem;
+    }
+    
+    /* Remove duplicate fullscreen button selector */
+    .fullscreen-button {
+        display: none !important; /* Override flex display on mobile */
+    }
+
+    .control-panel {
+        padding: 5px 2px;
+        gap: 2px;
+        height: 45px; /* Increased from 36px to match statistics */
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        border-radius: 0 0 6px 6px;
+        margin-bottom: 10px;
+        overflow: visible;
+    }
+    
+    #testSelect {
+        max-width: 30%;
+        font-size: 0.8rem; /* Slightly increased font size */
+        padding: 2px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+        height: 28px; /* Increased height */
+    }
+    
+    .settings-link, 
+    .game-switcher {
+        height: 28px; /* Increased from 24px */
+        width: 28px; /* Increased from 24px */
+    }
+    
+    .game-switcher i {
+        font-size: 14px; /* Slightly increased */
+    }
+    
+    .settings-link i {
+        font-size: 15px; /* Slightly increased */
+    }
+    
+    #newGameBtn {
+        height: 28px; /* Increased from 24px */
+        padding: 0 10px;
+        font-size: 0.8rem; /* Slightly increased */
+    }
+    
+    /* Position toggle controls button to align with taller control panel */
+    .toggle-controls-btn {
+        top: 9px; /* Increased to center in taller control panel */
+    }
 }
 
 @keyframes blink-correct {
@@ -202,6 +302,8 @@ body {
     align-items: center;
     min-height: 60vh; /* Ensure game area takes at least 60% of viewport height */
     position: relative; /* Add position context for absolute positioning */
+    padding-top: 80px; /* Account for statistics (36px) + pagination (34px) + space (10px) */
+    padding-bottom: 0;
 }
 
 .game-area.disabled {
@@ -482,7 +584,7 @@ body {
 /* Base styles for the status message */
 .status-message {
     font-weight: bold;
-    position: fixed;
+        position: fixed;
     top: 0;
     left: 50%;
     transform: translateX(-50%);
@@ -595,6 +697,7 @@ body {
         width: 90%;
         max-width: 1200px;
         gap: 15px;
+        display: flex !important; /* Force display on desktop */
     }
     
     .control-panel > * {
@@ -633,6 +736,16 @@ body {
         font-size: 16px;
     }
     
+    .game-switcher {
+        width: 34px;
+        height: 34px;
+        margin-left: 8px;
+    }
+    
+    .game-switcher i {
+        font-size: 16px;
+    }
+    
     #newGameBtn {
         height: 34px;
         padding: 0 15px;
@@ -649,12 +762,25 @@ body {
     }
 }
 
+/* Hide the original top control panel and settings link */
+.control-panel,
+.settings-link {
+    display: flex; /* Changed from none to flex to show on desktop */
+}
+
+@media (max-width: 768px) {
+    /* Hide on mobile as we're using sidebar instead */
+    .control-panel {
+        display: none !important; /* Hide on mobile */
+    }
+}
+
 /* Keep mobile optimizations with overflow fixes */
 @media (max-width: 768px) {
     .control-panel {
         padding: 5px 2px;
         gap: 2px;
-        height: 36px;
+        height: 45px; /* Increased from 36px to match statistics */
         box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
         border-radius: 0 0 6px 6px;
         margin-bottom: 10px;
@@ -663,45 +789,45 @@ body {
     
     #testSelect {
         max-width: 30%;
-        font-size: 0.75rem;
+        font-size: 0.8rem; /* Slightly increased font size */
         padding: 2px;
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
-        height: 24px;
+        height: 28px; /* Increased height */
     }
     
     .settings-link, 
     .game-switcher {
-        height: 24px;
-        width: 24px;
+        height: 28px; /* Increased from 24px */
+        width: 28px; /* Increased from 24px */
     }
     
     .game-switcher i {
-        font-size: 13px;
+        font-size: 14px; /* Slightly increased */
     }
     
     .settings-link i {
-        font-size: 14px;
+        font-size: 15px; /* Slightly increased */
     }
     
     #newGameBtn {
-        height: 24px;
-        padding: 0 8px;
-        font-size: 0.75rem;
+        height: 28px; /* Increased from 24px */
+        padding: 0 10px;
+        font-size: 0.8rem; /* Slightly increased */
     }
     
     .pagination-buttons {
         max-width: 90%;
     }
     
-    .page-btn {
+    /* .page-btn {
         width: 20px;
         height: 20px;
         font-size: 0.65rem;
         margin: 0;
     }
-    
+     */
     .statistics {
         padding: 3px 2px;
         gap: 5px;
@@ -718,7 +844,7 @@ body {
     }
     
     .toggle-controls-btn {
-        top: 4px;
+        top: 9px; /* Increased to center in taller control panel */
     }
     
     .control-panel-bottom {
@@ -886,7 +1012,7 @@ body {
 
 .dropdown-group {
     display: flex;
-    flex-direction: row;
+        flex-direction: row;
     align-items: center;
 }
 
@@ -912,7 +1038,7 @@ body {
     justify-content: center;
     align-items: center;
     gap: 10px;
-    height: 36px;
+        height: 36px;
 }
 
 .statistics > div {
@@ -957,7 +1083,7 @@ body {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
+        width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.85);
     z-index: 10;
@@ -1017,7 +1143,7 @@ body {
     height: 30px;
     /* Fixed height for circle */
     display: flex;
-    justify-content: center;
+        justify-content: center;
     /* Center icon horizontally */
     align-items: center;
     /* Center icon vertically */
@@ -1070,7 +1196,7 @@ body {
     background-color: #000;
     font-size: 11px;
     xline-height: 5px;
-    display: none;
+        display: none;
     width: 100%;
     min-height: 500px;
     text-align: left;
@@ -1080,7 +1206,7 @@ body {
 }
 
 #newGameBtnBottom {
-    display: none;
+        display: none;
     padding: 10px 20px;
     font-size: 1.2rem;
     /* background-color: #007BFF; */
@@ -1159,7 +1285,7 @@ body {
 }
 
 /* Responsive and pretty game type tabs */
-.game-type-tabs {
+    .game-type-tabs {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
@@ -1214,7 +1340,7 @@ body {
     content: '';
     display: block;
     height: 3px;
-    width: 100%;
+        width: 100%;
     background: #2196f3;
     border-radius: 2px 2px 0 0;
     position: absolute;
@@ -1404,8 +1530,10 @@ body {
 /* Improvements for falling words game mode */
 [data-game-type="fallingWords"] ~ .game-area .word-container,
 [data-game-type="fallingWords"] ~ .game-area .target-container,
+[data-game-type="fallingWords"] ~ .game-area .pagination-controls,
 .game-type-tab[data-game-type="fallingWords"].active ~ .game-area .word-container,
-.game-type-tab[data-game-type="fallingWords"].active ~ .game-area .target-container {
+.game-type-tab[data-game-type="fallingWords"].active ~ .game-area .target-container,
+.game-type-tab[data-game-type="fallingWords"].active ~ .game-area .pagination-controls {
     display: none !important;
 }
 
@@ -1432,7 +1560,7 @@ body {
 .falling-word {
     position: absolute;
     background-color: white;
-    padding: 8px 15px;
+    padding: 10px; /* Consolidated padding from JS */
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     cursor: pointer;
@@ -1448,8 +1576,8 @@ body {
     backface-visibility: hidden;
     -webkit-perspective: 1000;
     perspective: 1000;
-    min-width: 40px;
-    min-height: 36px;
+    min-width: 30px;
+    min-height: 20px; /* Kept existing min-height for consistency */
     touch-action: none;
     -webkit-tap-highlight-color: transparent;
     text-align: center;
@@ -1507,10 +1635,10 @@ body {
     }
     
     .falling-word {
-        padding: 6px 12px;
+        padding: 2px 5px;
         font-size: 16px;
-        min-width: 40px;
-        min-height: 36px;
+        min-width: 30px;
+        min-height: 20px;
     }
     
     .start-game-btn {
@@ -1959,25 +2087,26 @@ body[data-game-type="fallingWords"] .speed-slider-container {
 
 /* Mobile fullscreen game mode */
 .fullscreen-mode .control-panel {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 50;
-    border-radius: 0;
-    justify-content: center;
-    padding: 5px;
-    background-color: rgba(240, 240, 240, 0.95);
-    backdrop-filter: blur(5px);
-    transform: translateY(-100%);
-    transition: transform 0.3s ease;
-    gap: 2px;
-    flex-wrap: nowrap;
-    height: 36px;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    z-index: 50 !important;
+    border-radius: 0 !important;
+    justify-content: center !important;
+    padding: 5px !important;
+    background-color: rgba(240, 240, 240, 0.95) !important;
+    backdrop-filter: blur(5px) !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) !important;
+    height: 45px !important; /* Increased from 36px to match other elements */
+    gap: 2px !important;
+    margin: 0 !important;
+    transform: translateY(-100%) !important; /* Initially hidden */
+    transition: transform 0.3s ease !important;
 }
 
 .fullscreen-mode .control-panel.visible {
-    transform: translateY(0);
+    transform: translateY(0) !important;
 }
 
 .fullscreen-mode .control-panel select,
@@ -1987,65 +2116,82 @@ body[data-game-type="fallingWords"] .speed-slider-container {
 }
 
 .fullscreen-mode .statistics {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 49;
-    background-color: rgba(240, 240, 240, 0.9);
-    padding: 5px;
-    justify-content: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    flex-wrap: nowrap;
-    height: 32px;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 45px !important; /* Increased from 36px to 45px */
+    padding: 0 20px !important;
+    z-index: 49 !important;
+    background-color: rgba(240, 240, 240, 0.95) !important;
+    backdrop-filter: blur(5px) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+    margin: 0 !important;
+    align-items: center !important;
+    gap: 10px !important;
+    justify-content: center !important;
+}
+
+.fullscreen-mode .statistics div {
+    font-size: 0.8rem !important;
+}
+
+.fullscreen-mode #scoreDisplay, 
+.fullscreen-mode #numFailures, 
+.fullscreen-mode #livesDisplay {
+    font-size: 0.85rem !important;
 }
 
 .fullscreen-mode .game-area {
-    padding-top: 40px;
-    min-height: calc(100vh - 40px);
+    padding-top: 89px !important; /* Statistics (45px) + pagination (34px) + space (10px) */
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    padding-bottom: 10px !important;
+    min-height: calc(100vh - 89px) !important;
 }
 
 .toggle-controls-btn {
     display: none;
     position: fixed;
-    top: 4px;
+    top: 9px; /* Adjusted for increased control panel height */
     right: 10px;
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background-color: #2c3e50; /* Changed to gray color to match control panel */
-    color: white;
-    font-size: 16px;
-    border: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 60;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    background-color: #2c3e50 !important;
+    color: white !important;
+    font-size: 16px !important;
+    border: none !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 60 !important;
+    cursor: pointer !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
 }
 
 .toggle-controls-btn:hover {
-    background-color: #34495e; /* Darker gray on hover */
+    background-color: #34495e !important;
 }
 
 .fullscreen-mode .toggle-controls-btn {
-    display: flex;
+    display: flex !important;
 }
 
 /* Pagination in fullscreen mode */
 .fullscreen-mode .pagination-controls {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background-color: rgba(240, 240, 240, 0.9);
-    padding: 4px;
-    margin: 0;
-    z-index: 49;
-    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
-    justify-content: center;
-    flex-wrap: nowrap;
-    height: 32px;
+    position: fixed !important;
+    top: 45px !important; /* Updated to match new statistics height */
+    left: 0 !important;
+    width: 100% !important;
+    z-index: 48 !important;
+    background-color: rgba(240, 240, 240, 0.9) !important;
+    padding: 5px !important;
+    margin: 0 !important;
+    height: 40px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
 }
 
 /* Falling word color variations */
@@ -2078,7 +2224,7 @@ body[data-game-type="fallingWords"] .speed-slider-container {
     box-shadow: 0 0 8px rgba(76, 175, 80, 0.5) !important;
 }
 
-/* Fullscreen button - making it more prominent */
+/* Fullscreen button - making it more prominent and visible only on desktop */
 .fullscreen-button {
     position: fixed !important;
     bottom: 20px !important;
@@ -2091,7 +2237,7 @@ body[data-game-type="fallingWords"] .speed-slider-container {
     font-size: 20px !important;
     border: 2px solid white !important;
     outline: 1px solid #FF5722 !important;
-    display: flex !important;
+    display: flex !important; /* Always use flex display by default */
     align-items: center !important;
     justify-content: center !important;
     cursor: pointer !important;
@@ -2100,10 +2246,10 @@ body[data-game-type="fallingWords"] .speed-slider-container {
     transition: all 0.2s ease !important;
 }
 
-/* Only hide fullscreen button on mobile if fullscreen mode is already active */
-@media (max-width: 768px) and (min-height: 500px) {
-    body.fullscreen-mode .fullscreen-button {
-        display: none;
+/* Hide fullscreen button on mobile */
+@media (max-width: 768px) {
+    .fullscreen-button {
+        display: none !important; /* Override flex display on mobile */
     }
 }
 
@@ -2123,7 +2269,7 @@ body[data-game-type="fallingWords"] .speed-slider-container {
     overflow: auto !important;
     display: flex !important;
     flex-direction: column !important;
-    justify-content: center !important;
+    justify-content: flex-start !important; /* Changed from center to flex-start */
     align-items: center !important;
     padding: 10px !important;
 }
@@ -2143,11 +2289,14 @@ body[data-game-type="fallingWords"] .speed-slider-container {
     max-width: 100% !important;
     width: 100% !important;
     margin: 0 auto !important;
-    padding: 20px 10px !important;
+    padding-top: 89px !important; /* Statistics (45px) + pagination (34px) + space (10px) */
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    padding-bottom: 10px !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
-    justify-content: center !important;
+    justify-content: flex-start !important;
     overflow: visible !important;
 }
 
@@ -2245,4 +2394,381 @@ body[data-game-type="fallingWords"] .speed-slider-container {
     background-color: rgba(255, 255, 255, 0.8) !important;
     padding: 15px !important;
     border-radius: 10px !important;
+}
+
+/* Add a utility class for flexbox display */
+.flex {
+    display: flex;
+}
+
+/* Hide the original top control panel and settings link */
+.control-panel,
+.settings-link {
+    display: none !important;
+}
+
+/* Sidepanel Menu */
+.sidepanel {
+    height: 100%;
+    width: 0; /* 0 width - change this with JavaScript */
+    position: fixed;
+    z-index: 1001; /* Higher than other elements */
+    top: 0;
+    right: 0; /* Changed from left to right */
+    background-color: #222; /* Dark background */
+    overflow-x: hidden;
+    transition: 0.5s; /* Transition effect */
+    padding-top: 60px; /* Space for the close button */
+    color: #f1f1f1;
+    direction: rtl; /* Added RTL direction */
+}
+
+.sidepanel a, .sidepanel p, .sidepanel label {
+    padding: 8px 32px 8px 8px; /* Adjusted padding for RTL */
+    text-decoration: none;
+    font-size: 18px;
+    color: #818181;
+    display: block;
+    transition: 0.3s;
+}
+
+.sidepanel select, .sidepanel button {
+    margin: 5px 32px;
+    padding: 8px;
+    font-size: 16px;
+    width: calc(100% - 64px);
+    box-sizing: border-box;
+    background-color: #333;
+    color: #f1f1f1;
+    border: 1px solid #555;
+}
+
+
+.sidepanel a:hover, .sidepanel .sidepanel-game-link:hover {
+    color: #f1f1f1;
+    background-color: #444;
+}
+
+.sidepanel .closebtn {
+    position: absolute;
+    top: 0;
+    left: 25px; /* Changed from right to left */
+    right: auto; /* Reset right position */
+    font-size: 36px;
+    margin-right: 50px; /* Changed from margin-left to margin-right */
+    padding: 8px;
+}
+
+.openbtn {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 1000;
+    background-color: #FF5722;
+    color: white;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; /* Changed from 'none' to always display */
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.openbtn:hover {
+    background-color: #E64A19;
+    transform: scale(1.05);
+}
+
+/* Always show on mobile screens */
+@media (max-width: 768px) {
+    .openbtn {
+        display: flex !important;
+    }
+}
+
+/* Show in fullscreen mode on desktop */
+.game-fullscreen-mode .openbtn,
+.fullscreen-mode .openbtn {
+    display: flex !important;
+}
+
+/* Hide the original game-switcher button which this replaces */
+#gameSwitcher {
+    display: none !important;
+}
+
+/* Adjust sidebar in fullscreen mode */
+.game-fullscreen-mode .sidepanel,
+.fullscreen-mode .sidepanel {
+    z-index: 1050 !important;
+}
+
+/* Style buttons in sidebar */
+.sidepanel .buttons-group button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 4px;
+    margin: 0 5px;
+}
+
+#toggleSpeakerBtnSidebar {
+    width: 40px !important;
+    height: 40px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px auto !important;
+    border-radius: 50% !important;
+    font-size: 18px !important;
+    background-color: #333 !important;
+}
+
+/* Improve mobile sidebar */
+@media (max-width: 768px) {
+    .sidepanel {
+        width: 0;
+        max-width: 100%;
+    }
+    
+    .sidepanel a, .sidepanel p, .sidepanel label {
+        font-size: 16px;
+    }
+}
+
+.sidepanel-section {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #444;
+}
+.sidepanel-section:last-child {
+    border-bottom: none;
+}
+
+.sidepanel-section p {
+    font-weight: bold;
+    font-size: 20px;
+    color: #f1f1f1;
+    margin-bottom: 10px;
+}
+
+.sidepanel .buttons-group {
+    display: flex;
+    align-items: center;
+    margin: 5px 32px;
+    width: calc(100% - 64px);
+}
+.sidepanel .buttons-group label {
+    padding: 0;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+/* Add styles for the font size slider in the sidebar */
+.font-size-slider-container {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+    width: 100%;
+}
+
+.font-size-slider {
+    flex: 1;
+    margin-right: 10px;
+    direction: ltr; /* Sliders work better with LTR */
+}
+
+#restoreDefaultFont {
+    white-space: nowrap;
+    padding: 5px 10px;
+    background: #4a6da7;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#restoreDefaultFont:hover {
+    background: #3a5d97;
+}
+
+.speaker-toggle-container {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.speaker-toggle-container label {
+    margin-left: 10px;
+}
+
+#toggleSpeakerBtnSidebar {
+    background: #4a6da7;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+#toggleSpeakerBtnSidebar:hover {
+    background: #3a5d97;
+}
+
+/* Ensure proper RTL alignment for labels */
+.dropdown-group label,
+.buttons-group label,
+.speaker-toggle-container label {
+    display: inline-block;
+    margin-bottom: 5px;
+    text-align: right;
+}
+
+.reset-container {
+    display: flex;
+    justify-content: center;
+    margin: 15px 0;
+}
+
+#restoreDefaultSettings {
+    background: #4a6da7;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 14px;
+    width: calc(100% - 64px);
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+#restoreDefaultSettings:hover {
+    background: #3a5d97;
+    transform: translateY(-1px);
+}
+
+#restoreDefaultSettings:active {
+    transform: translateY(1px);
+}
+
+/* Make control panel visible on desktop */
+@media (min-width: 769px) {
+    .control-panel {
+        display: flex !important;
+    }
+}
+
+.instructions-text {
+    padding: 0 32px;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #c4c4c4;
+    text-align: right;
+}
+
+.instructions-text p {
+    margin: 8px 0;
+    padding: 0;
+}
+
+@media (max-width: 768px) {
+    .instructions-text {
+        font-size: 13px;
+    }
+}
+
+.pagination-help-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    margin-left: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+}
+
+.pagination-help-button:hover {
+    background-color: #388E3C;
+    transform: scale(1.1);
+}
+
+.pagination-help-popover {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 10px;
+    width: 300px;
+    max-width: 80vw;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 15px;
+    display: none;
+    z-index: 100;
+    text-align: right;
+    direction: rtl;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.pagination-help-popover.active {
+    display: block;
+    animation: fade-in 0.3s ease;
+}
+
+.pagination-help-popover p {
+    margin: 8px 0;
+}
+
+.pagination-help-popover-close {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #777;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.pagination-help-popover-close:hover {
+    color: #333;
+}
+
+.pagination-help-popover-title {
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+@media (max-width: 768px) {
+    .pagination-help-button {
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
+    }
+    
+    .pagination-help-popover {
+        font-size: 13px;
+        padding: 12px;
+        right: 0;
+        top: calc(100% + 5px);
+    }
 }

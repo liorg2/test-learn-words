@@ -105,6 +105,10 @@ export class FallingWordsGame extends Game {
     }
     
     createSpeedSlider() {
+        // Remove any existing speed slider containers first
+        const existingSliders = document.querySelectorAll('.speed-slider-container');
+        existingSliders.forEach(slider => slider.remove());
+        
         // Create container for the slider
         const sliderContainer = document.createElement('div');
         sliderContainer.className = 'speed-slider-container';
@@ -244,65 +248,78 @@ export class FallingWordsGame extends Game {
     spawnWordPair() {
         if (this.spawnedPairsCount >= this.wordPairs.length) return;
         
-        // Get the next word pair
         const pair = this.wordPairs[this.spawnedPairsCount];
         this.spawnedPairsCount++;
         
-        // Determine horizontal positions - improved distribution across entire width
         const containerWidth = this.gameContainer.clientWidth;
-        const wordWidth = Math.max(pair.originalWord.text.length, pair.originalWord.translation.length) * 10 + 40;
+        const padding = 10; // Padding from container edges
         
-        // Create original word element (with original color)
         const wordElement = this.createFallingWord(pair.originalWord.text, false);
-        
-        // Create translation element (with translation color)
         const translationElement = this.createFallingWord(pair.originalWord.translation, true);
         
-        // Calculate random positions across the entire width of container
-        // Ensure enough padding from edges
-        const padding = 20;
-        const usableWidth = containerWidth - 2*padding - wordWidth;
-        
-        // Choose random positions, ensuring they don't overlap
-        let pos1 = padding + Math.random() * usableWidth;
-        let pos2 = padding + Math.random() * usableWidth;
-        
-        // Make sure words are not too close to each other (at least 100px apart)
-        const minDistance = Math.min(100, usableWidth/3);
-        while (Math.abs(pos1 - pos2) < minDistance) {
-            pos2 = padding + Math.random() * usableWidth;
-        }
-        
-        // Set positions
-        wordElement.style.left = `${pos1}px`;
-        translationElement.style.left = `${pos2}px`;
-        
-        // Stagger their vertical positions significantly
-        const containerHeight = this.gameContainer.clientHeight;
-        
-        // First word starts at top, second one starts further down
-        const topPosition1 = -20; // Start slightly above the container for smoother entry
-        const topPosition2 = topPosition1 - (Math.random() * 150 + 100); // Second word starts 100-250px higher
-        
-        // Choose randomly which element starts at which position
-        if (Math.random() > 0.5) {
-            wordElement.style.top = `${topPosition1}px`;
-            translationElement.style.top = `${topPosition2}px`;
-        } else {
-            translationElement.style.top = `${topPosition1}px`;
-            wordElement.style.top = `${topPosition2}px`;
-        }
-        
-        // Add to game
+        // Set initial styles for measurement and hide them temporarily
+        wordElement.style.position = 'absolute';
+        translationElement.style.position = 'absolute';
+        wordElement.style.visibility = 'hidden';
+        translationElement.style.visibility = 'hidden';
+
         this.gameContainer.appendChild(wordElement);
         this.gameContainer.appendChild(translationElement);
+
+        const wordWidth = wordElement.offsetWidth;
+        const wordHeight = wordElement.offsetHeight;
+        const translationWidth = translationElement.offsetWidth;
+        const translationHeight = translationElement.offsetHeight;
+        
+        // Random horizontal position for the original word
+        const maxLeftWord = containerWidth - wordWidth - padding;
+        const leftWord = padding + Math.random() * Math.max(0, maxLeftWord);
+        wordElement.style.left = `${leftWord}px`;
+
+        // Random horizontal position for the translation
+        const maxLeftTranslation = containerWidth - translationWidth - padding;
+        const leftTranslation = padding + Math.random() * Math.max(0, maxLeftTranslation);
+        translationElement.style.left = `${leftTranslation}px`;
+        
+        // Random initial vertical positions, ensuring they start off-screen, are separated,
+        // and their order of appearance is random.
+        const initialTopOffset = 20; // Base offset above the screen for the element that starts higher.
+        const verticalSeparation = 40; // Minimum vertical gap between the two elements.
+
+        // Determine heights for clarity in calculation
+        const h1 = wordHeight; 
+        const h2 = translationHeight;
+
+        // Generate two distinct vertical starting positions:
+        // y_lower is less negative (closer to the screen top, but still off-screen).
+        // y_higher is more negative (further above y_lower).
+        let y_lower = -(Math.max(h1, h2) + initialTopOffset + Math.random() * 60); // Ensure the lower one is well off-screen
+        let y_higher = y_lower - (Math.min(h1, h2) + verticalSeparation + Math.random() * 40); // Ensure higher is further up and separated
+
+        let finalTopWord: number;
+        let finalTopTranslation: number;
+
+        // Randomly assign these generated positions to the word and translation elements
+        if (Math.random() < 0.5) {
+            finalTopWord = y_lower;          // Word starts at the "lower" (but still off-screen) position
+            finalTopTranslation = y_higher;  // Translation starts at the "higher" (further off-screen) position
+        } else {
+            finalTopWord = y_higher;         // Word starts at the "higher" position
+            finalTopTranslation = y_lower;   // Translation starts at the "lower" position
+        }
+
+        wordElement.style.top = `${finalTopWord}px`;
+        translationElement.style.top = `${finalTopTranslation}px`;
+
+        // Make elements visible again
+        wordElement.style.visibility = 'visible';
+        translationElement.style.visibility = 'visible';
+
         this.fallingWords.push(wordElement);
         this.fallingWords.push(translationElement);
         
-        // Store reference to the elements
-        pair.element = wordElement;
+        pair.element = wordElement; 
         
-        // Make sure each element knows what it matches
         wordElement.dataset.matchesText = pair.originalWord.translation;
         translationElement.dataset.matchesText = pair.originalWord.text;
     }
@@ -314,25 +331,9 @@ export class FallingWordsGame extends Game {
             'falling-word word mobile-optimized';
         wordElement.textContent = text;
         
-        // Position is set by spawnWordPair method
-        wordElement.style.position = 'absolute';
-        wordElement.style.padding = '10px';
-        
-        // Colors are now set via CSS classes
-        
-        wordElement.style.borderRadius = '5px';
-        wordElement.style.cursor = 'pointer';
-        wordElement.style.userSelect = 'none';
-        wordElement.style.zIndex = '5';
-        wordElement.style.fontSize = '17px'; // Consistent font size
-        
-        // Mobile optimizations - apply directly as a class
-        wordElement.style.touchAction = 'none'; // Standard property
-        wordElement.style.willChange = 'transform, opacity'; // Standard property
-        
-        // Add click/touch handler with larger touch target
-        wordElement.style.minWidth = '40px'; // Minimum width for better tapping
-        wordElement.style.minHeight = '40px'; // Minimum height for better tapping
+        // Styles like position, padding, border-radius, cursor, user-select, 
+        // z-index, font-size, min-width, min-height, touch-action, will-change
+        // will now be handled by CSS rules for .falling-word and its variants.
         
         // Add event listeners for both click and touch
         wordElement.addEventListener('click', () => this.handleWordClick(wordElement));

@@ -70,7 +70,9 @@ export class SoundService {
     }
 
     private static isSpeakerEnabled(): boolean {
-        return sessionStorage.getItem('speakersEnabled') !== 'false';
+        // Check if speakers are enabled in session storage
+        // Explicitly check for 'true', otherwise return false
+        return sessionStorage.getItem('speakersEnabled') === 'true';
     }
 
     private async playAudio(sound: HTMLAudioElement): Promise<void> {

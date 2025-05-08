@@ -138,28 +138,55 @@ export class Game {
         
         // Get active game type
         const activeTab = document.querySelector('.game-type-tab.active') as HTMLElement;
-        const gameType = activeTab ? activeTab.getAttribute('data-game-type') : null;
+        const gameType = activeTab ? activeTab.getAttribute('data-game-type') : 'translation'; // Default to translation
         
-        // For each word, find its matching translation and put it on the same page
+        // Create a lookup map to ensure we find matching translations faster
+        const wordToTranslationMap = new Map<string, HTMLElement>();
+        
+        if (gameType === 'translation') {
+            // For each translation element, identify which word it belongs to
+            for (const translationEl of translationElements) {
+                const translationText = translationEl.textContent;
+                
+                // Find word this translation matches
+                const matchingWord = this.words.find(w => w.translation === translationText);
+                if (matchingWord) {
+                    wordToTranslationMap.set(matchingWord.text, translationEl);
+                    
+                    // Also set a data attribute to make matching more reliable
+                    translationEl.dataset.matchesWord = matchingWord.text;
+                }
+            }
+        }
+        
+        // For each page, find and add the matching translations
         for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
             const wordsOnPage = organizedWords[pageIndex];
             
-            for (let wordEl of wordsOnPage) {
+            for (const wordEl of wordsOnPage) {
                 const wordText = wordEl.textContent;
-                const word = this.words.find(w => w.text === wordText);
+                let matchingTranslation = null;
                 
-                if (word) {
-                    // Find the matching translation element based on game type
-                    let matchingTranslation = null;
+                if (gameType === 'translation') {
+                    // Get matching translation from our map first
+                    matchingTranslation = wordToTranslationMap.get(wordText);
                     
-                    if (gameType === 'translation') {
-                        // For translation game, match by translation text or matchesWord attribute
-                        matchingTranslation = translationElements.find(tEl => 
-                            tEl.textContent === word.translation || 
-                            tEl.dataset.matchesWord === wordText
-                        );
-                    } else if (gameType === 'partOfSpeech') {
-                        // For part of speech game, match by partOfSpeech or matchesWords attribute
+                    // If not found in map, do a more exhaustive search (fallback)
+                    if (!matchingTranslation) {
+                        const word = this.words.find(w => w.text === wordText);
+                        
+                        if (word) {
+                            matchingTranslation = translationElements.find(tEl => 
+                                tEl.textContent === word.translation || 
+                                tEl.dataset.matchesWord === wordText
+                            );
+                        }
+                    }
+                } else if (gameType === 'partOfSpeech') {
+                    // For part of speech game, match by partOfSpeech or matchesWords attribute
+                    const word = this.words.find(w => w.text === wordText);
+                    
+                    if (word) {
                         matchingTranslation = translationElements.find(tEl => {
                             if (tEl.textContent === word.partOfSpeech) return true;
                             
@@ -167,22 +194,23 @@ export class Game {
                             const matchesWords = tEl.dataset.matchesWords?.split(',') || [];
                             return matchesWords.includes(wordText);
                         });
-                    } else if (gameType === 'missingWord') {
-                        // For missing word game, match by data-selected-word attribute
-                        matchingTranslation = translationElements.find(tEl => 
-                            tEl.dataset.selectedWord === wordText
-                        );
+                    }
+                } else if (gameType === 'missingWord') {
+                    // For missing word game, match by data-selected-word attribute
+                    matchingTranslation = translationElements.find(tEl => 
+                        tEl.dataset.selectedWord === wordText
+                    );
+                }
+                
+                if (matchingTranslation) {
+                    // Remove it from the available translations array to avoid duplicates
+                    const index = translationElements.indexOf(matchingTranslation);
+                    if (index !== -1) {
+                        translationElements.splice(index, 1);
                     }
                     
-                    if (matchingTranslation) {
-                        // Remove it from the available translations array
-                        const index = translationElements.indexOf(matchingTranslation);
-                        if (index !== -1) {
-                            translationElements.splice(index, 1);
-                        }
-                        // Add to this page's translations
-                        organizedTranslations[pageIndex].push(matchingTranslation);
-                    }
+                    // Add to this page's translations
+                    organizedTranslations[pageIndex].push(matchingTranslation);
                 }
             }
         }
@@ -203,9 +231,17 @@ export class Game {
             }
         }
         
+        // Ensure translations are shuffled within each page for randomness
+        for (let i = 0; i < totalPages; i++) {
+            organizedTranslations[i] = shuffleArray(organizedTranslations[i]);
+        }
+        
         // Update the element arrays
         this.wordElements = organizedWords.flat();
         this.translationElements = organizedTranslations.flat();
+        
+        // Log for debugging
+        console.log(`Organized ${this.wordElements.length} words and ${this.translationElements.length} translations across ${totalPages} pages`);
     }
 
     updatePage(pageNum: number) {
@@ -288,6 +324,9 @@ export class Game {
         if (oldPageSizeContainer && oldPageSizeContainer.parentNode) {
             oldPageSizeContainer.parentNode.removeChild(oldPageSizeContainer);
         }
+        
+        // Add help button for pagination
+        this.addPaginationHelpButton(paginationContainer);
     }
     
     updatePaginationUI() {
@@ -356,7 +395,7 @@ export class Game {
         
         // Create label
         const label = document.createElement('label');
-        label.textContent = 'פריטים: ';
+        label.textContent = 'מילים בדף: ';
         label.htmlFor = 'pageSizeSelect';
         pageSizeContainer.appendChild(label);
         
@@ -1212,6 +1251,71 @@ export class Game {
             log(`isPageEmpty for page ${pageNum}: Words: ${pageWords.length}, Translations: ${pageTranslations.length}`);
             
             return pageWords.length === 0 || pageTranslations.length === 0;
+        }
+    }
+
+    // Add a new method to create the help button and popover
+    addPaginationHelpButton(paginationContainer: HTMLElement) {
+        // Check if help button already exists
+        let helpButton = paginationContainer.querySelector('.pagination-help-button') as HTMLButtonElement;
+        if (!helpButton) {
+            // Create help button
+            helpButton = document.createElement('button');
+            helpButton.className = 'pagination-help-button';
+            helpButton.innerHTML = '<i class="fas fa-question"></i>';
+            helpButton.title = 'הסבר על כפתורי דפים';
+            paginationContainer.appendChild(helpButton);
+            
+            // Create help popover
+            const helpPopover = document.createElement('div');
+            helpPopover.className = 'pagination-help-popover';
+            
+            // Add title
+            const title = document.createElement('div');
+            title.className = 'pagination-help-popover-title';
+            title.textContent = 'הוראות:';
+            helpPopover.appendChild(title);
+            
+            // Add close button
+            const closeButton = document.createElement('button');
+            closeButton.className = 'pagination-help-popover-close';
+            closeButton.innerHTML = '&times;';
+            closeButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                helpPopover.classList.remove('active');
+            });
+            helpPopover.appendChild(closeButton);
+            
+            // Add content paragraphs
+            const content = [
+                'כפתורי המספרים מעל המשחק מאפשרים לך לעבור בין דפים שונים במשחק. כל דף מכיל מילים שונות להתאמה.',
+                'דף שכבר השלמת יסומן בסימן ✓.',
+                'ניתן לשנות את מספר המילים בכל דף באמצעות תיבת הבחירה "מילים בדף".'
+            ];
+            
+            content.forEach(text => {
+                const p = document.createElement('p');
+                p.textContent = text;
+                helpPopover.appendChild(p);
+            });
+            
+            // Add popover to pagination container
+            paginationContainer.appendChild(helpPopover);
+            
+            // Toggle popover visibility when help button is clicked
+            helpButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                helpPopover.classList.toggle('active');
+            });
+            
+            // Close popover when clicking outside
+            document.addEventListener('click', (e) => {
+                if (helpPopover.classList.contains('active') && 
+                    !helpPopover.contains(e.target as Node) && 
+                    !helpButton.contains(e.target as Node)) {
+                    helpPopover.classList.remove('active');
+                }
+            });
         }
     }
 }

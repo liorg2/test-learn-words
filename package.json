@@ -5,14 +5,14 @@
   "main": "game.js",
   "scripts": {
     "build": "tsc",
+    "dev": "tsc --watch",
     "test": "jest tests",
     "test:ci": "jest --ci --reporters=default --reporters=jest-junit",
     "test:e2e": "jest e2e-tests",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
-    "e2e:debug": "playwright test --debug",
-    "serve": "http-server -p 3000"
-  },
+    "e2e:debug": "playwright test --debug"
+    },
   "keywords": [],
   "author": "",
   "license": "ISC",

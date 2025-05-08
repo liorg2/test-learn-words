@@ -92,6 +92,8 @@ function loadSelectedTest() {
         game: testSelect.value,
         type: gameType
     });
+    // Clear any existing game containers to prevent double rendering
+    clearGameContainers();
     const selectedOption = testSelect.options[testSelect.selectedIndex];
     VoiceService.getInstance().getVoices(selectedOption.dataset.lang).then((voices) => {
         fillVoicesOptions(selectedOption.dataset.lang, voices);
@@ -253,6 +255,15 @@ function loadFontSize() {
                 font-size: ${savedFontSize} !important;
             }
         `;
+        // Update slider value if it exists
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        if (fontSizeSlider) {
+            // Extract numeric value from saved font size (e.g., "16px" -> 16)
+            const numericSize = parseInt(savedFontSize.replace('px', ''), 10);
+            if (!isNaN(numericSize)) {
+                fontSizeSlider.value = numericSize.toString();
+            }
+        }
     }
 }
 function loadWords() {
@@ -327,9 +338,9 @@ function updateSpeakerIcon() {
 // Setup fullscreen functionality for all games
 function setupFullscreenToggle() {
     const fullscreenButton = document.getElementById('fullscreenButton');
-    // Ensure button is visible
     if (fullscreenButton) {
-        fullscreenButton.style.display = 'flex';
+        // Use CSS classes to control visibility instead of inline styles
+        fullscreenButton.classList.add('flex');
         fullscreenButton.addEventListener('click', () => {
             toggleGameFullscreen();
             sendEvent('fullscreenButton', 'game controls', 'toggle fullscreen', {});
@@ -358,10 +369,28 @@ function enterGameFullscreen() {
     if (fullscreenButton) {
         fullscreenButton.innerHTML = '<i class="fas fa-compress"></i>';
     }
-    // Hide all page elements except game area
+    // Move statistics inside the game area
+    const statistics = document.querySelector('.statistics');
+    const gameArea = document.querySelector('.game-area');
+    const instructions = document.querySelector('.instructions');
+    if (statistics && gameArea && instructions) {
+        // Check if statistics already exist in game area (to prevent duplicates)
+        const existingStats = gameArea.querySelector('[data-fullscreen-cloned="true"]');
+        // Only clone if there isn't already a clone in the game area
+        if (!existingStats) {
+            // Clone statistics to preserve event handlers
+            const statisticsClone = statistics.cloneNode(true);
+            statisticsClone.setAttribute('data-fullscreen-cloned', 'true');
+            // Insert after instructions
+            gameArea.insertBefore(statisticsClone, instructions.nextSibling);
+            // Hide original statistics
+            statistics.setAttribute('data-fullscreen-hidden', 'true');
+            statistics.style.display = 'none';
+        }
+    }
+    // Hide other page elements except game area
     const elementsToHide = [
         document.querySelector('.control-panel'),
-        document.querySelector('.statistics'),
         document.querySelector('.game-type-tabs'),
         document.getElementById('newGameBtnBottom'),
         document.getElementById('helpButton')
@@ -390,7 +419,18 @@ function exitGameFullscreen() {
     if (fullscreenButton) {
         fullscreenButton.innerHTML = '<i class="fas fa-expand"></i>';
     }
-    // Restore all hidden elements
+    // Remove cloned statistics from game area
+    const clonedStatistics = document.querySelector('[data-fullscreen-cloned="true"]');
+    if (clonedStatistics && clonedStatistics.parentNode) {
+        clonedStatistics.parentNode.removeChild(clonedStatistics);
+    }
+    // Restore original statistics
+    const originalStatistics = document.querySelector('[data-fullscreen-hidden="true"].statistics');
+    if (originalStatistics) {
+        originalStatistics.removeAttribute('data-fullscreen-hidden');
+        originalStatistics.style.display = '';
+    }
+    // Restore all other hidden elements
     const hiddenElements = document.querySelectorAll('[data-fullscreen-hidden="true"]');
     hiddenElements.forEach(element => {
         element.removeAttribute('data-fullscreen-hidden');
@@ -552,6 +592,159 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     // Add hamburger menu for mobile
     setupMobileMenu();
+    // Initialize sidebar elements when the document is ready
+    const sidebarTestSelect = document.getElementById('testSelectSidebar');
+    // Copy test options to sidebar select
+    if (originalTestSelect && sidebarTestSelect) {
+        // Watch for changes to the original select and mirror them to the sidebar
+        const observer = new MutationObserver(function () {
+            sidebarTestSelect.innerHTML = originalTestSelect.innerHTML;
+            sidebarTestSelect.value = originalTestSelect.value;
+        });
+        observer.observe(originalTestSelect, { childList: true });
+        // Also sync any immediate value
+        if (originalTestSelect.options.length > 0) {
+            sidebarTestSelect.innerHTML = originalTestSelect.innerHTML;
+            sidebarTestSelect.value = originalTestSelect.value;
+        }
+        // Handle change on sidebar select
+        sidebarTestSelect.addEventListener('change', function () {
+            originalTestSelect.value = this.value;
+            // Trigger change event on the original
+            const event = new Event('change');
+            originalTestSelect.dispatchEvent(event);
+        });
+    }
+    // Copy voice options to sidebar select
+    const originalVoiceSelect = document.getElementById('voiceSelect');
+    const sidebarVoiceSelect = document.getElementById('voiceSelectSidebar');
+    if (originalVoiceSelect && sidebarVoiceSelect) {
+        // Watch for changes to the original voice select
+        const observer = new MutationObserver(function () {
+            sidebarVoiceSelect.innerHTML = originalVoiceSelect.innerHTML;
+            sidebarVoiceSelect.value = originalVoiceSelect.value;
+        });
+        observer.observe(originalVoiceSelect, { childList: true });
+        // Also sync any immediate value
+        if (originalVoiceSelect.options.length > 0) {
+            sidebarVoiceSelect.innerHTML = originalVoiceSelect.innerHTML;
+            sidebarVoiceSelect.value = originalVoiceSelect.value;
+        }
+        // Handle change on sidebar voice select
+        sidebarVoiceSelect.addEventListener('change', function () {
+            originalVoiceSelect.value = this.value;
+            // Trigger change event on the original
+            const event = new Event('change');
+            originalVoiceSelect.dispatchEvent(event);
+        });
+    }
+    // New font size slider implementation
+    const fontSizeSlider = document.getElementById('fontSizeSlider');
+    const restoreDefaultSettings = document.getElementById('restoreDefaultSettings');
+    if (fontSizeSlider) {
+        // Initialize slider with current font size
+        const currentFontSize = getComputedFontSize();
+        fontSizeSlider.value = currentFontSize.toString();
+        // Add event listener for slider changes
+        fontSizeSlider.addEventListener('input', function () {
+            applyFontSize(parseInt(this.value));
+        });
+        // Add event listener for slider change end (to save setting)
+        fontSizeSlider.addEventListener('change', function () {
+            saveFontSizeToLocal(`${this.value}px`);
+        });
+    }
+    if (restoreDefaultSettings) {
+        restoreDefaultSettings.addEventListener('click', function () {
+            // Reset all settings to defaults
+            // 1. Reset font size to default (16px)
+            const defaultSize = 16;
+            applyFontSize(defaultSize);
+            if (fontSizeSlider) {
+                fontSizeSlider.value = defaultSize.toString();
+            }
+            saveFontSizeToLocal(`${defaultSize}px`);
+            // 2. Reset voice selection to default
+            if (originalVoiceSelect) {
+                originalVoiceSelect.selectedIndex = 0;
+                if (sidebarVoiceSelect) {
+                    sidebarVoiceSelect.selectedIndex = 0;
+                }
+                // Clear voice preferences from localStorage
+                const testSelect = document.getElementById('testSelect');
+                if (testSelect && testSelect.selectedOptions.length > 0) {
+                    const selectedOption = testSelect.selectedOptions[0];
+                    const language = selectedOption.dataset.lang;
+                    if (language) {
+                        localStorage.removeItem(`selectedVoice__${language}`);
+                    }
+                }
+                // Trigger change event
+                const event = new Event('change');
+                originalVoiceSelect.dispatchEvent(event);
+            }
+            // 3. Reset speaker state to default (disabled)
+            speakerEnabled = false;
+            sessionStorage.setItem('speakersEnabled', speakerEnabled.toString());
+            updateSpeakerIcon();
+            // 4. Show confirmation message
+            const statusMessage = document.getElementById('statusMessage');
+            if (statusMessage) {
+                statusMessage.textContent = 'כל ההגדרות שוחזרו להגדרות ברירת המחדל';
+                statusMessage.classList.add('show');
+                setTimeout(() => {
+                    statusMessage.classList.remove('show');
+                }, 3000);
+            }
+        });
+    }
+    // Helper function to get computed font size
+    function getComputedFontSize() {
+        const words = document.querySelectorAll('.word, .translation');
+        if (words.length > 0) {
+            // Get computed font size from first word
+            const computedSize = parseInt(window.getComputedStyle(words[0], null).getPropertyValue('font-size'), 10);
+            return computedSize;
+        }
+        // Default size if no words found
+        return 16;
+    }
+    // Helper function to apply font size
+    function applyFontSize(size) {
+        const words = document.querySelectorAll('.word, .translation');
+        const newSizeWithUnit = `${size}px`;
+        // Update individual elements
+        words.forEach(word => {
+            word.style.fontSize = newSizeWithUnit;
+        });
+        // Update or create the style element for consistent sizing
+        let fontSizeStyle = document.getElementById('dynamic-font-size');
+        if (!fontSizeStyle) {
+            fontSizeStyle = document.createElement('style');
+            fontSizeStyle.id = 'dynamic-font-size';
+            document.head.appendChild(fontSizeStyle);
+        }
+        // Update the style to apply to all .word and .translation elements, including future ones
+        fontSizeStyle.textContent = `
+            .word, .translation {
+                font-size: ${newSizeWithUnit} !important;
+            }
+        `;
+    }
+    // Speaker toggle button
+    const toggleSpeakerBtnSidebar = document.getElementById('toggleSpeakerBtnSidebar');
+    const originalToggleSpeakerBtn = document.getElementById('toggleSpeakerBtn');
+    if (toggleSpeakerBtnSidebar && originalToggleSpeakerBtn) {
+        toggleSpeakerBtnSidebar.addEventListener('click', function () {
+            originalToggleSpeakerBtn.click();
+            // Update icon to match original
+            const originalIcon = originalToggleSpeakerBtn.querySelector('i');
+            const sidebarIcon = toggleSpeakerBtnSidebar.querySelector('i');
+            if (originalIcon && sidebarIcon) {
+                sidebarIcon.className = originalIcon.className;
+            }
+        });
+    }
 });
 function setupMobileMenu() {
     // Get game switcher button that's already in the control panel
@@ -661,31 +854,11 @@ function setupMobileInstructions() {
     }
 }
 function setupFullscreenMode() {
-    const toggleControlsBtn = document.getElementById('toggleControlsBtn');
-    const controlPanel = document.querySelector('.control-panel');
     // Check if we're on mobile and enable fullscreen mode automatically
     const isMobile = window.innerWidth <= 768;
     if (isMobile) {
         document.body.classList.add('fullscreen-mode');
     }
-    // Toggle controls visibility
-    toggleControlsBtn.addEventListener('click', () => {
-        if (controlPanel.classList.contains('visible')) {
-            controlPanel.classList.remove('visible');
-        }
-        else {
-            controlPanel.classList.add('visible');
-        }
-    });
-    // Hide controls when clicking elsewhere
-    document.addEventListener('click', (e) => {
-        if (document.body.classList.contains('fullscreen-mode') &&
-            !toggleControlsBtn.contains(e.target) &&
-            !controlPanel.contains(e.target) &&
-            controlPanel.classList.contains('visible')) {
-            controlPanel.classList.remove('visible');
-        }
-    });
     // Update fullscreen mode on resize
     window.addEventListener('resize', () => {
         const shouldBeFullscreen = window.innerWidth <= 768;
@@ -694,7 +867,6 @@ function setupFullscreenMode() {
         }
         else if (!shouldBeFullscreen && document.body.classList.contains('fullscreen-mode')) {
             document.body.classList.remove('fullscreen-mode');
-            controlPanel.classList.remove('visible');
         }
     });
     // Show controls on initial touch (for better UX)
@@ -702,11 +874,33 @@ function setupFullscreenMode() {
     document.addEventListener('touchstart', () => {
         if (!initialTouchOccurred && document.body.classList.contains('fullscreen-mode')) {
             initialTouchOccurred = true;
-            controlPanel.classList.add('visible');
             // Auto-hide after a few seconds
             setTimeout(() => {
-                controlPanel.classList.remove('visible');
+                // No longer needed
             }, 3000);
         }
     }, { once: true });
+}
+// Function to clear any existing game containers
+function clearGameContainers() {
+    // Clear falling words container if it exists
+    const fallingWordsContainer = document.querySelector('.falling-words-container');
+    if (fallingWordsContainer) {
+        fallingWordsContainer.remove();
+    }
+    // Clear word search grid if it exists
+    const wordSearchGrid = document.querySelector('.word-search-grid');
+    if (wordSearchGrid) {
+        wordSearchGrid.remove();
+    }
+    // Clear word container
+    const wordContainer = document.getElementById('wordContainer');
+    if (wordContainer) {
+        wordContainer.innerHTML = '';
+    }
+    // Clear target container
+    const targetContainer = document.getElementById('targetContainer');
+    if (targetContainer) {
+        targetContainer.innerHTML = '';
+    }
 }

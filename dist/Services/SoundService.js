@@ -66,7 +66,9 @@ export class SoundService {
         });
     }
     static isSpeakerEnabled() {
-        return sessionStorage.getItem('speakersEnabled') !== 'false';
+        // Check if speakers are enabled in session storage
+        // Explicitly check for 'true', otherwise return false
+        return sessionStorage.getItem('speakersEnabled') === 'true';
     }
     playAudio(sound) {
         return __awaiter(this, void 0, void 0, function* () {

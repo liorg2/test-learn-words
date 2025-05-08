@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>התאמת מילים</title>
-    <link rel="stylesheet" href="./src/style.css?v=app_version-2025-05-T-06-21-54-13">
+    <link rel="stylesheet" href="./src/style.css?v=app_version-2025-05-T-08-10-26-58">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
 
@@ -16,16 +16,60 @@
 
 <body>
 
+    <!-- The sidebar -->
+    <div id="mySidepanel" class="sidepanel">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        
+        <div class="sidepanel-section">
+            <label for="testSelectSidebar">בחר מבחן:</label>
+            <select id="testSelectSidebar" name="testSelectSidebar">
+                <!-- Options will be populated by JavaScript -->
+            </select>
+        </div>
+
+        <div class="sidepanel-section">
+            <p>משחקים:</p>
+            <a href="#" class="sidepanel-game-link" data-game-type="translation"><i class="fa fa-language"></i> תרגום</a>
+            <a href="#" class="sidepanel-game-link" data-game-type="partOfSpeech"><i class="fa fa-align-left"></i> חלק משפט</a>
+            <a href="#" class="sidepanel-game-link" data-game-type="missingWord"><i class="fa fa-ellipsis-h"></i> מילה חסרה</a>
+            <a href="#" class="sidepanel-game-link" data-game-type="wordSearch"><i class="fa fa-search"></i> תפזורת</a>
+            <a href="#" class="sidepanel-game-link" data-game-type="fallingWords"><i class="fa fa-arrows-alt-v"></i> מילים נופלות</a>
+        </div>
+
+        <div class="sidepanel-section">
+            <p>הגדרות:</p>
+            <div class="dropdown-group">
+                <label for="voiceSelectSidebar">קול:</label>
+                <select id="voiceSelectSidebar" name="voiceSelectSidebar">
+                    <!-- Voice options will be populated by JavaScript -->
+                </select>
+            </div>
+            <div class="buttons-group">
+                <label>גודל כתב:</label>
+                <div class="font-size-slider-container">
+                    <input type="range" id="fontSizeSlider" min="10" max="36" step="1" value="16" class="font-size-slider">
+                </div>
+            </div>
+            <div class="speaker-toggle-container">
+                <label for="toggleSpeakerBtnSidebar">קול:</label>
+                <button id="toggleSpeakerBtnSidebar" title="הדלקה/כיבוי של קול">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+            </div>
+            <div class="reset-container">
+                <button id="restoreDefaultSettings" title="שחזור הגדרות ברירת מחדל">אפס את כל ההגדרות</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Button to open the sidebar -->
+    <button class="openbtn" onclick="openNav()">&#9776;</button>
+
     <div id="overlay-start" style="display: none">
         <h2 class="overlay-title">ברוכים הבאים!</h2>
         <p class="overlay-text">בחרו משחק כדי להתחיל</p>
         <div class="overlay-control" id="overlay-control"></div>
     </div>
-
-    <!-- Toggle controls button for fullscreen mode -->
-    <button id="toggleControlsBtn" class="toggle-controls-btn">
-        <i class="fas fa-bars"></i>
-    </button>
 
     <div class="control-panel">
 
@@ -82,7 +126,7 @@
     </div>
 
     <!--
-app_version-2025-05-T-06-21-54-13
+app_version-2025-05-T-08-10-26-58
 -->
     <div class="control-panel-bottom" id="menu">
         <div class="control-popup-content">
@@ -106,10 +150,196 @@ app_version-2025-05-T-06-21-54-13
 
 
     <div id="log">
-        <p>version: app_version-2025-05-T-06-21-54-13</p>
+        <p>version: app_version-2025-05-T-08-10-26-58</p>
     </div>
 
-    <script type="module" src="./dist/gameManager.js?v=app_version-2025-05-T-06-21-54-13"></script>
+    <script type="module" src="./dist/gameManager.js?v=app_version-2025-05-T-08-10-26-58"></script>
+
+    <!-- Sidebar functionality -->
+    <script>
+        function openNav() {
+            document.getElementById("mySidepanel").style.width = "300px";
+            // Add a class to body to handle fullscreen mode adjustments if needed
+            document.body.classList.add('sidebar-open');
+        }
+
+        function closeNav() {
+            document.getElementById("mySidepanel").style.width = "0";
+            document.body.classList.remove('sidebar-open');
+        }
+
+        // Initialize sidebar elements when the document is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Make sidebar toggle button visible only on mobile or in fullscreen mode
+            const openBtn = document.querySelector('.openbtn');
+            if (openBtn) {
+                // We're now showing the button on all devices, so we don't need to check screen size
+                // Just handle fullscreen mode transitions for positioning
+                
+                // Add window resize listener to handle desktop/mobile transitions
+                window.addEventListener('resize', function() {
+                    // No need to change visibility, just update positioning if needed
+                    const isFullscreenNow = document.body.classList.contains('game-fullscreen-mode') || 
+                                          document.body.classList.contains('fullscreen-mode');
+                    
+                    // Update positioning if in fullscreen mode
+                    if (isFullscreenNow) {
+                        // Any special positioning for fullscreen mode can go here
+                    }
+                });
+            }
+            
+            // Copy test options to sidebar select
+            const originalTestSelect = document.getElementById('testSelect');
+            const sidebarTestSelect = document.getElementById('testSelectSidebar');
+            
+            if (originalTestSelect && sidebarTestSelect) {
+                // Watch for changes to the original select and mirror them to the sidebar
+                const observer = new MutationObserver(function() {
+                    sidebarTestSelect.innerHTML = originalTestSelect.innerHTML;
+                    sidebarTestSelect.value = originalTestSelect.value;
+                });
+                
+                observer.observe(originalTestSelect, { childList: true });
+                
+                // Also sync any immediate value
+                if (originalTestSelect.options.length > 0) {
+                    sidebarTestSelect.innerHTML = originalTestSelect.innerHTML;
+                    sidebarTestSelect.value = originalTestSelect.value;
+                }
+                
+                // Handle change on sidebar select
+                sidebarTestSelect.addEventListener('change', function() {
+                    originalTestSelect.value = this.value;
+                    // Trigger change event on the original
+                    const event = new Event('change');
+                    originalTestSelect.dispatchEvent(event);
+                });
+            }
+            
+            // Copy voice options to sidebar select
+            const originalVoiceSelect = document.getElementById('voiceSelect');
+            const sidebarVoiceSelect = document.getElementById('voiceSelectSidebar');
+            
+            if (originalVoiceSelect && sidebarVoiceSelect) {
+                // Watch for changes to the original voice select
+                const observer = new MutationObserver(function() {
+                    sidebarVoiceSelect.innerHTML = originalVoiceSelect.innerHTML;
+                    sidebarVoiceSelect.value = originalVoiceSelect.value;
+                });
+                
+                observer.observe(originalVoiceSelect, { childList: true });
+                
+                // Also sync any immediate value
+                if (originalVoiceSelect.options.length > 0) {
+                    sidebarVoiceSelect.innerHTML = originalVoiceSelect.innerHTML;
+                    sidebarVoiceSelect.value = originalVoiceSelect.value;
+                }
+                
+                // Handle change on sidebar voice select
+                sidebarVoiceSelect.addEventListener('change', function() {
+                    originalVoiceSelect.value = this.value;
+                    // Trigger change event on the original
+                    const event = new Event('change');
+                    originalVoiceSelect.dispatchEvent(event);
+                });
+            }
+            
+            // Font size buttons
+            const decreaseFontSidebar = document.getElementById('decreaseFontSidebar');
+            const increaseFontSidebar = document.getElementById('increaseFontSidebar');
+            const originalDecreaseFont = document.getElementById('decreaseFont');
+            const originalIncreaseFont = document.getElementById('increaseFont');
+            
+            if (decreaseFontSidebar && originalDecreaseFont) {
+                decreaseFontSidebar.addEventListener('click', function() {
+                    originalDecreaseFont.click();
+                });
+            }
+            
+            if (increaseFontSidebar && originalIncreaseFont) {
+                increaseFontSidebar.addEventListener('click', function() {
+                    originalIncreaseFont.click();
+                });
+            }
+            
+            // Speaker toggle button
+            const toggleSpeakerBtnSidebar = document.getElementById('toggleSpeakerBtnSidebar');
+            const originalToggleSpeakerBtn = document.getElementById('toggleSpeakerBtn');
+            
+            if (toggleSpeakerBtnSidebar && originalToggleSpeakerBtn) {
+                toggleSpeakerBtnSidebar.addEventListener('click', function() {
+                    originalToggleSpeakerBtn.click();
+                    // Update icon to match original
+                    const originalIcon = originalToggleSpeakerBtn.querySelector('i');
+                    const sidebarIcon = toggleSpeakerBtnSidebar.querySelector('i');
+                    if (originalIcon && sidebarIcon) {
+                        sidebarIcon.className = originalIcon.className;
+                    }
+                });
+            }
+            
+            // Game switching through sidebar links
+            document.querySelectorAll('.sidepanel-game-link').forEach(link => {
+                link.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    const gameType = this.getAttribute('data-game-type');
+                    if (gameType) {
+                        // Find and click the corresponding game tab
+                        const gameTab = document.querySelector(`.game-type-tab[data-game-type="${gameType}"]`);
+                        if (gameTab) {
+                            gameTab.click();
+                            closeNav(); // Close sidebar after selection
+                        }
+                    }
+                });
+            });
+            
+            // Add listener for fullscreen button to update sidebar button positioning
+            const fullscreenBtn = document.getElementById('fullscreenButton');
+            if (fullscreenBtn) {
+                fullscreenBtn.addEventListener('click', function() {
+                    // Toggle fullscreen class
+                    document.body.classList.toggle('game-fullscreen-mode');
+                    
+                    // Update sidebar button positioning after a short delay to let CSS transitions complete
+                    setTimeout(() => {
+                        // We no longer need to update visibility, just handle any positioning changes if needed
+                        const isFullscreenNow = document.body.classList.contains('game-fullscreen-mode') || 
+                                              document.body.classList.contains('fullscreen-mode');
+                        
+                        // Update sidebar button positioning if needed in fullscreen mode
+                        if (openBtn && isFullscreenNow) {
+                            // Any special positioning adjustments can go here
+                        }
+                    }, 300);
+                });
+            }
+            
+            // Add listener for exit fullscreen button if it exists
+            const exitFullscreenBtn = document.querySelector('.exit-fullscreen-button');
+            if (exitFullscreenBtn) {
+                exitFullscreenBtn.addEventListener('click', function() {
+                    // Remove fullscreen classes
+                    document.body.classList.remove('game-fullscreen-mode');
+                    document.body.classList.remove('fullscreen-mode');
+                    
+                    // We don't need to update sidebar button visibility anymore
+                });
+            }
+            
+            // Listen for browser fullscreenchange event (handles Escape key exit)
+            document.addEventListener('fullscreenchange', function() {
+                if (!document.fullscreenElement) {
+                    // Exited fullscreen mode
+                    document.body.classList.remove('game-fullscreen-mode');
+                    document.body.classList.remove('fullscreen-mode');
+                    
+                    // We don't need to update sidebar button visibility anymore
+                }
+            });
+        });
+    </script>
 
 </body>
 
