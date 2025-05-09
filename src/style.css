@@ -2700,6 +2700,8 @@ body[data-game-type="fallingWords"] .speed-slider-container {
     margin-left: 10px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     transition: all 0.2s ease;
+    position: relative;
+    z-index: 1;
 }
 
 .pagination-help-button:hover {
@@ -2725,44 +2727,13 @@ body[data-game-type="fallingWords"] .speed-slider-container {
     line-height: 1.4;
 }
 
-.pagination-help-popover.active {
-    display: block;
-    animation: fade-in 0.3s ease;
-}
-
-.pagination-help-popover p {
-    margin: 8px 0;
-}
-
-.pagination-help-popover-close {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    background: none;
-    border: none;
-    font-size: 18px;
-    color: #777;
-    cursor: pointer;
-    line-height: 1;
-}
-
-.pagination-help-popover-close:hover {
-    color: #333;
-}
-
-.pagination-help-popover-title {
-    font-weight: bold;
-    font-size: 16px;
-    margin-bottom: 10px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 5px;
-}
-
 @media (max-width: 768px) {
     .pagination-help-button {
         width: 20px;
         height: 20px;
         font-size: 12px;
+        margin-left: 8px;
+        margin-right: 8px;
     }
     
     .pagination-help-popover {
@@ -2770,5 +2741,13 @@ body[data-game-type="fallingWords"] .speed-slider-container {
         padding: 12px;
         right: 0;
         top: calc(100% + 5px);
+        margin: 0 8px;
+    }
+
+    .pagination-controls {
+        margin: 12px 0;
+        gap: 6px;
+        height: 32px;
+        padding: 0 8px;
     }
 }
