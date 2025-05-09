@@ -269,10 +269,8 @@ export class Game {
         const pageSizeSelector = paginationContainer.querySelector('.page-size-selector');
         // Clear existing pagination
         paginationContainer.innerHTML = '';
-        // Calculate current pages based on current content
-        const contentBasedPages = Math.ceil(Math.max(this.wordElements.length, this.translationElements.length) / this.itemsPerPage);
-        // Use the greater of stored total pages or content-based pages to ensure we never lose pages
-        this.totalPagesCount = Math.max(this.totalPagesCount, contentBasedPages);
+        // Calculate total pages based on current itemsPerPage
+        this.totalPagesCount = Math.ceil(this.words.length / this.itemsPerPage);
         // Ensure at least 1 page is shown
         const minPages = Math.max(1, this.totalPagesCount);
         // Create buttons container to separate buttons from page size selector
@@ -307,7 +305,7 @@ export class Game {
             this.createPageSizeSelector(paginationContainer);
         }
         // Log pagination info
-        log(`Updated pagination UI: ${minPages} pages, current page: ${this.currentPage}, total pages stored: ${this.totalPagesCount}`);
+        log(`Updated pagination UI: ${minPages} pages, current page: ${this.currentPage}, total pages: ${this.totalPagesCount}`);
     }
     createPageSizeSelector(paginationContainer) {
         // Create page size selector
