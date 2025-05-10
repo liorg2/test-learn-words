@@ -123,19 +123,16 @@ export class TranslationGame extends Game {
 
     renderTarget() {
         this.loadTranslations();
-        
+        this.organizeWordsByPage(); // Ensure translations are organized before showing any page
         // Show first page after loading translations
         if (this.translationElements.length > 0) {
             this.updatePage(0);
         }
-        
         // Calculate and store total pages based on word count
         const totalPages = Math.ceil(this.words.length / this.itemsPerPage);
         // Always use the maximum value to prevent losing pages
         this.totalPagesCount = Math.max(this.totalPagesCount, totalPages);
-        
         log(`TranslationGame renderTarget: ${this.words.length} words, ${this.itemsPerPage} per page = ${totalPages} pages. Stored total: ${this.totalPagesCount}`);
-        
         // Update pagination UI to show all potential pages
         this.updatePaginationUI();
     }

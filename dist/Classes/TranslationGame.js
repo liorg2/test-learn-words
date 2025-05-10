@@ -97,6 +97,7 @@ export class TranslationGame extends Game {
     }
     renderTarget() {
         this.loadTranslations();
+        this.organizeWordsByPage(); // Ensure translations are organized before showing any page
         // Show first page after loading translations
         if (this.translationElements.length > 0) {
             this.updatePage(0);
