@@ -62,8 +62,10 @@ export class MissingWordGame extends Game {
 
     renderTarget() {
         this.loadSentences();
-        // Show first page
+        
+        // Organize translations across pages before showing any page
         if (this.translationElements.length > 0) {
+            this.organizeWordsByPage();
             this.updatePage(0);
         }
     }
