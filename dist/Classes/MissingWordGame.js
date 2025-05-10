@@ -1,5 +1,6 @@
 import { Game } from "./Game.js";
 import { log } from "../utilities.js";
+//lior
 export class MissingWordGame extends Game {
     constructor(words, language) {
         super(words, language);

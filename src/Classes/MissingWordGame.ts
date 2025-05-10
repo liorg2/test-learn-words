@@ -1,6 +1,7 @@
-import {Game} from "./Game.js";
-import {log} from "../utilities.js";
-import {GameWord} from "../globalTypes";
+import { Game } from "./Game.js";
+import { log } from "../utilities.js";
+import { GameWord } from "../globalTypes";
+//lior
 
 export class MissingWordGame extends Game {
     constructor(words: GameWord[], language: string) {
@@ -15,7 +16,7 @@ export class MissingWordGame extends Game {
         // Reset the translation elements
         this.translationElements = [];
         this.translationContainer.innerHTML = ''; // Clear previous content
-        
+
         const randomSentence = this.getRandomWordAndModifiedSentence();
         if (!randomSentence) return;
 
@@ -56,7 +57,7 @@ export class MissingWordGame extends Game {
         const modifiedSentence = selectedSentence.replace(new RegExp(`(?<!\\w)${selectedWord.text}(s|[.,!?])?(?!\\w)`, 'gi'), "________");
 
         log('getRandomWordAndModifiedSentence ' + selectedWord.text + ' ' + modifiedSentence + ' ' + selectedSentence);
-        return {selectedWord: selectedWord.text, modifiedSentence, selectedSentence, translation};
+        return { selectedWord: selectedWord.text, modifiedSentence, selectedSentence, translation };
     }
 
     renderTarget() {
@@ -71,7 +72,7 @@ export class MissingWordGame extends Game {
     checkPageCompletion(pageNum: number) {
         // First run the parent implementation
         super.checkPageCompletion(pageNum);
-        
+
         // For Missing Word Game, if it's a new random sentence after a correct answer,
         // we also need to check if there are any matching words for this sentence
         if (this.currentPage === pageNum) {
@@ -80,16 +81,16 @@ export class MissingWordGame extends Game {
             if (sentenceElement && sentenceElement.dataset.selectedWord) {
                 // Get the selected word
                 const selectedWord = sentenceElement.dataset.selectedWord;
-                
+
                 // Check if there's a matching visible word
                 const hasMatchingWord = Array.from(this.wordContainer.querySelectorAll('.word'))
                     .some(wordEl => {
                         const element = wordEl as HTMLElement;
-                        return element.textContent === selectedWord && 
-                               !element.classList.contains('correct') && 
-                               element.style.display !== 'none';
+                        return element.textContent === selectedWord &&
+                            !element.classList.contains('correct') &&
+                            element.style.display !== 'none';
                     });
-                
+
                 // If there's no matching word for this sentence, generate a new one
                 if (!hasMatchingWord) {
                     this.loadSentences();
@@ -132,5 +133,4 @@ export class MissingWordGame extends Game {
         this.wordElements = organizedWords.flat();
         this.translationElements = organizedTranslations.flat();
     }
-}
 }
