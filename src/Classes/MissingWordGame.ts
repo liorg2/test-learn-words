@@ -107,9 +107,8 @@ export class MissingWordGame extends Game {
         // Skip the parent class implementation which tries to match words with translations
         // Instead, just divide the already-shuffled words and translations into pages
         const totalPages = Math.ceil(this.wordElements.length / this.itemsPerPage);
-        const organizedWords: HTMLElement[][] = Array(totalPages).fill(null).map(() => []);
-        const organizedTranslations: HTMLElement[][] = Array(totalPages).fill(null).map(() => []);
-        
+        const organizedWords = Array(totalPages).fill(null).map(() => []);
+        const organizedTranslations = Array(totalPages).fill(null).map(() => []);
         // Distribute words to pages (already shuffled)
         for (let i = 0; i < this.wordElements.length; i++) {
             const pageIndex = Math.floor(i / this.itemsPerPage);
@@ -117,17 +116,21 @@ export class MissingWordGame extends Game {
                 organizedWords[pageIndex].push(this.wordElements[i]);
             }
         }
-        
-        // Distribute translations to pages (already shuffled)
-        for (let i = 0; i < this.translationElements.length; i++) {
-            const pageIndex = Math.floor(i / this.itemsPerPage);
-            if (pageIndex < totalPages) {
-                organizedTranslations[pageIndex].push(this.translationElements[i]);
+        // Distribute translations to pages, ensuring each page gets at least one if possible
+        let t = 0;
+        for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
+            if (t < this.translationElements.length) {
+                organizedTranslations[pageIndex].push(this.translationElements[t]);
+                t++;
             }
         }
-        
-        // Update the arrays with pages maintained but not matched
+        // If more translations, distribute the rest round-robin
+        while (t < this.translationElements.length) {
+            organizedTranslations[t % totalPages].push(this.translationElements[t]);
+            t++;
+        }
         this.wordElements = organizedWords.flat();
         this.translationElements = organizedTranslations.flat();
     }
+}
 }
