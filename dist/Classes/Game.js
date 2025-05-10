@@ -88,8 +88,7 @@ export class Game {
             const wordDiv = this.createWordDiv(word, this.language);
             this.wordElements.push(wordDiv);
         });
-        // Display current page
-        this.updatePage(0);
+        // Don't call updatePage here - it will be called after renderTarget
     }
     // Group words with their matching translations on the same page
     organizeWordsByPage() {
