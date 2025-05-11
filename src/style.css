@@ -302,7 +302,7 @@ body {
     align-items: center;
     min-height: 60vh; /* Ensure game area takes at least 60% of viewport height */
     position: relative; /* Add position context for absolute positioning */
-    padding-top: 80px; /* Account for statistics (36px) + pagination (34px) + space (10px) */
+    padding-top: 10px; /* Reduced from 80px to 55px to fix excessive space */
     padding-bottom: 0;
 }
 
@@ -448,8 +448,8 @@ body {
 
 .check-icon {
     position: absolute;
-    bottom: -2px;
-    right: -2px;
+    bottom: -4px;
+    right: 0;
     font-size: 0.6rem;
     background-color: #388E3C;
     border-radius: 50%;

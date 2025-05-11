@@ -103,6 +103,46 @@ test.describe('Translation Game Direct Matching', () => {
       console.log('Game completed - summary card visible');
     }
   });
+
+    test('should complete the entire translation game', async ({page}) => {
+        test.setTimeout(60000);
+        await page.goto('/game.html');
+        await page.waitForSelector('.game-area', {state: 'visible'});
+        const translationTab = page.locator('.game-type-tab', {hasText: 'תרגום'});
+        await translationTab.click();
+        await page.waitForSelector('.word', {state: 'visible'});
+        await page.waitForSelector('.translation', {state: 'visible'});
+
+        let attempts = 0;
+        const maxAttempts = 50;
+        while (attempts < maxAttempts) {
+            attempts++;
+            const visibleWords = await page.locator('.word:visible').all();
+            if (visibleWords.length === 0) break;
+            const visibleTranslations = await page.locator('.translation:visible').all();
+            if (visibleTranslations.length === 0) break;
+            const wordElement = visibleWords[0];
+            const translationValue = await wordElement.getAttribute('data-translation');
+            let matchFound = false;
+            for (const translationElement of visibleTranslations) {
+                if (matchFound) break;
+                const translationText = await translationElement.textContent();
+                if (translationText === translationValue) {
+                    matchFound = true;
+                    let dragSuccess = false;
+                    for (let dragAttempt = 1; dragAttempt <= 3; dragAttempt++) {
+                        dragSuccess = await performDragDrop(page, wordElement, translationElement);
+                        if (dragSuccess) break;
+                        await page.waitForTimeout(300);
+                    }
+                    await page.waitForTimeout(500);
+                }
+            }
+            if (!matchFound) break;
+        }
+        await page.waitForTimeout(1000);
+        expect(await page.locator('#summaryCard').isVisible()).toBeTruthy();
+    });
 });
 
 // Helper function to perform drag and drop

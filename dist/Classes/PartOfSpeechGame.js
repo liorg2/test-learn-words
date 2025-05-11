@@ -1,4 +1,5 @@
 import { Game } from "./Game.js";
+import { log } from "../utilities.js";
 export class PartOfSpeechGame extends Game {
     constructor(words, language) {
         super(words, language);
@@ -6,6 +7,7 @@ export class PartOfSpeechGame extends Game {
     updateInstructions() {
         this.setInstructions('יש לגרור כל מילה לחלק המשפט המתאים.');
     }
+    // Create part of speech container elements - similar to loadTranslations in TranslationGame
     loadPartsOfSpeech() {
         // Reset translation elements
         this.translationElements = [];
@@ -31,44 +33,50 @@ export class PartOfSpeechGame extends Game {
             targetDiv.addEventListener('drop', this.handleDrop);
             this.translationElements.push(targetDiv);
         });
+        log(`Parts of speech loaded: ${this.translationElements.length}`);
     }
-    renderTarget() {
-        this.loadPartsOfSpeech();
-        // Organize translations across pages before showing any page
-        if (this.translationElements.length > 0) {
-            this.organizeWordsByPage();
-            this.updatePage(0);
-        }
-    }
-    // Disable the word organization that tries to match translations with words
+    // Handle specific organization for PartOfSpeechGame
     organizeWordsByPage() {
-        // Skip the parent class implementation which tries to match words with translations
-        // Instead, just divide the already-shuffled words and translations into pages
         const totalPages = Math.ceil(this.wordElements.length / this.itemsPerPage);
+        const wordElements = [...this.wordElements];
+        const translationElements = [...this.translationElements];
+        // Create arrays for pages
         const organizedWords = Array(totalPages).fill(null).map(() => []);
         const organizedTranslations = Array(totalPages).fill(null).map(() => []);
-        // Distribute words to pages (already shuffled)
-        for (let i = 0; i < this.wordElements.length; i++) {
+        // Distribute words to pages
+        for (let i = 0; i < wordElements.length; i++) {
             const pageIndex = Math.floor(i / this.itemsPerPage);
             if (pageIndex < totalPages) {
-                organizedWords[pageIndex].push(this.wordElements[i]);
+                organizedWords[pageIndex].push(wordElements[i]);
             }
         }
-        // Distribute translations to pages, ensuring each page gets at least one if possible
-        let t = 0;
+        // Add ALL parts of speech to EACH page
         for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
-            if (t < this.translationElements.length) {
-                organizedTranslations[pageIndex].push(this.translationElements[t]);
-                t++;
-            }
+            // Add each part of speech to this page
+            translationElements.forEach(translation => {
+                // Create a clone to avoid issues with the same element being added multiple times
+                const clonedTranslation = translation.cloneNode(true);
+                // Add all event listeners to the clone
+                clonedTranslation.addEventListener('dragover', this.handleDragOver);
+                clonedTranslation.addEventListener('dragleave', this.handleDragLeave);
+                clonedTranslation.addEventListener('drop', this.handleDrop);
+                organizedTranslations[pageIndex].push(clonedTranslation);
+            });
         }
-        // If more translations, distribute the rest round-robin
-        while (t < this.translationElements.length) {
-            organizedTranslations[t % totalPages].push(this.translationElements[t]);
-            t++;
-        }
-        // Update the arrays with pages maintained but not matched
+        // Update the arrays
         this.wordElements = organizedWords.flat();
         this.translationElements = organizedTranslations.flat();
+        log(`PartOfSpeechGame organized: ${this.wordElements.length} words, ${this.translationElements.length} translations`);
+    }
+    renderTarget() {
+        // Load parts of speech
+        this.loadPartsOfSpeech();
+        // Only organize and update if we have translations
+        if (this.translationElements.length > 0) {
+            // Organize all words and translations by page
+            this.organizeWordsByPage();
+            // Show the first page
+            this.updatePage(0);
+        }
     }
 }
