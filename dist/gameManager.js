@@ -337,6 +337,7 @@ function updateSpeakerIcon() {
 }
 // Setup fullscreen functionality for all games
 function setupFullscreenToggle() {
+    debugger;
     const fullscreenButton = document.getElementById('fullscreenButton');
     if (fullscreenButton) {
         // Use CSS classes to control visibility instead of inline styles
@@ -362,7 +363,6 @@ function toggleGameFullscreen() {
     }
 }
 function enterGameFullscreen() {
-    debugger
     // Add fullscreen class to body
     document.body.classList.add('game-fullscreen-mode');
     // Make sure to update the button state even if it's hidden

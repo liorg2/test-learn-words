@@ -393,6 +393,7 @@ function updateSpeakerIcon() {
 
 // Setup fullscreen functionality for all games
 function setupFullscreenToggle() {
+    debugger
     const fullscreenButton = document.getElementById('fullscreenButton');
     
     if (fullscreenButton) {
