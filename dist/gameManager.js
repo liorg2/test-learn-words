@@ -362,6 +362,7 @@ function toggleGameFullscreen() {
     }
 }
 function enterGameFullscreen() {
+    debugger
     // Add fullscreen class to body
     document.body.classList.add('game-fullscreen-mode');
     // Make sure to update the button state even if it's hidden
